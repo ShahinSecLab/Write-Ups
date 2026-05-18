@@ -5,7 +5,7 @@ A collection of AD attack writeups for learning and reference.
 ## Writeups
 
 ```
-| # | Topic | Status |
+| # |      Topic       |       Status     |
 |---|------------------|------------------|
 
 | 1 | LLMNR Poisoning  | 🔄 In Progress   |
