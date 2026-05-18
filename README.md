@@ -1,6 +1,4 @@
-# ad-attack-writeups
-
-**# Active Directory Attack Writeups**
+# Active Directory Attack Writeups
 
 
 
