@@ -42,7 +42,7 @@ The problem is — any machine on the network can reply. So an attacker can say 
 
 ## LLMNR Poisoning Flow
 
-\`\`\`
+```
 Victim                    Network                         Attacker
   |                          |                               |
   |--- DNS request --------->|                               |
@@ -58,4 +58,4 @@ Victim                    Network                         Attacker
   |    (credentials sent)    |                               |
   |                          |                 Attacker captures
   |                          |                 NTLMv2 hash
-\`\`\`
+```
