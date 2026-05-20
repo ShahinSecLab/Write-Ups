@@ -160,7 +160,7 @@ Now hit Enter button
 A nano text editor will open. Paste the Hash here.
 
 <p align="center">
-  <img src="/writeups//01-llmnr-poisoning/images/step4-3.png" width="700">
+  <img src="/writeups//01-llmnr-poisoning/images/step4-3.png" width="600">
 </p>
 
 Then press Ctrl+x, y, Enter
@@ -198,22 +198,20 @@ KARIM::VICTIM-2:08c4e1b5073681c1:7acce8f5708e0b1ea3bcbcf99f26fa01:10101000000000
   <img src="/writeups//01-llmnr-poisoning/images/step5.png" width="600">
 </p>
 
+ ### The cracked password is: Password1
 
 ## Defense & Mitigation
 
 **Fix 1 — Disable LLMNR via Group Policy:**
-
-```
 Computer Configuration
 → Administrative Templates
 → Network
 → DNS Client
 → Turn off Multicast Name Resolution
 → Set to: ENABLED
-```
+
 
 **Fix 2 — Disable NBT-NS:**
-```
 Control Panel
 → Network and Sharing Center
 → Change Adapter Settings
@@ -221,14 +219,12 @@ Control Panel
 → IPv4 → Advanced
 → WINS tab
 → Select "Disable NetBIOS over TCP/IP"
-```
+
 
 **Fix 3 — Enable Network Access Control (NAC):**
-
 Prevent unknown devices from joining the network.
 
 **Fix 4 — Use Strong Passwords:**
-
 Long complex passwords make hash cracking extremely difficult or impossible.
 <table>
   <tr>
