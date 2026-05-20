@@ -203,6 +203,7 @@ KARIM::VICTIM-2:08c4e1b5073681c1:7acce8f5708e0b1ea3bcbcf99f26fa01:10101000000000
 ## Defense & Mitigation
 
 **Fix 1 — Disable LLMNR via Group Policy:**
+
 Computer Configuration
 → Administrative Templates
 → Network
