@@ -139,31 +139,31 @@ Windows tries DNS → fails → broadcasts LLMNR → Responder catches it.
 
 ### Step 4 — Capture the Hash
 
-Copy the Hash
+- step 4.1: Copy the Hash
 
 <p align="center">
   <img src="/writeups//01-llmnr-poisoning/images/step4-1.png" width="600">
 </p>
 
 
-Then on attacker terminal, type
+- step 4.2: Then on attacker terminal, type
 
 ```bash
 nano hash.txt
 ```
-Now hit Enter button
+- step 4.3: Now hit Enter button
 
 <p align="center">
   <img src="/writeups//01-llmnr-poisoning/images/step4-2.png" width="600">
 </p>
 
-A nano text editor will open. Paste the Hash here.
+- step 4.4: A nano text editor will open. Paste the Hash here.
 
 <p align="center">
   <img src="/writeups//01-llmnr-poisoning/images/step4-3.png" width="600">
 </p>
 
-Then press Ctrl+x, y, Enter
+- step 4.5: Then press Ctrl+x, y, Enter
 
 
 ### Step 5 — Crack the Hash
@@ -212,6 +212,7 @@ Computer Configuration
 
 
 **Fix 2 — Disable NBT-NS:**
+
 Control Panel
 → Network and Sharing Center
 → Change Adapter Settings
@@ -222,9 +223,11 @@ Control Panel
 
 
 **Fix 3 — Enable Network Access Control (NAC):**
+
 Prevent unknown devices from joining the network.
 
 **Fix 4 — Use Strong Passwords:**
+
 Long complex passwords make hash cracking extremely difficult or impossible.
 <table>
   <tr>
