@@ -111,6 +111,8 @@ On Windows victim, open File Explorer and type:
 ```
 \\fakeshare
 ```
+In my case, my victim machine name is Victim 2
+
 ![Responder Output](images/step3-1.png)
 
 Windows tries DNS → fails → broadcasts LLMNR → Responder catches it.
@@ -137,10 +139,16 @@ Then on attacker terminal, type
 nano hash.txt
 ```
 Now hit Enter button
-A nano text editor will open. Paste the Hash here.
-Then press Ctrl+x, y, Enter
 
 ![](images/step4-2.png)
+
+A nano text editor will open. Paste the Hash here.
+
+![](images/step4-3.png)
+
+Then press Ctrl+x, y, Enter
+
+
 
 
 ### Step 5 — Crack the Hash
@@ -170,7 +178,7 @@ KARIM::VICTIM-2:08c4e1b5073681c1:7acce8f5708e0b1ea3bcbcf99f26fa01:10101000000000
 0000050006002000000000800045005300350033004a0083003......(full hash).....:Password1         
                                                                                    
 ```
-![Responder Output](images/step4-3.png)
+![Responder Output](images/step4-4.png)
 
 
 ## Defense & Mitigation
