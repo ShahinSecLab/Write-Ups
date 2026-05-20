@@ -105,7 +105,9 @@ sudo responder -I eth0 -dwv
 ```
 Responder will now listen on the network and wait for someone to broadcast a name request.
 
-<img src="/writeups//01-llmnr-poisoning/images/step2.png" width="700">
+<p align="center">
+  <img src="/writeups//01-llmnr-poisoning/images/step2.png" width="600">
+</p>
 
 
 ### Step 3 — Trigger from Victim Machine
@@ -116,7 +118,9 @@ On Windows victim, open File Explorer and type:
 ```
 In my case, my victim machine name is Victim 2
 
-<img src="/writeups//01-llmnr-poisoning/images/step3-1.png" width="700">
+<p align="center">
+  <img src="/writeups//01-llmnr-poisoning/images/step3-1.png" width="600">
+</p>
 
 Windows tries DNS → fails → broadcasts LLMNR → Responder catches it.
 
@@ -129,13 +133,18 @@ Windows tries DNS → fails → broadcasts LLMNR → Responder catches it.
 [SMB] NTLMv2-SSP Hash     : karim::VICTIM-2:9265e4bef71c4923:19C4EB1DD7F5B53D853808B81F0EBCE4:010100000000000000CFC35AC5E6DC0135AE1EB1E9966109000000000200080036005A .... (full hash)...
 ```
 
-<img src="/writeups//01-llmnr-poisoning/images/step3-2.png" width="700">
+<p align="center">
+  <img src="/writeups//01-llmnr-poisoning/images/step3-2.png" width="600">
+</p>
 
 ### Step 4 — Capture the Hash
 
 Copy the Hash
 
-<img src="/writeups//01-llmnr-poisoning/images/step4-1.png" width="700">
+<p align="center">
+  <img src="/writeups//01-llmnr-poisoning/images/step4-1.png" width="600">
+</p>
+
 
 Then on attacker terminal, type
 
@@ -144,15 +153,17 @@ nano hash.txt
 ```
 Now hit Enter button
 
-<img src="/writeups//01-llmnr-poisoning/images/step4-2.png" width="700">
+<p align="center">
+  <img src="/writeups//01-llmnr-poisoning/images/step4-2.png" width="600">
+</p>
 
 A nano text editor will open. Paste the Hash here.
 
-<img src="/writeups//01-llmnr-poisoning/images/step4-3.png" width="700">
+<p align="center">
+  <img src="/writeups//01-llmnr-poisoning/images/step4-3.png" width="700">
+</p>
 
 Then press Ctrl+x, y, Enter
-
-
 
 
 ### Step 5 — Crack the Hash
@@ -183,22 +194,26 @@ KARIM::VICTIM-2:08c4e1b5073681c1:7acce8f5708e0b1ea3bcbcf99f26fa01:10101000000000
                                                                                    
 ```
 
-<img src="/writeups//01-llmnr-poisoning/images/step4-4.png" width="700">
+<p align="center">
+  <img src="/writeups//01-llmnr-poisoning/images/step5.png" width="600">
+</p>
 
 
 ## Defense & Mitigation
 
 **Fix 1 — Disable LLMNR via Group Policy:**
 
+```
 Computer Configuration
 → Administrative Templates
 → Network
 → DNS Client
 → Turn off Multicast Name Resolution
 → Set to: ENABLED
+```
 
 **Fix 2 — Disable NBT-NS:**
-
+```
 Control Panel
 → Network and Sharing Center
 → Change Adapter Settings
@@ -206,6 +221,7 @@ Control Panel
 → IPv4 → Advanced
 → WINS tab
 → Select "Disable NetBIOS over TCP/IP"
+```
 
 **Fix 3 — Enable Network Access Control (NAC):**
 
