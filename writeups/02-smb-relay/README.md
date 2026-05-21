@@ -37,61 +37,83 @@ SMB Relay is a network attack where an attacker captures a user's authentication
 
 ```text
 ┌─────────────────────────────────────────────┐
-│ 1. Victim tries to access a resource        │
-│                                              │
-│ Example:                                     │
-│ \\fileserver                                 │
-│ \\shared-folder                              │
+│ 1. Victim tries to access a network resource│
+│                                             │
+│ Example:                                    │
+│ \\fileserver                                │
+│ \\shared-folder                             │
 └─────────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────┐
-│ 2. Resource cannot be found                 │
-│                                              │
-│ Windows sends LLMNR/NBT-NS request:          │
-│ "Who has this resource?"                     │
+│ 2. The system cannot find the resource      │
+│                                             │
+│ Windows sends LLMNR/NBT-NS request asking:  │
+│ "Who has this resource?"                    │
 └─────────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────┐
 │ 3. Responder replies first                  │
-│                                              │
-│ Attacker machine says:                       │
-│ "I have that resource."                      │
+│                                             │
+│ Attacker machine says:                      │
+│ "I have that resource."                     │
 └─────────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────┐
 │ 4. Victim sends NTLM authentication         │
-│                                              │
-│ Example:                                     │
-│ DOMAIN\user                                  │
+│                                             │
+│ Example:                                    │
+│ DOMAIN\user                                 │
 └─────────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────┐
 │ 5. ntlmrelayx captures and forwards         │
-│                                              │
-│ Authentication is forwarded instead of       │
-│ cracking the password hash                   │
+│                                             │
+│ Authentication is forwarded to victim       │
+│ instead of cracking the password hash       │
 └─────────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────┐
 │ 6. Target system receives request           │
-│                                              │
-│ SMB signing disabled → authentication        │
-│ accepted                                     │
+│                                             │
+│ SMB signing disabled → authentication       │
+│ accepted                                    │
 └─────────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────┐
 │ 7. Attacker gains access                    │
-│                                              │
-│ • Access shared files                        │
-│ • Run commands                               │
-│ • Dump hashes                                │
-│ • Enumerate users                            │
-│ • Move to other systems                      │
+│                                             │
+│ • Access shared files                       │
+│ • Run commands                              │
+│ • Dump hashes                               │
+│ • Enumerate users                           │
+│ • Move to other systems                     │
 └─────────────────────────────────────────────┘
+```
+
+# Step 1: Disable SMB and HTTP in Responder
+
+## Open the Responder configuration file:
+
+```bash
+sudo nano /etc/responder/Responder.conf
+```
+## Find these lines and change them:
+
+```bash
+SMB = Off
+HTTP = Off
+```
+
+## Save and exit:
+
+```bash
+CTRL + X
+Y
+ENTER
 ```
