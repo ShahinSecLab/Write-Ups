@@ -98,22 +98,27 @@ SMB Relay is a network attack where an attacker captures a user's authentication
 
 # Step 1: Disable SMB and HTTP in Responder
 
-## Open the Responder configuration file:
+### Open the Responder configuration file:
 
 ```bash
 sudo nano /etc/responder/Responder.conf
 ```
-## Find these lines and change them:
+### Find these lines and change them:
 
 ```bash
 SMB = Off
 HTTP = Off
 ```
 
-## Save and exit:
+### Save and exit:
 
 ```bash
 CTRL + X
 Y
 ENTER
 ```
+<p align="center">
+  <img src="/writeups/02-smb-relay/images/step1.png" width="600">
+</p>
+
+# Step 2: Start Responder
