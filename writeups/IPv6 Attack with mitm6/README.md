@@ -71,11 +71,13 @@ Domain Compromise
 
 ## Lab Environment
 
+```
 | Role                | OS                  | IP Address      |
 |---------------------|---------------------|-----------------|
 | Attacker            | Kali Linux          | 192.168.5.128   |
 | Domain Controller   | Windows Server 2019 | 192.168.5.134   |
 | Victim Workstation  | Windows 10          | 192.168.5.135   |
+```
 
 **Domain Name:** `readteambd.local`
 
@@ -90,20 +92,24 @@ Domain Compromise
 ```
 
 # Attack Walkthrough
+
 ## Step 1 — Start mitm6
+
 Open Terminal 1. Launch mitm6 targeting the internal domain on the network interface connected to the LAN.
 
 ```bash
 sudo mitm6 -d readteambd.local -i eth0
 ```
 
+```
 | Flag |           Meaning                 |
 |------|-----------------------------------|
 | sudo | Run with root privileges          |
 | mitm6| Starts IPv6 spoofing (DHCPv6/DNS) |
 | -d   | Target domain                     |
 | -i   | Network interface                 |
-| eth0| Active LAN interface              |
+| eth0| Active LAN interface               |
+```
 
 ### What Happens (mitm6 Flow)
 
@@ -236,16 +242,46 @@ Open domain_users_by_group.html
 </p>
 
 
+## Mitigation / Defense
 
+```
+1. Disable IPv6 if Not in Use
+2. Block DHCPv6 Traffic at the Network Level
+3. Enforce LDAP Signing & Channel Binding
+4. Enable SMB Signing
+5. Disable WPAD via Group Policy
+6. Restrict NTLM Authentication
+```
 
+## Key Takeaways
 
+- IPv6 is enabled by default on all modern Windows systems — even in environments that never intentionally configured it, making this attack surface invisible to most defenders.
 
+- mitm6 requires no credentials to launch. An unauthenticated attacker on the same network segment can begin poisoning DNS responses immediately.
+
+- The attack chain is silent. Windows machines will automatically reach out to the rogue DHCPv6 server without any user interaction — the victim doesn't click anything.
+
+- NTLM relay is the real payload. mitm6 alone is just the entry point — the captured credentials relayed via ntlmrelayx are what give the attacker persistence, lateral movement, and potentially Domain Admin.
+
+- A single misconfiguration enables full domain compromise. If LDAP signing is not enforced and IPv6 is not blocked, an attacker can go from zero to Domain Admin in minutes.
+
+- Defense-in-depth is required. No single fix stops this attack entirely — you need to disable DHCPv6, enforce LDAP signing, enable SMB signing, and disable WPAD together.
+
+- This attack is well-known and still widely unpatched. First published by Fox-IT in 2018, it remains highly effective in real-world red team engagements today because IPv6 hardening is still overlooked in most AD environments.
+
+- Detection is possible but often missed. Event IDs 4624 and 4742, unexpected machine account creation, and rogue DHCPv6 traffic are all detectable — but only if you're actively monitoring for them.
 
 ## References
 
-mitm6 GitHub
-Impacket GitHub
-Fox-IT Blog: mitm6 — Compromising IPv4 networks via IPv6
-Microsoft KB4520412 — LDAP channel binding and signing
-SpecterOps: Relay Attacks
-CrackMapExec
+| # | Resource |
+|---|---|
+| 1 | [mitm6 – Compromising IPv4 Networks via IPv6 — Fox-IT (original research)](https://blog.fox-it.com/2018/01/11/mitm6-compromising-ipv4-networks-via-ipv6/) |
+| 2 | [mitm6 GitHub Repository — dirkjanm](https://github.com/dirkjanm/mitm6) |
+| 3 | [ntlmrelayx — Impacket by SecureAuth](https://github.com/fortra/impacket/blob/master/impacket/examples/ntlmrelayx) |
+| 4 | [Impacket GitHub Repository — fortra](https://github.com/fortra/impacket) |
+| 5 | [The Most Dangerous User Account You've Never Heard Of — SpectreOps](https://posts.specterops.io/the-most-dangerous-user-account-you-ve-never-heard-of-196c50e83d32) |
+| 6 | [Mitigating mitm6 — Microsoft Security Blog](https://techcommunity.microsoft.com/t5/microsoft-security-blog/mitm6-who-is-this/ba-p/2292417) |
+| 7 | [LDAP Channel Binding and LDAP Signing — Microsoft KB4520412](https://support.microsoft.com/en-us/topic/2020-ldap-channel-binding-and-ldap-signing-requirements-for-windows-ef185fb8-00f7-167d-744c-f299a66fc00a) |
+| 8 | [Active Directory Security — adsecurity.org](https://adsecurity.org/) |
+| 9 | [MITRE ATT&CK — T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay](https://attack.mitre.org/techniques/T1557/001/) |
+
