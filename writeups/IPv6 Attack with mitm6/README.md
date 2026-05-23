@@ -16,13 +16,11 @@
    - [Step 2 — Launch NTLM Relay](#step-2--launch-ntlm-relay)
    - [Step 3 — Trigger Authentication from Victim](#step-3--trigger-authentication-from-victim)
    - [Step 4 — Relay Succeeds & Loot Retrieved](#step-4--relay-succeeds--loot-retrieved)
-   <!-- - [Step 5 — Browse SMB Shares on Victim](#step-5--browse-smb-shares-on-victim) -->
    - [Step 5 — Explore Loot Folder](#step-6--explore-loot-folder)
    - [Step 6 — Credential & Domain Dump](#step-7--credential--domain-dump)
-6. [Understanding the Output](#understanding-the-output)
-7. [Mitigations & Defenses](#mitigations--defenses)
-8. [Key Takeaways](#key-takeaways)
-9. [References](#references)
+6. [Mitigations & Defenses](#mitigations--defenses)
+7. [Key Takeaways](#key-takeaways)
+8. [References](#references)
 
 ## Overview
 
