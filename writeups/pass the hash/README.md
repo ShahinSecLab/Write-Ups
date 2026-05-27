@@ -1,3 +1,11 @@
+# Pass The Hash
+
+**Date:** May 2026  
+**Author:** ShahinSecLab  
+**Category:** Network Attack / Credential Capture  
+**Difficulty:** Easy  
+**Tools:** Responder, Hashcat 
+
 ## Table of Contents
 
 - [What's the Point](#whats-the-point)
@@ -13,3 +21,9 @@
 - [How to Stop This Attack](#how-to-stop-this-attack)
 - [How to Catch It Happening](#how-to-catch-it-happening)
 - [References](#references)
+
+## Overview
+
+Pass the Hash is one of those attacks that sounds complicated but is actually pretty straightforward once you get it. The short version: Windows stores your password as a hash, and when you authenticate over the network, it uses that hash — not your actual password. So if you steal someone's hash, you can log in as them without ever knowing their password.
+No cracking. No brute forcing. Just grab the hash and use it.
+It's been around since the late 90s and it's still one of the go-to moves for moving sideways through a Windows domain. Once you're on one machine, PtH can get you to every other machine where that account has admin rights.
