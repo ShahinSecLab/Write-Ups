@@ -11,14 +11,16 @@
 - [Overview](#whats-the-point)
 - [How NTLM Auth Actually Works](#how-ntlm-auth-actually-works)
 - [Lab Setup](#lab-setup)
-- [Step 1 — Spray Network and Dump SAM Hashes with CrackMapExec](#step-1--spray-network-and-dump-sam-hashes-with-crackmapexec)
-- [Step 2 — Deeper Dump with secretsdump](#step-2--deeper-dump-with-secretsdump)
-- [Step 3 — Save the Hashes](#step-3--save-the-hashes)
-- [Step 4 — Crack the Hashes with Hashcat](#step-4--crack-the-hashes-with-hashcat)
-- [Step 5 — Pass the Hash with CrackMapExec](#step-6--pass-the-hash-with-crackmapexec)
-- [Step 6 — Get a Shell with psexec](#step-7--get-a-shell-with-psexec)
-- [Full Attack Summary](#full-attack-summary)
-
+- [Attack Steps](#attack-steps)
+  - [Step 1 — Spray Network and Dump SAM Hashes with CrackMapExec](#step-1--spray-network-and-dump-sam-hashes-with-crackmapexec)
+  - [Step 2 — Deeper Dump with secretsdump](#step-2--deeper-dump-with-secretsdump)
+  - [Step 3 — Save the Hashes](#step-3--save-the-hashes)
+  - [Step 4 — Crack the Hashes with Hashcat](#step-4--crack-the-hashes-with-hashcat)
+  - [Step 5 — Pass the Hash with CrackMapExec](#step-6--pass-the-hash-with-crackmapexec)
+  - [Step 6 — Get a Shell with psexec](#step-7--get-a-shell-with-psexec)
+- [Defense & Mitigation](#defense--mitigation)
+- [Key Takeaways](#key-takeaways)
+- [References](#references)
 
 
 ## Overview
