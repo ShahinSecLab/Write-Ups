@@ -8,20 +8,20 @@
 
 ## Table of Contents
 
-- [What's the Point](#whats-the-point)
+```
+- [Overview](#whats-the-point)
 - [How NTLM Auth Actually Works](#how-ntlm-auth-actually-works)
 - [Lab Setup](#lab-setup)
-- [So What is Pass the Hash](#so-what-is-pass-the-hash)
-- [What You Need Before Starting](#what-you-need-before-starting)
-- [Attack Walkthrough](#attack-walkthrough)
-  - [Step 1: Get a Shell](#step-1-get-a-shell)
-  - [Step 2: Pull the Hashes](#step-2-pull-the-hashes)
-  - [Step 3: Use the Hash to Log In](#step-3-use-the-hash-to-log-in)
-  - [Step 4: Move Around the Network](#step-4-move-around-the-network)
-- [Tools](#tools)
-- [How to Stop This Attack](#how-to-stop-this-attack)
-- [How to Catch It Happening](#how-to-catch-it-happening)
-- [References](#references)
+- [Step 1 — Spray Network and Dump SAM Hashes with CrackMapExec](#step-1--spray-network-and-dump-sam-hashes-with-crackmapexec)
+- [Step 2 — Deeper Dump with secretsdump](#step-2--deeper-dump-with-secretsdump)
+- [Step 3 — Save the Hashes](#step-3--save-the-hashes)
+- [Step 4 — Crack the Hashes with Hashcat](#step-4--crack-the-hashes-with-hashcat)
+- [Step 5 — Open the Hash File Again and Copy the NT Hash](#step-5--open-the-hash-file-again-and-copy-the-nt-hash)
+- [Step 6 — Pass the Hash with CrackMapExec](#step-6--pass-the-hash-with-crackmapexec)
+- [Step 7 — Get a Shell with psexec](#step-7--get-a-shell-with-psexec)
+- [Full Attack Summary](#full-attack-summary)
+```
+
 
 ## Overview
 
@@ -48,9 +48,10 @@ Windows uses MD4 to turn your password into a hash (this is the NT hash). That h
 ## Lab Setup
 
  ```
-| Machine | Operating System | Role |
-|----------|-----------------|---------------------------|
-| Attacker | Kali Linux | Attacker machine |
-| Server | Windows Server | Domain Controller |
-| Victim | Windows 10 | Domain joined machine |
+| Machine | Operating System |         Role          |    Ip         |
+|---------|------------------|-----------------------|---------------|
+| Attacker| Kali Linux       | Attacker machine      | 192.168.5.128 |
+| Server  | Windows Server   | Domain Controller     | 192.168.5.134 |
+| Victim  | Windows 10       | Domain joined machine | 192.168.5.135 |
  ```
+
