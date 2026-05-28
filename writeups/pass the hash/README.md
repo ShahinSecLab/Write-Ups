@@ -17,7 +17,6 @@
   - [Step 3 — Save the Hashes](#step-3--save-the-hashes)
   - [Step 4 — Crack the Hashes with Hashcat](#step-4--crack-the-hashes-with-hashcat)
   - [Step 5 — Pass the Hash with CrackMapExec](#step-6--pass-the-hash-with-crackmapexec)
-  - [Step 6 — Get a Shell with psexec](#step-7--get-a-shell-with-psexec)
 - [Defense & Mitigation](#defense--mitigation)
 - [Key Takeaways](#key-takeaways)
 - [References](#references)
@@ -55,7 +54,9 @@ Windows uses MD4 to turn your password into a hash (this is the NT hash). That h
 | Victim  | Windows 10       | Domain joined machine | 192.168.5.135 |
  ```
 
-## Step 1 — First Scan With CrackMapExec and Pull Hashes
+# Attack Steps
+
+## Step 1 — Spray Network and Dump SAM Hashes with CrackMapExec
 
 I had rahimkhan's password from earlier. Ran CrackMapExec across the whole subnet to see which machines I could get into, and added --sam to pull hashes from any machine it logged into:
 
@@ -120,7 +121,7 @@ Victim-1
 
 I'm SYSTEM on VICTIM-1. Now I want to do a proper full hash dump.
 
-## Step 2 — Run secretsdump for Full Hash Dump
+## Step 2 — Deeper Dump with secretsdump
 
 CME already grabbed the SAM hashes, but secretsdump gives more — cached domain logins, LSA secrets, machine account keys. Ran it against both machines:
 
@@ -203,7 +204,7 @@ NL$KM:c7b7b5bda0d33e8662bffb11e1899ab8aaebb5b87948115fcbecc5993510e8604427d5cb0a
   <img src="/writeups/pass the hash/images/step2-2.png" width="600">
 </p>
 
-## Step 3 — Put the Hashes in a File
+## Step 3 — Save the Hashes
 
 Opened a file and dropped in the hashes I want to crack and use:
 
@@ -211,7 +212,7 @@ Opened a file and dropped in the hashes I want to crack and use:
 nano passthehash.txt
 ```
 
-## Step 4 — Crack the Hashes With Hashcat
+## Step 4 — Crack the Hashes with Hashcat
 
 Run:
 
@@ -254,7 +255,7 @@ Password1 is the password behind 64f12cdd... — so Administrator on VICTIM-1, r
   <img src="/writeups/pass the hash/images/step4-1.png" width="600">
 </p>
 
-# Step 5 — Pass the Hash
+# Step 5 — Pass the Hash with CrackMapExec
 
 Now I skip the password completely and just use the hash with -H. Two tries here.
 
