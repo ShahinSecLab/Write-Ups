@@ -35,8 +35,46 @@ The goal of this lab was to identify available tokens and impersonate a privileg
 
 # lab Setup
 
+```
 | Machine             | Role              |   Ip          |
 | ------------------- | ----------------- |---------------|
 | Kali Linux          | Attacker          | 192.168.5.128 |
 | Windows 10          | Victim            | 192.168.5.135 |
 | Windows Server 2019 | Domain Controller | 192.168.5.134 |
+```
+
+# Attack Flow
+
+```
+Gain Initial Access
+        │
+        ▼
+List Available Tokens
+        │
+        ▼
+Find Administrator Token
+        │
+        ▼
+Impersonate Token
+        │
+        ▼
+Gain Elevated Privileges
+```
+
+
+
+# Key Takeaways
+
+- Windows creates an access token when a user logs in.
+- Access tokens contain the user's permissions.
+- A privileged token can sometimes be reused without knowing the user's password.
+- Token impersonation is a common post-exploitation technique.
+- Monitoring privileged activity can help detect this behavior.
+
+# Mitigation
+
+- Follow the principle of least privilege
+- Limit use of privileged accounts
+- Review accounts with SeImpersonatePrivilege
+- Enable Credential Guard
+- Monitor suspicious process activity
