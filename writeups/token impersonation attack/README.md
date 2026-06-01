@@ -261,7 +261,7 @@ View the full module info with the info, or info -d command.
   <img src="/writeups/token impersonation attack/images/step1 1.4.png" width="600">
 </p>
 
-### Step 1 1.5: Setting Required Options
+### Step 1.5: Setting Required Options
 
 Before running the exploit, need to configure the target and login details.
 
@@ -307,7 +307,7 @@ msf exploit(windows/smb/psexec) >
   <img src="/writeups/token impersonation attack/images/step1 1.5.png" width="600">
 </p>
 
-### Step 1 1.6: Get Meterpreter Session
+### Step 1.6: Get Meterpreter Session
 
 Now just run the following command & get meterpreter session
 
