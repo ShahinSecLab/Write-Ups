@@ -12,10 +12,11 @@
 - [Lab Setup](#lab-setup)
 - [Attack Flow](#attack-flow)
 - [Step 1 - Get a Meterpreter Session](#step-1---get-a-meterpreter-session)
-- [Step 2 - Load Incognito](#step-2---load-incognito)
-- [Step 3 - List Available Tokens](#step-3---list-available-tokens)
-- [Step 4 - Impersonate the Administrator Token](#step-4---impersonate-the-administrator-token)
-- [Step 5 - Verify Access](#step-5---verify-access)
+- [Step 2 - check uid](#step-2---check-uid)
+- [Step 3 - Load Incognito](#step-3---load-incognito)
+- [Step 4 - List Available Tokens](#step-4---list-available-tokens)
+- [Step 5 - Impersonate the Administrator Token](#step-5---impersonate-the-administrator-token)
+- [Step 6 - Verify Access](#step-6---verify-access)
 - [Why It Worked](#why-it-worked)
 - [Detection](#detection)
 - [Mitigation](#mitigation)
@@ -39,8 +40,13 @@ The goal of this lab was to identify available tokens and impersonate a privileg
 | Machine             | Role              |   Ip          |
 | ------------------- | ----------------- |---------------|
 | Kali Linux          | Attacker          | 192.168.5.128 |
-| Windows 10          | Victim            | 192.168.5.135 |
+| Windows 10          | Victim            | 192.168.5.142 |
 | Windows Server 2019 | Domain Controller | 192.168.5.134 |
+
+I already have..
+Domain: readteambd.local
+User: rahimkhan
+Pass: Password1
 ```
 
 ## Attack Flow
@@ -336,11 +342,13 @@ meterpreter >
 </p>
 
 
+## Step 2: Check uid
 
+After getting a Meterpreter session on the Windows machine, I checked which user I was running as.
 
-
-
-
+```bash
+getuid
+```
 
 
 
