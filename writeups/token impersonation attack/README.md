@@ -145,8 +145,48 @@ Matching Modules
    37  exploit/windows/local/wmi                    1999-01-01       excellent  No     Windows Management Instrumentation (WMI) Remote Command Execution
    ```
 
+<p align="center">
+  <img src="/writeups/token impersonation attack/images/step1 1.2.png" width="600">
+</p>
 
 
+### Step 1.3: use `exploit/windows/smb/psexec`
+
+This Metasploit module is used to run commands on a remote Windows machine through SMB (port 445) using valid credentials or NTLM hashes.
+
+```bash
+use exploit/windows/smb/psexec
+```
+
+**Output:**
+
+```text
+msf > use exploit/windows/smb/psexec
+[*] No payload configured, defaulting to windows/meterpreter/reverse_tcp                                                                                      
+[*] New in Metasploit 6.4 - This module can target a SESSION or an RHOST                                                                                                       
+msf exploit(windows/smb/psexec) >    
+```
+
+**Why it is used:**
+
+* To run commands on a remote Windows system
+* When you already have a valid username and password or NTLM hash (Pass-the-Hash)
+* To get a Meterpreter session on the target machine
+* To move from one system to another inside a network
+
+**How it works:**
+
+The module creates a service on the target Windows system through SMB and runs a payload. This gives access to the system using the rights of the logged-in user.
+
+**Use case:**
+
+* After getting access to a system
+* Moving to other machines in the same network
+* Working in a lab or testing environment
+
+**Summary:**
+
+This module is used to run commands on Windows systems remotely through SMB login and take control of the machine.
 
 
 
