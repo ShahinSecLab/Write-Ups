@@ -61,6 +61,31 @@ Impersonate Token
 Gain Elevated Privileges
 ```
 
+# Step 1 - Get a Meterpreter Session
+
+### Starting Metasploit
+
+# Step 1.1: Run the following command to start the Metasploit console:
+
+```bash
+msfconsole -q
+```
+
+**What it does:**
+
+* `msfconsole` starts the Metasploit Framework console.
+* The `-q` flag starts Metasploit in quiet mode.
+* This hides the startup banner and extra messages, giving a cleaner terminal output.
+
+**Example Output:**
+
+```text
+msf6 >
+```
+
+The quiet mode does not change how Metasploit works. It only reduces the amount of information displayed when the console starts.
+
+
 
 
 # Key Takeaways
