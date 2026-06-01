@@ -12,7 +12,7 @@
 - [Lab Setup](#lab-setup)
 - [Attack Flow](#attack-flow)
 - [Step 1 - Get a Meterpreter Session](#step-1---get-a-meterpreter-session)
-- [Step 2 - check uid](#step-2---check-uid)
+- [Step 2 - Check UID](#step-2---check-uid)
 - [Step 3 - Load Incognito](#step-3---load-incognito)
 - [Step 4 - List Available Tokens](#step-4---list-available-tokens)
 - [Step 5 - Impersonate the Administrator Token](#step-5---impersonate-the-administrator-token)
