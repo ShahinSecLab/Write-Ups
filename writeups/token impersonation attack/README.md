@@ -350,8 +350,14 @@ After getting a Meterpreter session on the Windows machine, I checked which user
 getuid
 ```
 
+```text
+meterpreter > getuid
+Server username: NT AUTHORITY\SYSTEM
+```
 
-
+<p align="center">
+  <img src="/writeups/token impersonation attack/images/STEP2-1.png" width="600">
+</p>
 
 
 
