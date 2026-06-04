@@ -134,7 +134,7 @@ This file contains the Kerberos TGS hash required for password cracking.
 Next, I used Hashcat to perform offline password cracking.
 
 ```bash
-hashcat -m 13100 hashes.txt /usr/share/wordlists/rockyou.txt
+hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt
 ```
 
 ```
