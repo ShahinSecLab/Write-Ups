@@ -19,7 +19,6 @@
 - [Why Kerberoasting is Dangerous](#why-kerberoasting-is-dangerous)
 - [Detection](#detection)
 - [Mitigation](#mitigation)
-- [Impact](#impact)
 - [Key Takeaways](#key-takeaways)
 - [References](#references)
 
@@ -115,6 +114,10 @@ $krb5tgs$23$*sqlservice$READTEAMBD.LOCAL$ReadTeamBD-DC/SQLService.READTEAMBD.loc
 - Service Account: sqlservice
 - SPN: SQLService.READTEAMBD.local
 - Domain: READTEAMBD.local
+
+<p align="center">
+  <img src="/writeups/kerbersoting attack/images/step1.png" width="600">
+</p>
 
 
 ## Step 2 – Save Hash to File
