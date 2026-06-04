@@ -48,3 +48,13 @@ Attacker Extracts Ticket
      v
 Service Account Password Recovered
 ```
+
+## Lab Setup
+
+```
+| Machine             | Role              |   Ip          |
+|---------------------|-------------------|---------------|
+| Windows Server 2022 | Domain Controller | 192.168.5.134 |
+| Windows 10          | Domain User       | 192.168.5.142 |
+| Kali Linux          | Attacker          | 192.168.5.128 |
+```
