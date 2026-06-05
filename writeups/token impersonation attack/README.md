@@ -21,7 +21,7 @@
 - [Step 2 - Check UID](#step-2-check-uid)
 - [Step 3 - Load Incognito](#step-3---load-incognito)
 - [Step 4 - List Available Tokens](#step-4---list-available-tokens)
-- [Step 4 - Impersonate the Administrator Token](#step-5---impersonate-the-administrator-token)
+- [Step 5 - Impersonate the Administrator Token](#step-5---impersonate-the-administrator-token)
 - [Step 6 - Verify Access](#step-6---verify-access)
   - [6.1 Create Domain User](#step-61---create-a-domain-user)
   - [6.2 Add User to Domain Admins Group](#step-62---add-a-user-to-the-domain-admins-group)
@@ -411,7 +411,7 @@ No tokens available
   <img src="/writeups/token impersonation attack/images/step3.png" width="600">
 </p>
 
-## Step 4 - Impersonate the Administrator Token
+## Step 5 - Impersonate the Administrator Token
 
 ```bash
 impersonate_token "READTEAMBD\\Administrator"
