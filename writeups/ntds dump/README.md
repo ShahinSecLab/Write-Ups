@@ -6,6 +6,16 @@
 **Difficulty:** Easy  
 **Tools:** NetExec, Evil-winrm
 
+## Table of Contents
+
+- [Overview](#ntds-dumping)
+- [What I Understood During the Process](#what-i-understood-during-the-process)
+- [Why This Step Was Important in the Lab](#why-this-step-was-important-in-the-lab)
+- [Step 1 — Token Impersonation & Privilege Escalation](#step---1)
+- [Step 2 — NTDS Dump with NetExec](#step---2-ntds-dump--netexec)
+- [Step 3 — Getting a Shell with Evil-WinRM](#step---3-getting-a-shell-with-evil-winrm)
+- [What I Achieved](#what-i-achieved)
+
 
 ## NTDS Dumping 
 
