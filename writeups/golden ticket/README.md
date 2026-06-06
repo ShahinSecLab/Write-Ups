@@ -57,3 +57,12 @@ Detection is difficult because the ticket looks completely legitimate to the DC
 # Step 1 — Getting a Shell on the Domain Controller
 
 First I logged into the Domain Controller using the Administrator hash I dumped earlier from the NTDS.dit file.
+
+```bash
+evil-winrm -i 192.168.5.134 -u 'administrator' -H 'fc525c9683e8fe067095ba2ddc971889'
+```
+Once inside I had a full PowerShell session as Domain Administrator.
+
+# Step 2 — Dumping the krbtgt Hash with Mimikatz
+
+Now I uploaded Mimikatz to the machine and ran it to pull the krbtgt hash and the domain SID.
