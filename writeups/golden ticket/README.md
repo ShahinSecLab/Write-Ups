@@ -44,3 +44,16 @@ To perform this attack, I needed the following prerequisites:
 | Domain SID          | Required when constructing the forged Kerberos ticket.                               |
 | Domain Name         | Required when generating the Golden Ticket.                                          |
 ```
+
+# What I Understood During the Process
+
+While working through this attack I realized that:
+
+The krbtgt account is the most sensitive account in any Active Directory domain
+Whoever controls its hash essentially controls the entire domain
+Golden Tickets do not need network access to generate — everything is done locally
+Detection is difficult because the ticket looks completely legitimate to the DC
+
+# Step 1 — Getting a Shell on the Domain Controller
+
+First I logged into the Domain Controller using the Administrator hash I dumped earlier from the NTDS.dit file.
