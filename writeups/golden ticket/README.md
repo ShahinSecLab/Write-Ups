@@ -23,16 +23,16 @@
 
 ## What is a Golden Ticket?
 
-A Golden Ticket is a forged Kerberos ticket that gives an attacker unlimited access to every resource in the domain — forever, or until the krbtgt account password is changed twice.
-The whole attack is based on one thing — the krbtgt account. This is a special account in Active Directory that signs every single Kerberos ticket in the domain. If I get its password hash, I can forge my own tickets and pretend to be any user, including Domain Admin — without ever touching the real account.
+A Golden Ticket is basically a fake login pass. Once you have it, you can get into anything on the network — and it doesn't expire unless someone resets the right password twice.
+The whole thing comes down to one account called krbtgt. Think of it as the gatekeeper of the entire domain — every login request in Active Directory goes through it. If you grab its password hash, you can create your own fake tickets and walk around the network as anyone you want, even the Domain Admin, without ever actually logging into that account.
 
 ## Why This Attack is Dangerous
 
-- The forged ticket works even if the real user's password is changed
-- It bypasses normal authentication completely
-- It can last for 10 years by default
-- It is very hard to detect since it looks like a normal Kerberos ticket
-- Even resetting the Administrator password does not stop it — only changing krbtgt password twice does
+- Even if the real user changes their password, the forged ticket still works fine
+- It skips the normal login process entirely — no credentials needed
+- By default it stays valid for 10 years, so it's not going anywhere
+- Since it looks exactly like a real Kerberos ticket, most systems won't even flag it
+- Resetting the Administrator password does nothing — the only way to kill it is by resetting the krbtgt password twice
 
 ## Prerequisites
 
@@ -51,21 +51,19 @@ To perform this attack, I needed the following prerequisites:
 
 While working through this attack I realized that:
 
-The krbtgt account is the most sensitive account in any Active Directory domain
-Whoever controls its hash essentially controls the entire domain
-Golden Tickets do not need network access to generate — everything is done locally
-Detection is difficult because the ticket looks completely legitimate to the DC
+- The krbtgt account is the most sensitive account in any Active Directory domain
+- Whoever controls its hash essentially controls the entire domain
+- Golden Tickets do not need network access to generate — everything is done locally
+- Detection is difficult because the ticket looks completely legitimate to the DC
 
 
 ## Step 1 — Downloading Mimikatz in Kali
 
-First I downloaded mimikatz_trunk.zip from github in kali and then transfer it to dc.
-Then I unzip mimikatz_trunk.zip file on dc. 
-
+First I downloaded mimikatz_trunk.zip from GitHub on my Kali machine, then transferred it to the Domain Controller. After that I unzipped it on the DC.
 
 ## Step 2 — Running Mimikatz on the DC
 
-After that I open cmd on dc. My `Downloads` folder contains `mimikatz.exe` file. So I run mimikatz.exe file in this location.
+After that I opened CMD on the DC. Since mimikatz.exe was sitting in my Downloads folder, I navigated to that directory and ran it from there.
 
 ```bash
 C:\Users\Administrator\Downloads>mimikatz.exe
