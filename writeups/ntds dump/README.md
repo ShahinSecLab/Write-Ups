@@ -15,6 +15,7 @@
 - [Step 2 — NTDS Dump with NetExec](#step---2-ntds-dump--netexec)
 - [Step 3 — Getting a Shell with Evil-WinRM](#step---3-getting-a-shell-with-evil-winrm)
 - [What I Achieved](#what-i-achieved)
+- [Mitigations](#mitigations)
 - [Key Takeaways](#key-takeaways)
 - [References](#references)
 

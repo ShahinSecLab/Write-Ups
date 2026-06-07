@@ -5,16 +5,24 @@ A collection of AD attack writeups for learning and reference.
 ## Writeups
 
 ```
-| # |      Topic       |       Status     |
-|---|------------------|------------------|
+| # |      Topic                 | Status |
+|---|----------------------------|--------|
 
-| 1 | LLMNR Poisoning  | 🔄 In Progress   |
+| 1 | LLMNR Poisoning            | Done   |
 
-| 2 | SMB Relay Attack | 🔄 In Progress   |
+| 2 | SMB Relay Attack           | Done   |
+
+| 3 | IPv6 attack with mitm6     | Done   |
+
+| 4 | Pass the Hash              | Done   |
+
+| 5 | Token Impersonation Attack | Done   |
  
-| 3 | Kerberoasting    | 🔄 In Progress   |
+| 6 | Kerberoasting              | Done   |
 
-| 4 | Pass the Hash    | ⏳ Coming Soon   |
+| 6 | ntds Dumping               | Done   |
+
+| 6 | Golden Ticket Generation   | Done   |
 ```
 
 ## Tools Used
