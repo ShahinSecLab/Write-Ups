@@ -2,22 +2,24 @@
 
 **Date:** June 2026  
 **Author:** ShahinSecLab  
-**Category:**Credential Capture  
+**Category:** Credential Capture  
 **Difficulty:** Easy  
-**Tools:** NetExec, Evil-winrm
+**Tools:** mimikatz, Evil-winrm
 
 ## Table of Contents
 
 - [What is a Golden Ticket?](#what-is-a-golden-ticket)
 - [Why This Attack is Dangerous](#why-this-attack-is-dangerous)
-- [What I Needed Before Starting](#what-i-needed-before-starting)
+- [Prerequisites](#prerequisites)
 - [What I Understood During the Process](#what-i-understood-during-the-process)
-- [Step 1 — Getting a Shell on the Domain Controller](#step-1--getting-a-shell-on-the-domain-controller)
-- [Step 2 — Uploading Mimikatz to the DC](#step-2--uploading-mimikatz-to-the-dc)
-- [Step 3 — Dumping the krbtgt Hash](#step-3--dumping-the-krbtgt-hash)
-- [Step 4 — Generating the Golden Ticket](#step-4--generating-the-golden-ticket)
-- [Step 5 — Using the Golden Ticket](#step-5--using-the-golden-ticket)
-- [What I Achieved](#what-i-achieved)
+- [Step 1 — Downloading Mimikatz in Kali](#step-1--downloading-mimikatz-in-kali)
+- [Step 2 — Running Mimikatz on the DC](#step-2--running-mimikatz-on-the-dc)
+- [Step 3 — Dumping Credentials from Memory](#step-3--dumping-credentials-from-memory)
+- [Step 4 — Dumping the krbtgt Hash](#step-4--dumping-the-krbtgt-hash)
+- [Step 5 — Generating and Injecting the Golden Ticket](#step-5--generating-and-injecting-the-golden-ticket)
+- [Step 6 — Opening a CMD Shell with the Golden Ticket](#step-6--opening-a-cmd-shell-with-the-golden-ticket)
+- [Step 7 — Accessing Victim Machine File System](#step-7--accessing-victim-machine-file-system)
+- [Step 8 — Getting a Shell on the Victim Machine](#step-8--getting-a-shell-on-the-victim-machine)
 
 # What is Golden Ticket ?
 
@@ -128,8 +130,10 @@ SID               : S-1-5-21-2745015721-426968701-4006811760-500
 
 ### Credentials Recovered
 
-- Domain SID : S-1-5-21-2745015721-426968701-4006811760-500
-- krbtgt NTLM Hash: fc525c9683e8fe067095ba2ddc971889
+| User            | Domain       | NTLM Hash                          |
+|-----------------|--------------|------------------------------------|
+| `Administrator` | `READTEAMBD` | `fc525c9683e8fe067095ba2ddc971889` |
+| `REDTEAMBD-DC$` | `READTEAMBD` | `5d61398d1bb36494251624d87522d005` |
 
 Got the Administrator NTLM hash sitting right in memory. No cracking needed — I can use this directly for Pass the Hash.
 
