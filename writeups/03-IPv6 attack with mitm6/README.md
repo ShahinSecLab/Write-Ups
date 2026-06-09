@@ -133,7 +133,7 @@ Sent spoofed reply for wpad.readteambd.local. to fe80::502e:c6be:1fe9:c8bf
 ```
 
 <p align="center">
-  <img src="/writeups/IPv6 Attack with mitm6/images/step1.png" width="600">
+  <img src="/writeups/03-IPv6 attack with mitm6/images/step1.png" width="600">
 </p>
 
 ## Step 2 — Launch ntlmrelayx:
@@ -175,7 +175,7 @@ ntlmrelayx.py -6 -t ldaps://192.168.5.134 -wh fakewpad.readteambd.local -l lootm
 ```
 
 <p align="center">
-  <img src="/writeups/IPv6 Attack with mitm6/images/step2.png" width="600">
+  <img src="/writeups/03-IPv6 Attack with mitm6/images/step2.png" width="600">
 </p>
 
 ## Step 3 — Trigger Authentication from Victim
@@ -210,7 +210,7 @@ Example output:
 After a successful relay, domain information is saved in the `lootme` directory.
 
 <p align="center">
-  <img src="/writeups/IPv6 Attack with mitm6/images/step3.png" width="600">
+  <img src="/writeups/03-IPv6 Attack with mitm6/images/step3.png" width="600">
 </p>
 
 ## Step 5 — Explore Loot Folder
@@ -230,13 +230,13 @@ lootme/
 Open domain_users_by_group.html
 
 <p align="center">
-  <img src="/writeups/IPv6 Attack with mitm6/images/step5-1.png" width="600">
+  <img src="/writeups/03-IPv6 Attack with mitm6/images/step5-1.png" width="600">
 </p>
 <p align="center">
-  <img src="/writeups/IPv6 Attack with mitm6/images/step5-2.png" width="600">
+  <img src="/writeups/03-IPv6 Attack with mitm6/images/step5-2.png" width="600">
 </p>
 <p align="center">
-  <img src="/writeups/IPv6 Attack with mitm6/images/step5-3.png" width="600">
+  <img src="/writeups/03-IPv6 Attack with mitm6/images/step5-3.png" width="600">
 </p>
 
 
