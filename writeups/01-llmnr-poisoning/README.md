@@ -6,15 +6,22 @@
 **Difficulty:** Easy  
 **Tools:** Responder, Hashcat  
 
-
 ## Table of Contents
+
 1. [What is LLMNR?](#what-is-llmnr)
-2. [How the Attack Works](#how-the-attack-works)
-3. [Lab Setup](#lab-setup)
-4. [Attack Steps](#attack-steps)
-5. [Defense & Mitigation](#defense--mitigation)
-6. [Key Takeaways](#key-takeaways)
-7. [References](#references)
+2. [Protocol Order (Windows Name Resolution)](#protocol-order-windows-name-resolution)
+3. [How the Attack Works](#how-the-attack-works)
+4. [Lab Setup](#lab-setup)
+5. [Attack Steps](#attack-steps)
+   - [Step 1 — Check Your IP](#step-1--check-your-ip)
+   - [Step 2 — Start Responder](#step-2--start-responder)
+   - [Step 3 — Trigger from Victim Machine](#step-3--trigger-from-victim-machine)
+   - [Step 4 — Capture the Hash](#step-4--capture-the-hash)
+   - [Step 5 — Crack the Hash](#step-5--crack-the-hash)
+6. [Defense & Mitigation](#defense--mitigation)
+7. [Key Takeaways](#key-takeaways)
+8. [References](#references)
+
 
 
 ## What is LLMNR?
@@ -36,8 +43,6 @@ The problem is — any machine on the network can reply. So an attacker can say 
 - **NBT-NS** → tries last (can also be abused)  
 
 ## How the Attack Works
-
-### LLMNR Poisoning Flow
 
 ```
 Victim                    Network                         Attacker
