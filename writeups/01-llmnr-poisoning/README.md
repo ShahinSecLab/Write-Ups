@@ -13,7 +13,7 @@
 3. [How the Attack Works](#how-the-attack-works)
 4. [Lab Setup](#lab-setup)
 5. [Attack Steps](#attack-steps)
-   - [Step 1 — Check Your IP](#step-1--check-your-ip)
+   - [Step 1 — Check My IP Address](#step-1--check-my-ip-address)
    - [Step 2 — Start Responder](#step-2--start-responder)
    - [Step 3 — Trigger from Victim Machine](#step-3--trigger-from-victim-machine)
    - [Step 4 — Capture the Hash](#step-4--capture-the-hash)
@@ -78,7 +78,9 @@ Both machines on same VirtualBox Host-Only network.
 
 ## Attack Steps
 
-### Step 1 — Check Your IP
+### Step 1 — Check My IP Address
+
+Before starting Responder, I first identified my network interface name and IP address.
 
 ```bash
 ip a
