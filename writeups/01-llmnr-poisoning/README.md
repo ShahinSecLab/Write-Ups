@@ -16,13 +16,11 @@
    - [Step 1 — Check My IP Address](#step-1--check-my-ip-address)
    - [Step 2 — Start Responder](#step-2--start-responder)
    - [Step 3 — Trigger from Victim Machine](#step-3--trigger-from-victim-machine)
-   - [Step 4 — Capture the Hash](#step-4--capture-the-hash)
-   - [Step 5 — Crack the Hash](#step-5--crack-the-hash)
+   - [Step 4 — Save the Captured Hash](#step-4--save-the-captured-hash)
+   - [Step 5 — Crack the Captured Hash](#step-5--crack-the-captured-hash)
 6. [Defense & Mitigation](#defense--mitigation)
 7. [Key Takeaways](#key-takeaways)
 8. [References](#references)
-
-
 
 ## What is LLMNR?
 
@@ -33,7 +31,6 @@ Windows uses this when it cannot find a computer name through DNS. When DNS fail
 > *"Hey, does anyone know where \\fileserver is?"*
 
 The problem is — any machine on the network can reply. So an attacker can say *"Yeah, that's me!"* and the victim sends their password hash without knowing.
-
 
 ## Protocol Order (Windows Name Resolution)
 
@@ -75,10 +72,9 @@ Victim                    Network                         Attacker
 ```
 Both machines on same VirtualBox Host-Only network.
 
-
 ## Attack Steps
 
-### Step 1 — Check My IP Address
+## Step 1 — Check My IP Address
 
 Before starting Responder, I first identified my network interface name and IP address.
 
@@ -88,7 +84,6 @@ ip a
 <p align="center">
   <img src="/writeups/01-llmnr-poisoning/images/step1.png" width="600">
 </p>
-
 
 ## Output:
 ```
@@ -116,8 +111,7 @@ Responder will now listen on the network and wait for someone to broadcast a nam
   <img src="/writeups//01-llmnr-poisoning/images/step2.png" width="600">
 </p>
 
-
-### Step 3 — Trigger from Victim Machine
+## Step 3 — Trigger from Victim Machine
 
 On the victim machine, I opened File Explorer and typed:
 ```
@@ -147,36 +141,48 @@ On my Kali machine, Responder captured the victim's NTLMv2 authentication attemp
   <img src="/writeups//01-llmnr-poisoning/images/step3-2.png" width="600">
 </p>
 
-### Step 4 — Capture the Hash
+## Step 4 — Save the Captured Hash
 
 - step 4.1: Copy the Hash
+First, I copied the NTLMv2 hash captured by Responder.
 
 <p align="center">
   <img src="/writeups//01-llmnr-poisoning/images/step4-1.png" width="600">
 </p>
 
-
-- step 4.2: Then on attacker terminal, type
+- step 4.2: Create a File for the Hash
+On my Kali machine, I created a new file using Nano:
 
 ```bash
 nano hash.txt
 ```
-- step 4.3: Now hit Enter button
+- step 4.3: Open the File
+After running the command, I pressed Enter to open the file.
 
 <p align="center">
   <img src="/writeups//01-llmnr-poisoning/images/step4-2.png" width="600">
 </p>
 
-- step 4.4: A nano text editor will open. Paste the Hash here.
+- step 4.4: Paste the Hash.
+Once Nano opened, I pasted the captured NTLMv2 hash into the file.
 
 <p align="center">
   <img src="/writeups//01-llmnr-poisoning/images/step4-3.png" width="600">
 </p>
 
-- step 4.5: Then press Ctrl+x, y, Enter
+- step 4.5: Save the File
+To save the file, I pressed:
 
+```bash
+Ctrl + X
+Y
+Enter
+```
+This saved the hash to hash.txt, which I used in the next step for password cracking.
 
-### Step 5 — Crack the Hash
+## Step 5 — Crack the Captured Hash
+
+After saving the NTLMv2 hash, I used Hashcat with the RockYou wordlist to try and recover the password.
 
 ```bash
 hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt
@@ -192,23 +198,27 @@ hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt
 ```
 
 ## Result:
-### Cracked Password
 
+After a short time, Hashcat successfully cracked the password and displayed the result:
 ```
 KARIM::VICTIM-2:08c4e1b5073681c1:7acce8f5708e0b1ea3bcbcf99f26fa01:10101000000000011
 0003050242c6fd:01ea99382479946200308001004c0000000200040043004600310035003900300000
 10004004600310035003900300000000300240043004600310035003900300001000000040000000500
 93003000300000000600040002000000070008000051d384c007d90100000000800304380000000c002
 0ba8403001095010095047805a003002ea80c4f04b38041804ac00700805506242c6fdc010600802000
-0000050006002000000000800045005300350033004a0083003......(full hash).....:Password1         
-                                                                                   
+0000050006002000000000800045005300350033004a0083003......(full hash).....:Password                                                                                    
+```
+### Cracked Password
+
+```text
+Password1
 ```
 
 <p align="center">
   <img src="/writeups//01-llmnr-poisoning/images/step5.png" width="600">
 </p>
 
- ### The cracked password is: Password1
+This confirmed that the captured NTLMv2 hash could be cracked using a common wordlist because the password was weak.
 
 ## Defense & Mitigation
 
