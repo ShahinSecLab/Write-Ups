@@ -94,10 +94,10 @@ ip a
 ```
 eth0: 192.168.5.128
 ```
-> Note: your interface name — mine was `eth0`
-
 
 ## Step 2 — Start Responder
+
+After identifying my network interface, I launched Responder to listen for LLMNR, NBT-NS, and WPAD requests on the network.
 
 ```bash
 sudo responder -I eth0 -dwv
@@ -119,20 +119,23 @@ Responder will now listen on the network and wait for someone to broadcast a nam
 
 ### Step 3 — Trigger from Victim Machine
 
-On Windows victim, open File Explorer and type:
+On the victim machine, I opened File Explorer and typed:
 ```
 \\fakeshare
 ```
-In my case, my victim machine name is Victim 2
+Since fakeshare does not exist, Windows could not find it through DNS and sent an LLMNR request on the network.
+
+In my lab, the victim machine name was VICTIM-2.
 
 <p align="center">
   <img src="/writeups//01-llmnr-poisoning/images/step3-1.png" width="600">
 </p>
 
-Windows tries DNS → fails → broadcasts LLMNR → Responder catches it.
+Windows first tried DNS, but it could not find the hostname. It then sent an LLMNR request on the network, which was captured by Responder.
 
+### Captured Credentials
 
-## In the attacker machine, the captured credentials will be displayed like this
+On my Kali machine, Responder captured the victim's NTLMv2 authentication attempt and displayed the following information:
 
 ```
 [SMB] NTLMv2-SSP Client   : fe80::1ba4:8be8:5787:2d63
