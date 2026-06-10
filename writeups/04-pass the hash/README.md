@@ -24,9 +24,11 @@
 
 ## Overview
 
-Pass the Hash is one of those attacks that sounds complicated but is actually pretty straightforward once you get it. The short version: Windows stores your password as a hash, and when you authenticate over the network, it uses that hash — not your actual password. So if you steal someone's hash, you can log in as them without ever knowing their password.
-No cracking. No brute forcing. Just grab the hash and use it.
-It's been around since the late 90s and it's still one of the go-to moves for moving sideways through a Windows domain. Once you're on one machine, PtH can get you to every other machine where that account has admin rights.
+Pass-the-Hash (PtH) is a technique that allows someone to authenticate using an NTLM hash instead of the actual password. In Windows environments, passwords are stored as hashes, and NTLM authentication uses those hashes during the login process.
+
+This means that if an NTLM hash is obtained from a compromised system, it can often be used to access other systems without knowing the user's real password. There is no need to crack the hash or recover the plaintext password first.
+
+Pass-the-Hash has been around for a long time and is still commonly seen in Windows networks. After gaining access to one machine and obtaining credential hashes, it can be used to move to other systems where the same account has permissions, making it a popular lateral movement technique.
 
 ## How NTLM Auth Actually Works
 
