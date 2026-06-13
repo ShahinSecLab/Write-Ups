@@ -4,7 +4,7 @@
 **Author:** ShahinSecLab  
 **Category:** Credential Access
 **Difficulty:** Easy  
-**Tools:** crackmapexec, psexec.py, hashcat 
+**Tools:** CrackMapExec, PsExec.py, Hashcat 
 
 ## Table of Contents
 
@@ -109,7 +109,7 @@ One thing to notice — VICTIM-1's Administrator and rahim have the exact same N
   <img src="/writeups/04-pass the hash/images/step1-1.png" width="600">
 </p>
 
-I then tried psexec into VICTIM-1 using rahimkhan — that succeed:
+I then used `PsExec` to connect to VICTIM-1 as rahimkhan, and the authentication succeeded.
 
 ```bash
 psexec.py readteambd/rahimkhan:Password1@192.168.5.135

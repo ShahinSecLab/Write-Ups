@@ -23,6 +23,10 @@ A collection of AD attack writeups for learning and reference.
 \- Hashcat
 \- Nmap
 \- ntlmrelayx.py
+\- CrackMapExec
+\- PsExec.py 
+
+
 
 
 
