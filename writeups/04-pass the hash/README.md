@@ -16,7 +16,7 @@
   - [Step 2 — Deeper Dump with secretsdump](#step-2--deeper-dump-with-secretsdump)
   - [Step 3 — Save the Hashes](#step-3--save-the-hashes)
   - [Step 4 — Crack the Hashes with Hashcat](#step-4--crack-the-hashes-with-hashcat)
-  - [Step 5 — Pass the Hash with CrackMapExec](#step-6--pass-the-hash-with-crackmapexec)
+  - [Step 5 — Pass the Hash with CrackMapExec](#step-5--pass-the-hash-with-crackmapexec)
 - [Defense & Mitigation](#defense--mitigation)
 - [Key Takeaways](#key-takeaways)
 - [References](#references)
