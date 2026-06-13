@@ -9,7 +9,7 @@
 ## Table of Contents
 1. [Overview](#overview)
 2. [Attack Theory](#attack-theory)
-3. [Lab Environment](#lab-environment)
+3. [Lab Setup](#lab-setup)
 4. [Tools Required](#tools-required)
 5. [Attack Walkthrough](#attack-walkthrough)
    - [Step 1 — Start mitm6](#step-1--start-mitm6)
@@ -40,19 +40,20 @@ When combined with Impacket’s `ntlmrelayx`, this technique becomes a powerful 
 ## Attack Theory
 
 Why IPv6?
+
 Windows machines periodically broadcast DHCPv6 Solicit messages looking for an IPv6 gateway and DNS server. By default, these go unanswered on most enterprise networks. mitm6 responds to these broadcasts, assigning the attacker's link-local IPv6 address as the DNS server.
 
 ```
-Victim  → DNS: "Where is wpad.corp.local?"
-mitm6   → DNS: "It's at attacker's IP"
-Victim  → HTTP: GET http://attacker/wpad.dat
+Victim     → DNS: "Where is wpad.corp.local?"
+mitm6      → DNS: "It's at attacker's IP"
+Victim     → HTTP: GET http://attacker/wpad.dat
 ntlmrelayx → "Authenticate with NTLM!"
-Victim  → [Sends NTLM handshake]
+Victim     → [Sends NTLM handshake]
 ntlmrelayx → [Relays to DC's LDAP]
-DC      → [Authenticated!]
+DC         → [Authenticated!]
 ```
 
-## Full Kill Chain
+<!-- ## Full Kill Chain
 ```
 DHCPv6 Spoofing
       ↓
@@ -65,16 +66,16 @@ NTLM Relay → LDAP / SMB on Domain Controller
 Create Domain User / Dump AD / Execute Commands
       ↓
 Domain Compromise
-```
+``` -->
 
-## Lab Environment
+## Lab Setup
 
 ```
-| Role                | OS                  | IP Address      |
-|---------------------|---------------------|-----------------|
-| Attacker            | Kali Linux          | 192.168.5.128   |
-| Domain Controller   | Windows Server 2019 | 192.168.5.134   |
-| Victim Workstation  | Windows 10          | 192.168.5.135   |
+| Machine   | Role                | OS                  | IP Address      |
+|-----------|---------------------|---------------------|-----------------|
+| Attacker  | Attacker            | Kali Linux          | 192.168.5.128   |
+| Server    | Domain Controller   | Windows Server 2019 | 192.168.5.134   |
+| Victim    | Victim Workstation  | Windows 10          | 192.168.5.135   |
 ```
 
 **Domain Name:** `readteambd.local`
