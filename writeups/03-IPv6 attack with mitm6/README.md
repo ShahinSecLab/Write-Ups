@@ -15,9 +15,9 @@
    - [Step 2 — Launch NTLM Relay](#step-2--launch-ntlm-relay)
    - [Step 3 — Trigger Authentication from Victim](#step-3--trigger-authentication-from-victim)
    - [Step 4 — Relay Succeeds & Loot Retrieved](#step-4--relay-succeeds--loot-retrieved)
-   - [Step 5 — Explore Loot Folder](#step-6--explore-loot-folder)
-   - [Step 6 — Credential & Domain Dump](#step-7--credential--domain-dump)
-5. [Mitigations & Defenses](#mitigations--defenses)
+   - [Step 5 — Explore Loot Folder](#step-5--explore-loot-folder)
+   - [Step 6 — Credential & Domain Dump](#step-6--credential--domain-dump)
+5. [Mitigations](#mitigations)
 6. [Key Takeaways](#key-takeaways)
 7. [References](#references)
 
@@ -81,7 +81,7 @@ sudo mitm6 -d readteambd.local -i eth0
 | mitm6| Starts IPv6 spoofing (DHCPv6/DNS) |
 | -d   | Target domain                     |
 | -i   | Network interface                 |
-| eth0| Active LAN interface               |
+| eth0 | Active LAN interface              |
 ```
 
 ### What Happens
@@ -110,7 +110,7 @@ Sent spoofed reply for wpad.readteambd.local. to fe80::502e:c6be:1fe9:c8bf
   <img src="/writeups/03-IPv6 attack with mitm6/images/step1.png" width="600">
 </p>
 
-## Step 2 — Launch ntlmrelayx:
+## Step 2 — Launch NTLM Relay
 
 On another terminal, I started ntlmrelayx to catch and relay authentication requests.
 
@@ -154,8 +154,8 @@ ntlmrelayx.py -6 -t ldaps://192.168.5.134 -wh fakewpad.readteambd.local -l lootm
 
 ## Step 3 — Trigger Authentication from Victim
 
-On the victim machine (Windows 10), simply restart the machine.
-Windows will automatically:
+On the Windows 10 victim machine, I simply restarted the system.
+After the reboot, Windows automatically started the authentication process:
 
 ```
 1. Send a DHCPv6 Solicit — mitm6 responds
@@ -188,7 +188,8 @@ After a successful relay, domain information is saved in the `lootme` directory.
 </p>
 
 ## Step 5 — Explore Loot Folder
-Navigate to the ./lootme directory created by ntlmrelayx. It contains structured LDAP dump files:
+
+I checked the `lootme` directory created by ntlmrelayx. It contains LDAP dump files with domain information.
 
 ```
 lootme/
@@ -214,7 +215,7 @@ Open domain_users_by_group.html
 </p>
 
 
-## Mitigation / Defense
+## Mitigations
 
 ```
 1. Disable IPv6 if Not in Use
