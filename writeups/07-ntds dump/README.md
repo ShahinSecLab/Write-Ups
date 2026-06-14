@@ -2,7 +2,7 @@
 
 **Date:** June 2026  
 **Author:** ShahinSecLab  
-**Category:**Credential Capture  
+**Category:** Credential Access  
 **Difficulty:** Easy  
 **Tools:** NetExec, Evil-winrm
 

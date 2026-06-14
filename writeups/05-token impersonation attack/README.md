@@ -2,9 +2,9 @@
 
 **Date:** June 2026  
 **Author:** ShahinSecLab  
-**Category:** Network Attack / Credential Capture  
+**Category:** Privilege Escalation  
 **Difficulty:** Easy  
-**Tools:** Meterpreter, Incognito, Windows Access Tokens
+**Tools:** Metasploit Framework, PsExec, Meterpreter, Incognito, secretsdump.py
 
 ## Table of Contents
 
@@ -47,12 +47,13 @@ The goal of this lab was to identify available tokens and impersonate a privileg
 | Kali Linux          | Attacker          | 192.168.5.128 |
 | Windows 10          | Victim            | 192.168.5.142 |
 | Windows Server 2019 | Domain Controller | 192.168.5.134 |
-
-I already have..
-Domain: readteambd.local
-User: rahimkhan
-Pass: Password1
 ```
+
+Before starting the attack, I already had the following valid domain credentials:
+
+- Domain: `readteambd.local`
+- User: `rahimkhan`
+- Pass: `Password1`
 
 ## Attack Flow
 

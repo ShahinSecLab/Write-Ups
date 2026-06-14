@@ -2,7 +2,7 @@
 
 **Date:** May 2026  
 **Author:** ShahinSecLab  
-**Category:** Network Attack / Credential Capture  
+**Category:** Credential Access  
 **Difficulty:** Easy  
 **Tools:** Responder, Hashcat  
 

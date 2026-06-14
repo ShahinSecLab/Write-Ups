@@ -27,6 +27,10 @@ A collection of AD attack writeups for learning and reference.
 \- PsExec.py 
 \- mitm6
 \- secretsdump.py
+\- Metasploit Framework
+\- PsExec
+\- Meterpreter
+\- Incognito
 
 
 

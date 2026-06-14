@@ -2,7 +2,7 @@
 
 **Date:** June 2026  
 **Author:** ShahinSecLab  
-**Category:** Credential Capture  
+**Category:** Persistence  
 **Difficulty:** Easy  
 **Tools:** Mimikatz, PSExec, Evil-WinRM
 

@@ -2,7 +2,7 @@
 
 **Date:** May 2026  
 **Author:** ShahinSecLab  
-**Category:** Credential Access
+**Category:** Lateral Movement
 **Difficulty:** Easy  
 **Tools:** CrackMapExec, PsExec.py, Hashcat 
 

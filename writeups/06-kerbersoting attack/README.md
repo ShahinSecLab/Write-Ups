@@ -2,7 +2,7 @@
 
 **Date:** June 2026  
 **Author:** ShahinSecLab  
-**Category:** Active Directory  
+**Category:** Credential Access  
 **Difficulty:** Medium 
 **Tools:** Impacket, Hashcat
 
