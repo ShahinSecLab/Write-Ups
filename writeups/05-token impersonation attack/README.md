@@ -1,4 +1,4 @@
-# token impersonation attack
+# Token Impersonation Attack
 
 **Date:** June 2026  
 **Author:** ShahinSecLab  
@@ -77,13 +77,13 @@ Gain Elevated Privileges
 
 ### 1.1 Start Metasploit
 
-Run the following command to start the Metasploit console:
+First, I started the Metasploit Framework in quiet mode.
 
 ```bash
 msfconsole -q
 ```
 
-**What it does:**
+**Breakdown:**
 
 * `msfconsole` starts the Metasploit Framework console.
 * The `-q` flag starts Metasploit in quiet mode.
@@ -103,11 +103,13 @@ The quiet mode does not change how Metasploit works. It only reduces the amount 
 
 ### Step 1.2: Now search for `psexec`
 
+Next, I searched for the available PsExec modules.
+
 ```bash
 search psexec
 ```
 
-It searches the Metasploit database for all available modules related to psexec.
+The output shows several modules related to PsExec. For this lab, I used `exploit/windows/smb/psexec.`
 
 **Output:**
 
