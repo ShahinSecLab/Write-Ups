@@ -11,7 +11,7 @@
 - [Overview](#ntds-dumping)
 - [What I Understood During the Process](#what-i-understood-during-the-process)
 - [Why This Step Was Important in the Lab](#why-this-step-was-important-in-the-lab)
-- [Steps](#steps)
+- [Attack Process](#attack-process)
   - [Step 1 — Token Impersonation & Privilege Escalation](#step---1-token-impersonation-and-privilege-escallation)
   - [Step 2 — NTDS Dump with NetExec](#step---2-ntds-dump--netexec)
   - [Step 3 — Getting a Shell with Evil-WinRM](#step---3-getting-a-shell-with-evil-winrm)
@@ -48,9 +48,9 @@ In the attack flow, NTDS dumping represented the final and most powerful stage o
 - Potential access to high-privilege accounts
 - A way to extend control across the network
 
-# Steps
+## Attack Process
 
-## Step - 1 Token Impersonation & Privilege Escalation
+## Step 1 — Token Impersonation & Privilege Escalation
 
 Before performing the NTDS dump, I first carried out a Token Impersonation attack to escalate my privileges within the domain.
 
