@@ -117,7 +117,7 @@ SMB         192.168.5.134   445    REDTEAMBD-DC     [*] grep -iv disabled /root/
 The command completed successfully and extracted the NTLM hashes from the Domain Controller, providing the credential material required for the next phase of the assessment.
 
 <p align="center">
-  <img src="/writeups/07-ntds dump/step2.png" width="600">
+  <img src="/writeups/07-ntds dump/images/step2.png" width="600">
 </p>
 
 # Step - 3 Getting a Shell with Evil-WinRM
