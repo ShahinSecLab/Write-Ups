@@ -58,7 +58,13 @@ Windows stores NTLM hashes in memory while a user is logged in. These hashes can
 | Server   | Windows Server   | Domain Controller     | 192.168.5.134 |
 | Victim 1 | Windows 10       | Domain joined machine | 192.168.5.135 |
 | Victim 2 | Windows 10       | Domain joined machine | 192.168.5.136 |
- ```
+```
+
+Before starting the attack, I already had the following valid domain credentials:
+
+- Domain: `readteambd.local`
+- User: `rahimkhan`
+- Pass: `Password1`
 
 # Attack Steps
 
@@ -243,7 +249,7 @@ I used Hashcat and the rockyou wordlist to crack the NTLM hashes I collected.
 ```bash
 hashcat -m 1000 passthehash.txt /usr/share/wordlists/rockyou.txt
 ```
--m 1000 tells hashcat these are NTLM hashes.
+`-m 1000` tells hashcat these are NTLM hashes.
 
 After running the command, Hashcat cracked one of the hashes and recovered the password.
 
