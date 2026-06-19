@@ -54,7 +54,7 @@ In the attack flow, NTDS dumping represented the final and most powerful stage o
 
 Before performing the NTDS dump, I first carried out a Token Impersonation attack to escalate my privileges within the domain.
 
-During this phase, the test user account was added to the Domain Admins group. After successfully impersonating a privileged token, I gained administrative privileges and took control of the test account.
+During this phase, the `test` user account was added to the Domain Admins group. After successfully impersonating a privileged token, I gained administrative privileges and took control of the `test` account.
 
 I then used the credentials of this Domain Admin account to authenticate and continue with the NTDS dumping process as part of the post-exploitation phase.
 
@@ -117,7 +117,7 @@ SMB         192.168.5.134   445    REDTEAMBD-DC     [*] grep -iv disabled /root/
 The command completed successfully and extracted the NTLM hashes from the Domain Controller, providing the credential material required for the next phase of the assessment.
 
 <p align="center">
-  <img src="/writeups/07-ntds dump/images/step2.png" width="600">
+  <img src="/Active-Directory/07-ntds dump/images/step2.png" width="600">
 </p>
 
 # Step - 3 Getting a Shell with Evil-WinRM
@@ -149,21 +149,18 @@ readteambd\administrator
 
 The command executed successfully, giving me an interactive PowerShell session on the Domain Controller with Domain Administrator privileges.
 
-### Result
+**Result:**
 
-```
-|      Field        |                 Value                          |
-|-------------------|------------------------------------------------|
-| **Target IP**     | `192.168.5.134`                                |
-| **User**          | `administrator`                                |
-| **Hash Used**     | `fc525c9683e8fe067095ba2ddc971889`             |
-| **Shell**         | Got a full PowerShell session as Administrator |
-| **Whoami Output** | `readteambd\administrator`                     |
-```
+- Target IP     --> `192.168.5.134`                                
+- User          --> `administrator`                                
+- Hash Used     --> `fc525c9683e8fe067095ba2ddc971889`             
+- Shell         --> Got a full PowerShell session as Administrator 
+- Whoami Output --> `readteambd\administrator`                     
+
 I successfully logged in as **Domain Administrator** without ever knowing the real password — just the hash was enough to own the box.
 
 <p align="center">
-  <img src="/writeups/07-ntds dump/images/step3.png" width="600">
+  <img src="/Active-Directory/07-ntds dump/images/step3.png" width="600">
 </p>
 
 ## What I Achieved
