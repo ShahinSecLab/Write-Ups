@@ -13,7 +13,7 @@
 - [Lab Setup](#lab-setup)
 - [Attack Flow](#attack-flow)
 - [Step 1: Disable SMB and HTTP in Responder](#step-1-disable-smb-and-http-in-responder)
-- [Step-2: Check SMB2 Security Mode](#step-2-check-smb2-security-mode)
+- [Step 2: Check SMB2 Security Mode](#step-2-check-smb2-security-mode)
 - [Step 3: Create Target List](#step-3-create-target-list)
 - [Step 4: Start Responder](#step-4-start-responder)
 - [Step 5: Start ntlmrelayx](#step-4-start-ntlmrelayx)
@@ -29,6 +29,7 @@
 SMB Relay is a network attack where an attacker captures a user's authentication request and forwards it to victim machine instead of cracking the password. If the target system accepts the authentication, the attacker can gain access using the victim's session.
 
 ### Lab Setup
+
 ```
 |    Machine         |      OS       |               Role                   |      Ip       |
 | ------------------ |------------------------------------------------------|---------------|
@@ -135,11 +136,10 @@ Y
 ENTER
 ```
 
-### Step-2: Check SMB2 Security Mode
+### Step 2: Check SMB2 Security Mode
 
 I scanned the network to check SMB signing status using Nmap:
 
-- Run:
 ```bash
 nmap --script smb2-security-mode -p 445 192.168.5.0/24
 ```
@@ -164,6 +164,7 @@ I created a file to store the target IP addresses:
 ```bash
 nano targets.txt
 ```
+
 <p align="center">
   <img src="/Active-Directory/02-smb-relay/images/step3-1.png" width="600">
 </p>
@@ -175,6 +176,7 @@ Inside the file, I added the target IPs:
 192.168.5.135
 192.168.5.136
 ```
+
 <p align="center">
   <img src="/Active-Directory/02-smb-relay/images/step3-2.png" width="600">
 </p>
@@ -194,6 +196,7 @@ I started Responder on my network interface:
 ```bash
 sudo responder -I eth0 -dwv
 ```
+
 ```
 |    Flag   |     Meaning       |
 |-----------|-------------------|
@@ -234,6 +237,7 @@ From the victim machine, I opened File Explorer and typed:
 ```bash
 \\fakeshare
 ```
+
 After pressing Enter, the system tried to connect and sent NTLM authentication over the network.
 
 <p align="center">
