@@ -224,7 +224,7 @@ After injecting the Golden Ticket with `/ptt`, I ran `misc::cmd` to open a new C
 
 ## Step 7 — Accessing Victim Machine File System
 
-```cmd
+```bash
 dir \\192.168.5.142\c$
 ```
 
