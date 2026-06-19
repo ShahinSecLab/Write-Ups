@@ -118,9 +118,8 @@ Information gathered:
 - Domain: READTEAMBD.local
 
 <p align="center">
-  <img src="/writeups/06-kerberosting attack/images/step1.png" width="600">
+  <img src="/Active-Directory/06-kerberosting attack/images/step1.png" width="600">
 </p>
-
 
 ## Step 2 – Save Hash to File
 
@@ -158,7 +157,7 @@ Recovered Password: Mypassword123#
 Hashcat successfully recovered the password for the sqlservice account:
 
 <p align="center">
-  <img src="/writeups/06-kerberosting attack/images/step3.png" width="600">
+  <img src="/Active-Directory/06-kerberosting attack/images/step3.png" width="600">
 </p>
 
 ## Why Kerberoasting is Dangerous
