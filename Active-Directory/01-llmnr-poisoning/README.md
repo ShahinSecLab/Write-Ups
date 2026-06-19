@@ -143,7 +143,7 @@ On my Kali machine, Responder captured the victim's NTLMv2 authentication attemp
 
 ## Step 4 — Save the Captured Hash
 
-### Copy the Hash
+#### Copy the Hash
 
 First, I copied the NTLMv2 hash captured by Responder.
 
@@ -158,7 +158,7 @@ On my Kali machine, I created a new file using Nano:
 ```bash
 nano hash.txt
 ```
-- step 4.3: Open the File
+#### Open the File
 
 After running the command, I pressed Enter to open the file.
 
@@ -166,7 +166,7 @@ After running the command, I pressed Enter to open the file.
   <img src="/Active-Directory/01-llmnr-poisoning/images/step4-2.png" width="600">
 </p>
 
-- step 4.4: Paste the Hash
+#### Paste the Hash
 
 Once Nano opened, I pasted the captured NTLMv2 hash into the file.
 
@@ -174,7 +174,7 @@ Once Nano opened, I pasted the captured NTLMv2 hash into the file.
   <img src="/Active-Directory/01-llmnr-poisoning/images/step4-3.png" width="600">
 </p>
 
-- step 4.5: Save the File
+#### Save the File
 
 To save the file, I pressed:
 
