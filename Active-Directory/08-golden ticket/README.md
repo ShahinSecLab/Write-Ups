@@ -1,4 +1,4 @@
-# golden ticket generation
+# Golden Ticket Generation
 
 **Date:** June 2026  
 **Author:** ShahinSecLab  
@@ -146,7 +146,7 @@ SID               : S-1-5-21-2745015721-426968701-4006811760-500
 Got the Administrator NTLM hash sitting right in memory. No cracking needed — I can use this directly for Pass the Hash.
 
 <p align="center">
-  <img src="/writeups/golden ticket/images/step3.png" width="600">
+  <img src="/Active-Directory/08-golden ticket/images/step3.png" width="600">
 </p>
 
 ## Step 4 — Dumping the krbtgt Hash
@@ -167,7 +167,7 @@ mimikatz # lsadump::lsa /inject /name:krbtgt
 Instead of dumping all accounts like `lsadump::lsa /patch`, this command goes after one specific account — `krbtgt`. This is the account I need to forge a Golden Ticket. It gives me the NTLM hash and the domain SID in one shot.
 
 <p align="center">
-  <img src="/writeups/golden ticket/images/step4.png" width="600">
+  <img src="/Active-Directory/08-golden ticket/images/step4.png" width="600">
 </p>
 
 ## Step 5 — Generating and Injecting the Golden Ticket
@@ -211,7 +211,7 @@ Golden ticket for 'Administrator @ readteambd.local' successfully submitted for 
 ```
 
 <p align="center">
-  <img src="/writeups/golden ticket/images/step5.png" width="600">
+  <img src="/Active-Directory/08-golden ticket/images/step5.png" width="600">
 </p>
 
 ## Step 6 — Opening a CMD Shell with the Golden Ticket
@@ -252,7 +252,7 @@ dir \\192.168.5.142\c$
                6 Dir(s)  29,588,279,296 bytes free
 ```
 <p align="center">
-  <img src="/writeups/golden ticket/images/step7.png" width="600">
+  <img src="/Active-Directory/08-golden ticket/images/step7.png" width="600">
 </p>
 
 ### What This Proves
@@ -288,7 +288,7 @@ Microsoft Windows [Version 10.0.19045.6456]
 C:\Windows\system32>
 ```
 <p align="center">
-  <img src="/writeups/golden ticket/images/step8.png" width="600">
+  <img src="/Active-Directory/08-golden ticket/images/step8.png" width="600">
 </p>
 
 ### What This Proves
@@ -326,7 +326,6 @@ This is the final proof that the Golden Ticket attack worked from end to end —
 | 6 | Credential Guard is the strongest single technical control here. If LSASS memory is not readable, the hash cannot be stolen. |
 | 7 | RC4 enforcement of AES is not just a performance preference — it is a meaningful detection and prevention layer against the most common Golden Ticket tooling. |
 
----
 
 ## References
 
