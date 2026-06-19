@@ -82,7 +82,7 @@ Before starting Responder, I first identified my network interface name and IP a
 ip a
 ```
 <p align="center">
-  <img src="/writeups/01-llmnr-poisoning/images/step1.png" width="600">
+  <img src="/Active-Directory/01-llmnr-poisoning/images/step1.png" width="600">
 </p>
 
 ## Output:
@@ -108,7 +108,7 @@ sudo responder -I eth0 -dwv
 Responder will now listen on the network and wait for someone to broadcast a name request.
 
 <p align="center">
-  <img src="/writeups//01-llmnr-poisoning/images/step2.png" width="600">
+  <img src="/Active-Directory/01-llmnr-poisoning/images/step2.png" width="600">
 </p>
 
 ## Step 3 — Trigger from Victim Machine
