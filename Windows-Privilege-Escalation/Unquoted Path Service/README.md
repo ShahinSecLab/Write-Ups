@@ -1,10 +1,10 @@
 # Unquoted Path Service
 
-Date: June 2026
-Author: ShahinSecLab
-Category: Privilege Escalation
-Difficulty: Easy
-Tools: msfvenom, Metasploit, winPEAS, accesschk.exe, certutil
+**Date:** June 2026  
+**Author:** ShahinSecLab  
+**Category:** Privilege Escalation  
+**Difficulty:** Easy  
+**Tools:** msfvenom, Metasploit, winPEAS, accesschk.exe, certutil
 
 # Table of Contents
 
@@ -41,4 +41,59 @@ C:\Program.exe
 C:\Program Files\Unquoted.exe
 C:\Program Files\Unquoted Path Service\Common.exe
 C:\Program Files\Unquoted Path Service\Common Files\unquotedpathservice.exe
+```
+
+It stops at the first one it finds. So if I drop a file called Common.exe inside C:\Program Files\Unquoted Path Service\, Windows picks it up and runs it as SYSTEM before ever reaching the real binary.
+
+## Lab Setup
+
+```
+|       Component      |         Details          |
+|----------------------|--------------------------|
+| **Attacker Machine** | Kali Linux               |
+| **Attacker IP**      | 192.168.5.128            |
+| **Victim Machine**   | Windows 10               |
+| **Victim IP**        | 192.168.5.129            |
+| **Network**          | VMware Host-Only Network |
+| **Domain**           | WORKGROUP                |
+```
+
+## What I Understood During the Process
+
+While working through this attack I realized that:
+
+- A missing pair of quotes around a service path can lead to full SYSTEM access
+- The attack only works if I can write to one of the folders Windows checks
+- winPEAS finds these misconfigurations automatically and flags them clearly
+- This is one of the most common privilege escalation paths found in real Windows environments
+- Fixing it is as simple as adding quotes around the binary path
+
+## Attack Flow
+
+```
+winPEAS flagged unquotedsvc service — unquoted path with spaces detected
+                        ↓
+Checked service config — runs as LocalSystem (SYSTEM)
+                        ↓
+Checked folder permissions along the binary path
+                        ↓
+Found C:\Program Files\Unquoted Path Service\ is writable by normal users
+                        ↓
+Generated malicious payload rev.exe on Kali with msfvenom
+                        ↓
+Hosted payload over HTTP with Python HTTP server
+                        ↓
+Downloaded rev.exe to victim using certutil
+                        ↓
+Copied rev.exe to writable folder as Common.exe
+                        ↓
+Started Metasploit listener on port 4444
+                        ↓
+Started unquotedsvc service
+                        ↓
+Windows found Common.exe first and ran it as SYSTEM
+                        ↓
+Metasploit caught the shell
+                        ↓
+whoami → nt authority\system
 ```
