@@ -28,7 +28,7 @@ Unquoted Path Service is a Windows privilege escalation technique. When a servic
 
 ## Why This Attack Works
 
-Windows handles unquoted paths with spaces in a specific way. Take this path for example:
+Windows handles unquoted paths with spaces in a specific way. For example:
 
 ```bash
 C:\Program Files\Unquoted Path Service\Common Files\unquotedpathservice.exe
@@ -100,11 +100,12 @@ whoami → nt authority\system
 
 ## Step 1 — Finding the Unquoted Path Service
 
-`winPEAS` flagged unquotedsvc while scanning — it showed the binary path had spaces but no quotes around it.
+I started by running `winPEAS` to check for possible privilege escalation opportunities on the target machine.
 
 ```bash
 C:\PrivEsc>winPEASany.exe
 ```
+While looking through the results, I found that `winPEAS` reported the `unquotedsvc` service. The executable path contained spaces but was not enclosed in quotation marks.
 
 **Output:**
 
@@ -116,7 +117,11 @@ unquotedsvc(Unquoted Path Service)[C:\Program Files\Unquoted Path Service\Common
   <img src="images/step1-1.png" width="600">
 </p>
 
+This caught my attention because an unquoted service path can sometimes be used to gain higher privileges if the required permissions are available.
+
 ### Checked the Service Configuration
+
+To confirm what `winPEAS` found, I checked the service configuration using the `sc qc` command.
 
 ```bash
 C:\PrivEsc> sc qc unquotedsvc
@@ -126,7 +131,6 @@ C:\PrivEsc> sc qc unquotedsvc
 
 ```
 [SC] QueryServiceConfig SUCCESS
-
 SERVICE_NAME: unquotedsvc
         TYPE               : 10  WIN32_OWN_PROCESS 
         START_TYPE         : 3   DEMAND_START
@@ -138,12 +142,10 @@ SERVICE_NAME: unquotedsvc
         DEPENDENCIES       : 
         SERVICE_START_NAME : LocalSystem
 ```
+The output confirmed two important things:
 
-
-| **Field** | **Value** | **What it Means** |
-|:---------|:----------|:------------------|
-| **BINARY_PATH_NAME** | `C:\Program Files\Unquoted Path Service\Common Files\unquotedpathservice.exe` | The service executable path is **not enclosed in quotation marks**, making it vulnerable to an **Unquoted Service Path** attack. |
-| **SERVICE_START_NAME** | `LocalSystem` | The service runs under the **LocalSystem (SYSTEM)** account, so successful exploitation results in **SYSTEM-level privileges**. |
+The `BINARY_PATH_NAME` contains spaces and is not enclosed in quotation marks, which makes it vulnerable to an **Unquoted Service Path** attack.
+The service runs as **LocalSystem**, so if I successfully exploit it, I can get **SYSTEM** privileges.
 
 
 ## Checked Write Permissions on C:\
