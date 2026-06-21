@@ -147,7 +147,7 @@ The output confirmed two important things:
 The `BINARY_PATH_NAME` contains spaces and is not enclosed in quotation marks, which makes it vulnerable to an **Unquoted Service Path** attack.
 The service runs as **LocalSystem**, so if I successfully exploit it, I can get **SYSTEM** privileges.
 
-## Checked Write Permissions on C:\
+### Checked Write Permissions on C:\
 
 The service path starts from `C:\`, so I first checked whether I had write permission there.
 
@@ -276,7 +276,7 @@ The payload was downloaded successfully and saved as rev.exe on the victim machi
 
 ## Step 4 — Copying the Payload and Starting the Service
 
-### Copied the Payload to the Writable Folder
+### Copy the Payload to the Writable Folder
 
 Since I had write permission on C:\Program Files\Unquoted Path Service\, I copied my payload there and named it `Common.exe.`
 
