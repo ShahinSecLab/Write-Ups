@@ -107,3 +107,13 @@ whoami → nt authority\system
                         ↓
 Ran hashdump — dumped all password hashes from the machine
 ```
+
+
+## Step 1 — Running winPEAS to Find the Vulnerable Service
+
+I already had a low-privilege Meterpreter shell on the target machine. To enumerate potential privilege escalation vectors, I uploaded and executed **winPEAS**.
+
+During the scan, **winPEAS** identified the **filepermsvc** service as a potential privilege escalation opportunity. The output showed that the service executable granted **FILE_ALL_ACCESS** permissions to the **Everyone** group, meaning any user on the system could modify or replace the service binary.
+
+Since the service was configured to run with **SYSTEM** privileges, replacing its executable with a malicious payload would allow me to execute code as **NT AUTHORITY\SYSTEM** when the service started.
+```
