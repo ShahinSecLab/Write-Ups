@@ -111,9 +111,45 @@ Ran hashdump — dumped all password hashes from the machine
 
 ## Step 1 — Running winPEAS to Find the Vulnerable Service
 
-I already had a low-privilege Meterpreter shell on the target machine. To enumerate potential privilege escalation vectors, I uploaded and executed **winPEAS**.
+I already had a low-privilege Meterpreter shell on the target machine. I ran winPEAS to scan for privilege escalation paths.
 
-During the scan, **winPEAS** identified the **filepermsvc** service as a potential privilege escalation opportunity. The output showed that the service executable granted **FILE_ALL_ACCESS** permissions to the **Everyone** group, meaning any user on the system could modify or replace the service binary.
 
-Since the service was configured to run with **SYSTEM** privileges, replacing its executable with a malicious payload would allow me to execute code as **NT AUTHORITY\SYSTEM** when the service started.
+```bash
+C:\PrivEsc> .\winPEASany.exe
 ```
+winPEAS flagged filepermsvc straight away — it showed the service binary had FILE_ALL_ACCESS for Everyone. That was my target.S
+
+**Output:**
+
+```
+filepermsvc(File Permissions Service)["C:\Program Files\File Permissions Service\filepermservice.exe"] - Manual - Stopped
+    File Permissions: Everyone [AllAccess]
+```
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
+
+## Step 2 — Checking the Service Configuration
+
+```bash
+C:\PrivEsc> sc qc filepermsvc
+```
+**Output:**
+
+```
+[SC] QueryServiceConfig SUCCESS
+
+SERVICE_NAME: filepermsvc
+        TYPE               : 10  WIN32_OWN_PROCESS 
+        START_TYPE         : 3   DEMAND_START
+        ERROR_CONTROL      : 1   NORMAL
+        BINARY_PATH_NAME   : "C:\Program Files\File Permissions Service\filepermservice.exe"
+        LOAD_ORDER_GROUP   : 
+        TAG                : 0
+        DISPLAY_NAME       : File Permissions Service
+        DEPENDENCIES       : 
+        SERVICE_START_NAME : LocalSystem
+```
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>

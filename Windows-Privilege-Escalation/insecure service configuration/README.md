@@ -260,6 +260,7 @@ meterpreter > shell
 ```cmd
 C:\PrivEsc> .\winPEASany.exe
 ```
+
 winPEAS ran a full scan of the machine and flagged the `daclsvc` service as having weak permissions. That was my target.
 
 ## Step 8 — Verifying Service Permissions with accesschk.exe
