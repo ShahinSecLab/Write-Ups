@@ -1,10 +1,12 @@
 # DLL Hijacking
 
-**Date:** June 2026
-**Author:** ShahinSecLab
-**Category:** Privilege Escalation
-**Difficulty:** Medium
-**Tools:** msfvenom, Metasploit, winPEAS, accesschk.exe, certutil
+```
+Date: June 2026
+Author: ShahinSecLab
+Category: Privilege Escalation
+Difficulty: Medium
+Tools: msfvenom, Metasploit, winPEAS, accesschk.exe, certutil
+```
 
 # Table of Contents
 
@@ -79,6 +81,7 @@ If a folder early in that search order is writable by normal users, I can drop a
 ```
 
 ## What I Understood During the Process
+
 While working through this attack I realized that:
 
 - Windows trusting folders in the PATH to load DLLs is a big security risk
@@ -293,6 +296,7 @@ The download completed successfully, and the malicious DLL was saved as hijackme
 ## Step 5 — Restarting the Service and Getting a SYSTEM Shell
 
 ### Stopped the Service
+
 ```bash
 C:\Temp> net stop dllsvc
 ```
