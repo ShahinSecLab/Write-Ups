@@ -88,7 +88,7 @@ While working through this attack I realized that:
 - Once you get a SYSTEM Meterpreter session, you can dump every password hash on the machine in one command
 
 ## Attack Flow
-
+```
 Already had a low privilege Meterpreter shell on the victim
                         ↓
 Ran winPEAS — flagged C:\Temp as writable by Authenticated Users
@@ -116,3 +116,21 @@ Metasploit caught the shell
 whoami → nt authority\system
                         ↓
 Ran hashdump — dumped all password hashes from the machine
+```
+
+## Step 1 — Finding the DLL Hijacking Opportunity
+
+I already had a Meterpreter shell on the victim machine as a low privilege user. I ran winPEAS to scan for privilege escalation paths.
+winPEAS flagged a DLL Hijacking opportunity straight away:
+
+```bash
+C:\PrivEsc>.\winPEASany.exe
+```
+**Output:**
+
+```
+dllsvc(DLL Hijack Service)["C:\Program Files\DLL Hijack Service\dllhijackservice.exe"] - Manual - Stopped
+```
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
