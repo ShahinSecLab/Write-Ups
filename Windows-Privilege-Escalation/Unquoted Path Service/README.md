@@ -1,9 +1,9 @@
 # Unquoted Path Service
 
-**Date:** June 2026  
-**Author:** ShahinSecLab  
-**Category:** Privilege Escalation  
-**Difficulty:** Easy  
+**Date:** June 2026<br>
+**Author:** ShahinSecLab<br>
+**Category:** Privilege Escalation<br>
+**Difficulty:** Easy<br>
 **Tools:** msfvenom, Metasploit, winPEAS, accesschk.exe, certutil
 
 # Table of Contents
