@@ -134,3 +134,34 @@ dllsvc(DLL Hijack Service)["C:\Program Files\DLL Hijack Service\dllhijackservice
 <p align="center">
   <img src="images/step1-1.png" width="600">
 </p>
+
+## Step 2 — Checking Service Permissions with accesschk.exe
+
+After finding the vulnerable service, I checked what permissions my current user had on it.
+
+```bash
+C:\PrivEsc> .\accesschk.exe /accepteula -uqcv user dllsvc
+```
+**Output:**
+
+```
+R dllsvc
+        SERVICE_QUERY_STATUS
+        SERVICE_QUERY_CONFIG
+        SERVICE_INTERROGATE
+        SERVICE_ENUMERATE_DEPENDENTS
+        SERVICE_START
+        SERVICE_STOP
+        READ_CONTROL
+```
+
+- `SERVICE_START`: I can start the service
+- `SERVICE_STOP`: I can stop the service
+
+I could stop and restart the service myself — meaning I could trigger the DLL load whenever I wanted.
+
+## Step 3 — Checking the Service Configuration
+
+```bash
+C:\PrivEsc> sc qc dllsvc
+```
