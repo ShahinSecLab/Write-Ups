@@ -15,7 +15,7 @@
 - [What I Understood During the Process](#what-i-understood-during-the-process)
 - [Attack Flow](#attack-flow)
 - [Step 1 — Exploring the File System](#step-1--exploring-the-file-system)
-- [Step 2 — Checking the BGinfo Folder](#step-2--checking-the-bginfo-folder)
+- [Step 2 — Finding the Vulnerable Script in DevTools](#step-2--finding-the-vulnerable-script-in-devtools)
 - [Step 3 — Finding the Vulnerable Script in DevTools](#step-3--finding-the-vulnerable-script-in-devtools)
 - [Step 4 — Checking File Permissions on CleanUp.ps1](#step-4--checking-file-permissions-on-cleanupps1)
 - [Step 5 — Injecting the Payload into CleanUp.ps1](#step-5--injecting-the-payload-into-cleanupps1)
@@ -30,7 +30,7 @@ Scheduled Task Manipulation is a local privilege escalation technique. When a sc
 
 ## Why This Attack Works
 
-Windows scheduled tasks often run as SYSTEM to perform maintenance jobs like cleaning logs, running backups, or updating software. If the script or binary that the task runs has weak permissions — meaning normal users can write to it — I can add my own commands to that script. The next time the task fires, Windows runs my commands as SYSTEM.
+Windows scheduled tasks often run as `SYSTEM` to perform maintenance jobs like cleaning logs, running backups, or updating software. If the script or binary that the task runs has weak permissions — meaning normal users can write to it — I can add my own commands to that script. The next time the task fires, Windows runs my commands as `SYSTEM`.
 The key thing here is I do not need to touch the task itself. I just modify the script it runs.
 
 ## Lab Setup
@@ -135,4 +135,22 @@ C:\> dir
                0 File(s)              0 bytes
                9 Dir(s)  28,201,332,736 bytes free
 ```
-I went through each folder one by one looking for anything interesting. Two folders stood out straight away — BGinfo and DevTools. These are not default Windows folders, so I checked them both.
+I went through each folder one by one looking for anything interesting. Two folders stood out straight away — `BGinfo` and `DevTools`. These are not default Windows folders, so I checked them both.
+
+## Step 2 — Finding the Vulnerable Script in DevTools
+
+```bash
+C:\> cd DevTools
+C:\DevTools> dir
+```
+**Output:**
+```
+06/18/2026  03:59 AM    <DIR>          .
+06/18/2026  03:59 AM    <DIR>          ..
+06/18/2026  03:59 AM               173 CleanUp.ps1
+               1 File(s)            173 bytes
+               2 Dir(s)  28,202,348,544 bytes free
+```
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
