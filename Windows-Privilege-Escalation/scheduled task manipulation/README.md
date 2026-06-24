@@ -16,10 +16,9 @@
 - [Attack Flow](#attack-flow)
 - [Step 1 — Exploring the File System](#step-1--exploring-the-file-system)
 - [Step 2 — Finding the Vulnerable Script in DevTools](#step-2--finding-the-vulnerable-script-in-devtools)
-- [Step 3 — Finding the Vulnerable Script in DevTools](#step-3--finding-the-vulnerable-script-in-devtools)
-- [Step 4 — Checking File Permissions on CleanUp.ps1](#step-4--checking-file-permissions-on-cleanupps1)
-- [Step 5 — Injecting the Payload into CleanUp.ps1](#step-5--injecting-the-payload-into-cleanupps1)
-- [Step 6 — Waiting for the Shell](#step-6--waiting-for-the-shell)
+- [Step 3 — Checking File Permissions on CleanUp.ps1](#step-4--checking-file-permissions-on-cleanupps1)
+- [Step 4 — Injecting the Payload into CleanUp.ps1](#step-5--injecting-the-payload-into-cleanupps1)
+- [Step 5 — Waiting for the Shell](#step-6--waiting-for-the-shell)
 - [How Defenders Can Catch This](#how-defenders-can-catch-this)
 - [How to Prevent It](#how-to-prevent-it)
 - [What I Achieved](#what-i-achieved)
@@ -182,7 +181,7 @@ The comment said everything I needed to know:
   <img src="images/step2-2.png" width="600">
 </p>
 
-## Step 4 — Checking File Permissions on CleanUp.ps1
+## Step 3 — Checking File Permissions on CleanUp.ps1
 
 ```bash
 C:\PrivEsc> .\accesschk.exe /accepteula -uwqv user C:\DevTools\CleanUp.ps1
@@ -213,7 +212,7 @@ All permission was wide open. I could write whatever I wanted into CleanUp.ps1. 
   <img src="images/step4-1.png" width="600">
 </p>
 
-## Step 5 — Injecting the Payload into CleanUp.ps1
+## Step 4 — Injecting the Payload into CleanUp.ps1
 
 I had already created a payload named rev.exe using **msfvenom** and saved it to `C:\PrivEsc\rev.exe`.
 I uploaded the payload from my Kali machine to the victim using Meterpreter.
@@ -242,7 +241,7 @@ C:\privEsc\rev.exe
 ```
 The last line was my payload. The next time the scheduled task runs the script, it will hit that line and execute `rev.exe` as `SYSTEM`.
 
-## Step 6 — Waiting for the Shell
+## Step 5 — Waiting for the Shell
 
 I started a Metasploit listener on Kali and waited. The task runs every minute so I did not have to do anything else.
 
