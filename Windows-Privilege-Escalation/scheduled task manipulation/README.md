@@ -24,3 +24,24 @@
 - [How to Prevent It](#how-to-prevent-it)
 - [What I Achieved](#what-i-achieved)
 
+## Introduction
+
+Scheduled Task Manipulation is a local privilege escalation technique. When a scheduled task runs a script or binary as SYSTEM and that script or binary has weak file permissions, a low privilege user can modify it. The next time the task runs, it executes the modified script as SYSTEM — giving full control of the machine without needing any exploit or CVE.
+
+## Why This Attack Works
+
+Windows scheduled tasks often run as SYSTEM to perform maintenance jobs like cleaning logs, running backups, or updating software. If the script or binary that the task runs has weak permissions — meaning normal users can write to it — I can add my own commands to that script. The next time the task fires, Windows runs my commands as SYSTEM.
+The key thing here is I do not need to touch the task itself. I just modify the script it runs.
+
+## Lab Setup
+
+```
+|    Component     |         Details         |
+|------------------|-------------------------|
+| Attacker Machine | Kali Linux              |
+| Attacker IP      | 192.168.5.128           |
+| Victim Machine   | Windows 10 (MSEDGEWIN10)|
+| Victim IP        | 192.168.5.144           |
+| Network          | VMware Host-Only Network|
+| Domain           | WORKGROUP               |
+```
