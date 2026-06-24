@@ -62,8 +62,8 @@ The key thing here is I do not need to touch the task itself. I just modify the 
 |                   What                | Why                                   |
 |---------------------------------------|---------------------------------------|
 | Low privilege Meterpreter shell       | Starting point for the attack         |
-| accesschk.exe                       | To check file permissions on scripts  |
-| rev.exe already on the victim       | Payload to execute as SYSTEM          |
+| accesschk.exe                         | To check file permissions on scripts  |
+| rev.exe already on the victim         | Payload to execute as SYSTEM          |
 | Metasploit listener                   | To catch the shell when the task fires|
 ```
 
@@ -75,7 +75,7 @@ While working through this attack I realized that:
 - If the script a task runs is writable by normal users, the machine is open to this attack
 - I did not need to touch the scheduled task itself — just the script it runs
 - The attack is completely passive once the payload is injected — I just wait for the task to fire
-- Always check custom folders like C:\DevTools, C:\BGinfo, C:\Temp — admins often leave weak permissions on these
+- Always check custom folders like `C:\DevTools`, `C:\BGinfo`, `C:\Temp` — admins often leave weak permissions on these
 
 ## Attack Flow
 
@@ -106,3 +106,33 @@ Metasploit caught the shell
                         ↓
 Meterpreter session opened as SYSTEM
 ```
+
+## Step 1 — Exploring the File System
+
+I already had a Meterpreter shell on the victim machine as a low privilege user. I dropped into a CMD shell and started looking around the file system.
+
+```bash
+meterpreter > shell
+```
+```bash
+C:\PrivEsc> cd ..
+C:\> dir
+```
+**Output:**
+
+```
+ Directory of C:\
+
+06/18/2026  03:59 AM    <DIR>          DevTools
+06/22/2026  09:04 PM    <DIR>          inetpub
+12/07/2019  02:14 AM    <DIR>          PerfLogs
+06/23/2026  09:18 PM    <DIR>          PrivEsc
+06/20/2026  03:12 AM    <DIR>          Program Files
+05/05/2023  05:27 AM    <DIR>          Program Files (x86)
+06/23/2026  05:45 AM    <DIR>          Temp
+06/18/2026  04:40 AM    <DIR>          Users
+06/22/2026  09:06 PM    <DIR>          Windows
+               0 File(s)              0 bytes
+               9 Dir(s)  28,201,332,736 bytes free
+```
+I went through each folder one by one looking for anything interesting. Two folders stood out straight away — BGinfo and DevTools. These are not default Windows folders, so I checked them both.
