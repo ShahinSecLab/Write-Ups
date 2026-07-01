@@ -92,8 +92,31 @@ Checked sudo -l as root — full (ALL) ALL access confirmed
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
 ```
 
+`-o HostKeyAlgorithms=+ssh-rsa` : Allows older RSA host key algorithm — needed for older Linux systems
+`-o PubkeyAcceptedAlgorithms=+ssh-rsa` : Allows older RSA public key algorithm for authentication
+`192.168.5.133` : Target IP
+`user`: User Name
 
+**Output:**
 
+```
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+user@192.168.5.133's password: 
+Linux debian 2.6.32-5-amd64 #1 SMP Tue May 13 16:34:35 UTC 2014 x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Tue Jun 30 12:32:04 2026 from 192.168.5.128
+```
+It prompted for the password right after the connection request, I typed password321, and got logged in successfully. The kernel version 2.6.32 stood out right away
+
+I logged in as `user` — a normal low privilege account on the system.
 
 
 
