@@ -191,3 +191,28 @@ Most of these are normal system binaries that are supposed to have the SUID bit 
 - `/usr/sbin/exim-4.84-3`
 
 `/usr/sbin/exim-4.84-3` was the most interesting one — Exim is a mail transfer agent and this old version is known to be vulnerable to local privilege escalation through its SUID bit.
+
+## Step 3 — Searching for an Exploit with Searchsploit
+
+I copied the version exim-4.84-3 and searched for known exploits on my Kali machine.
+
+```bash
+searchsploit exim 4.84-3
+```
+**Output:**
+
+```
+Exploit Title                                              | Path
+-----------------------------------------------------------|---------------------------
+Exim < 4.86.2 - Local Privilege Escalation                 | linux/local/39535.sh
+Exim < 4.86.2 - Local Privilege Escalation                 | linux/local/39549.txt
+Exim < 4.90.1 - base64d Remote Code Execution              | linux/remote/44571.py
+PHPMailer < 5.2.20 with Exim MTA - Remote Code Execution   | php/webapps/42221.py
+```
+The first result was exactly what I needed — Exim < 4.86.2 - Local Privilege Escalation at `linux/local/39535.sh`. Since the target was running `exim-4.84-3` which is below `4.86.2`, it was vulnerable.
+
+### Downloaded the Exploit to Kali
+
+```bash
+searchsploit -m 39535
+```
