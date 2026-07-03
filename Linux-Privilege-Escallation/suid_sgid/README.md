@@ -253,3 +253,21 @@ Saving to: "39535.sh"
 
 2026-01-14 03:57:13 (225 MB/s) - "39535.sh" saved [638/638]
 ```
+
+### Confirmed the File is There
+```bash
+user@debian:~$ ls
+```
+
+```-rw-r--r-- 1 user user  638 Jan 14 03:51 39535.sh
+```
+
+```
+| Permission | Who    |            What it Means                           |
+|------------|--------|----------------------------------------------------|
+| `rw-`      | User   | The owner can read from and write to the file.     |
+| `r--`      | Group  | Members of the file's group can only read the file.|
+| `r--`      | Others | All other users can only read the file.            |
+```
+
+The file downloaded successfully but had no execute permission yet. I needed to add that before running it.
