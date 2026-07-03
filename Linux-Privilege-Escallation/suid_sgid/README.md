@@ -142,3 +142,52 @@ I logged in as `user` — a normal low privilege account on the system.
 <p align="center">
   <img src="images/step1-1.png" width="600">
 </p>
+
+## Step 2 — Finding SUID Binaries
+
+```bash
+user@debian:~$ find / -type f -perm -4000 2>/dev/null
+```
+
+### Flag Breakdown
+```
+|  Flag         |            Description                                           |
+|---------------|------------------------------------------------------------------|
+| `/`           | Starts searching from the root of the filesystem.                |
+| `-type f`     | Searches for files only.                                         |
+| `-perm -4000` | Finds files with the SUID bit set.                               |
+| `2>/dev/null` | Redirects error messages to `/dev/null` to keep the output clean.|
+```
+
+**Output:**
+
+```
+/usr/bin/chsh
+/usr/bin/sudo
+/usr/bin/newgrp
+/usr/bin/sudoedit
+/usr/bin/passwd
+/usr/bin/gpasswd
+/usr/bin/chfn
+/usr/local/bin/suid-so
+/usr/local/bin/suid-env
+/usr/local/bin/suid-env2
+/usr/sbin/exim-4.84-3
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/openssh/ssh-keysign
+/usr/lib/pt_chown
+/bin/ping6
+/bin/ping
+/bin/mount
+/bin/su
+/bin/umount
+/sbin/mount.nfs
+```
+Most of these are normal system binaries that are supposed to have the SUID bit set. But a few stood out as unusual:
+
+- `/usr/local/bin/suid-so`
+- `/usr/local/bin/suid-env`
+- `/usr/local/bin/suid-env2`
+- `/usr/sbin/exim-4.84-3`
+
+`/usr/sbin/exim-4.84-3` was the most interesting one — Exim is a mail transfer agent and this old version is known to be vulnerable to local privilege escalation through its SUID bit.
