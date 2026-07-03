@@ -24,3 +24,58 @@
 - [How to Prevent It](#how-to-prevent-it)
 - [References](#references)
 - [What I Achieved](#what-i-achieved)
+
+## Introduction
+
+SUID (Set User ID) is a special Linux file permission bit. When a binary has the SUID bit set, it runs as the owner of the file — not as the user who launched it. Most SUID binaries on a system are owned by root, which means they run as root regardless of who executes them. If one of those binaries is vulnerable or can be abused, a normal user can use it to get a root shell.
+
+## Why This Attack Works
+
+Linux uses file permission bits to control who can read, write, or execute files. The SUID bit is an extra permission that tells the system to run the file as its owner instead of the person running it. This is used legitimately by tools like `passwd` — which needs root access to modify /`etc/shadow` even when run by a normal user.
+
+The problem comes in when a binary with the SUID bit set is either:
+
+- Vulnerable to a known CVE — like Exim 4.84-3 in this case
+- Abusable to spawn a shell — like `find`, `vim`, or `bash` with the SUID bit set
+
+In either case, since the binary runs as root, whatever it does — including spawning a shell — happens as root.
+
+## Lab Setup
+```
+| Component        | Details                                  |
+|------------------|------------------------------------------|
+| Attacker Machine | Kali Linux                               |
+| Victim Machine   | Debian Linux                             |
+| Victim IP        | 192.168.5.133                            |
+| Access Method    | SSH with valid low-privilege credentials |
+| Network          | VMware Host-Only Network                 |
+```
+
+## Tools Prepared on Kali Before Starting
+```
+|            Tool          |                Purpose                      |
+|--------------------------|---------------------------------------------|
+| `searchsploit`           | Find known exploits for discovered binaries |
+| `python3 -m http.server` | Host the exploit file for download          |
+| `wget`                   | Download the exploit onto the target        |
+```
+
+## What I Needed Before Starting
+```
+|             What                         |                       Why                           |
+|------------------------------------------|-----------------------------------------------------|
+| SSH credentials for a low-privilege user | Starting point for the attack                       |
+| `find` command                           | To scan the system for SUID binaries                |
+| `searchsploit` on Kali                   | To find a working exploit for the vulnerable binary |
+| Python HTTP server                       | To host the exploit file for the target to download |
+```
+
+## What I Understood During the Process
+
+While working through this attack I realized that:
+
+- Finding SUID binaries should be one of the first things checked on any Linux machine after getting initial access
+- Most SUID binaries on a system are there for legitimate reasons — the key is spotting the ones that are unusual or outdated
+- exim-4.84-3 stood out straight away because it is a mail server binary and does not need to be SUID in most environments
+- Searchsploit made finding the right exploit fast — I just copied the version number and searched
+- The exploit worked straight out of the box without any modifications needed
