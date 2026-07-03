@@ -115,7 +115,7 @@ Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
 permitted by applicable law.
 Last login: Tue Jun 30 12:32:04 2026 from 192.168.5.128
 ```
-It prompted for the password right after the connection request, I typed password321, and got logged in successfully. The kernel version 2.6.32 stood out right away.
+It prompted for the password right after the connection request, I typed `password321`, and got logged in successfully. The kernel version 2.6.32 stood out right away.
 
 I logged in as `user` — a normal low privilege account on the system.
 

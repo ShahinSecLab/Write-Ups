@@ -79,3 +79,66 @@ While working through this attack I realized that:
 - exim-4.84-3 stood out straight away because it is a mail server binary and does not need to be SUID in most environments
 - Searchsploit made finding the right exploit fast — I just copied the version number and searched
 - The exploit worked straight out of the box without any modifications needed
+
+## Attack Flow
+```
+Connected to the target over SSH with low privilege credentials
+                        ↓
+Ran find to locate all SUID binaries on the system
+                        ↓
+Spotted /usr/sbin/exim-4.84-3 as an unusual SUID binary
+                        ↓
+Searched for exploits with searchsploit exim 4.84-3
+                        ↓
+Found CVE-2016-1531 local privilege escalation exploit (39535.sh)
+                        ↓
+Downloaded the exploit to Kali with searchsploit -m 39535
+                        ↓
+Started Python HTTP server on Kali
+                        ↓
+Downloaded the exploit to the target with wget
+                        ↓
+Added execute permission with chmod +x
+                        ↓
+Ran the exploit with ./39535.sh
+                        ↓
+Got a root shell immediately
+                        ↓
+                whoami → root
+```
+
+## Step 1 — Connecting to the Target via SSH
+
+```bash
+ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
+```
+
+- `-o HostKeyAlgorithms=+ssh-rsa` : Allows older RSA host key algorithm — needed for older Linux systems
+- `-o PubkeyAcceptedAlgorithms=+ssh-rsa` : Allows older RSA public key algorithm for authentication
+- `192.168.5.133` : Target IP
+- `user`: User Name
+
+**Output:**
+
+```
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+user@192.168.5.133's password: 
+Linux debian 2.6.32-5-amd64 #1 SMP Tue May 13 16:34:35 UTC 2014 x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Tue Jun 30 12:32:04 2026 from 192.168.5.128
+```
+It prompted for the password right after the connection request, I typed `password321`, and got logged in successfully. The kernel version 2.6.32 stood out right away.
+
+I logged in as `user` — a normal low privilege account on the system.
+
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
