@@ -356,3 +356,30 @@ If Exim or any other mail server is not needed on the machine, remove it complet
 ```bash
 sudo apt remove exim4
 ```
+
+### Monitor for unusual SUID binaries
+
+Use file integrity monitoring tools like AIDE or Tripwire to alert you when the SUID bit is set on any file outside of the normal baseline.
+
+### Restrict outbound connections from servers
+
+If the target machine could not reach my Kali HTTP server, the exploit download would have failed. Restricting outbound connections limits what an attacker can pull onto the machine.
+
+## What I Achieved
+
+By completing this attack I showed that:
+
+- A single SUID binary with a known CVE was enough to go from a normal user to full root access
+- Searchsploit made finding the right exploit fast — just copy the version number and search
+- The exploit worked straight out of the box without any modifications
+- Outdated software with the SUID bit set is one of the most common privilege escalation paths found in real Linux environments
+- Regular SUID audits and software updates would have prevented this completely
+
+## References
+
+- Exploit Database — CVE-2016-1531 : https://www.exploit-db.com/exploits/39535 
+- CVE Details — CVE-2016-1531 : https://www.cvedetails.com/cve/CVE-2016-1531 
+- GTFOBins : https://gtfobins.github.io 
+- MITRE ATT&CK — SUID and SGID : https://attack.mitre.org/techniques/T1548/001
+- HackTricks — SUID Privilege Escalation : https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#suid-and-sgid 
+- PayloadsAllTheThings — SUID : https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md#suid 
