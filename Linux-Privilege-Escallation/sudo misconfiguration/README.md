@@ -1,7 +1,7 @@
 # Sudo Misconfiguration
 
 **Sudo **Misconfiguration <br>
-**Date:** June 2026 <br>
+**Date:** July 2026 <br>
 **Author:** ShahinSecLab <br>
 **Category:** Privilege Escalation <br>
 **Difficulty:** Easy <br>

