@@ -290,7 +290,7 @@ user@debian:~$ ls -l 39535.sh
 ```
 
 ```
--rwxr-xr-x 1 user user 638 Jan 14 03:51 39535.sh
+-rw-r--r-- 1 user user 638 Jul  4 06:17 39535.sh
 ```
 
 ```
@@ -310,18 +310,24 @@ The exploit was downloaded successfully, but it did not have execute permission.
 
 ### Added Execute Permission
 
+Before running the exploit, I made it executable.
+
 ```bash
 user@debian:~$ chmod +x 39535.sh
 ```
 ### Confirmed the Permission Change
 
 ```bash
-user@debian:~$ ls -la
+user@debian:~$ ls -l 39535.sh
 ```
 ```
--rwxr-xr-x 1 user user  638 Jan 14 03:51 39535.sh
+-rwxr-xr-x 1 user user 638 Jul  4 06:17 39535.sh
 ```
-The file now had execute permission — ready to run.
+The execute bit was now set, so the script was ready to run.
+
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
 
 ### Ran the Exploit
 
@@ -332,7 +338,14 @@ user@debian:~$ ./39535.sh
 
 ```
 [ CVE-2016-1531 local root exploit
+sh-4.1#
 ```
+The exploit completed successfully and dropped me into a root shell.
+
+<p align="center">
+  <img src="images/step5-2.png" width="600">
+</p>
+
 ### Confirmed Root Access
 
 ```bash
@@ -347,7 +360,11 @@ sh-4.1# id
 ```
 uid=0(root) gid=1000(user) groups=0(root)
 ```
-I went from a normal low privilege user straight to `root` by exploiting the SUID bit on the Exim binary using CVE-2016-1531.
+The `whoami` and `id` commands confirmed that I had successfully gained root privileges by exploiting the vulnerable SUID Exim binary (CVE-2016-1531).
+
+<p align="center">
+  <img src="images/step5-3.png" width="600">
+</p>
 
 ## How Defenders Can Catch This
 
