@@ -145,18 +145,20 @@ I logged in as `user` — a normal low privilege account on the system.
 
 ## Step 2 — Finding SUID Binaries
 
+I searched the system for files with the SUID bit set using the following command:
+
 ```bash
 user@debian:~$ find / -type f -perm -4000 2>/dev/null
 ```
 
 ### Flag Breakdown
 ```
-|  Flag         |            Description                                           |
-|---------------|------------------------------------------------------------------|
-| `/`           | Starts searching from the root of the filesystem.                |
-| `-type f`     | Searches for files only.                                         |
-| `-perm -4000` | Finds files with the SUID bit set.                               |
-| `2>/dev/null` | Redirects error messages to `/dev/null` to keep the output clean.|
+|  Flag       |            Description                                           |
+|-------------|------------------------------------------------------------------|
+| /           | Starts searching from the root of the filesystem.                |
+| -type f     | Searches for files only.                                         |
+| -perm -4000 | Finds files with the SUID bit set.                               |
+| 2>/dev/null | Redirects error messages to `/dev/null` to keep the output clean.|
 ```
 
 **Output:**
@@ -190,11 +192,15 @@ Most of these are normal system binaries that are supposed to have the SUID bit 
 - `/usr/local/bin/suid-env2`
 - `/usr/sbin/exim-4.84-3`
 
-`/usr/sbin/exim-4.84-3` was the most interesting one — Exim is a mail transfer agent and this old version is known to be vulnerable to local privilege escalation through its SUID bit.
+The most interesting binary was `/usr/sbin/exim-4.84-3`. Exim is a mail transfer agent, and this version is known to be vulnerable to a local privilege escalation vulnerability when installed with the SUID bit set.
+
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
 
 ## Step 3 — Searching for an Exploit with Searchsploit
 
-I copied the version exim-4.84-3 and searched for known exploits on my Kali machine.
+After identifying the Exim version on the target, I searched for known exploits on my Kali machine using `searchsploit`.
 
 ```bash
 searchsploit exim 4.84-3
@@ -202,14 +208,19 @@ searchsploit exim 4.84-3
 **Output:**
 
 ```
-Exploit Title                                              | Path
------------------------------------------------------------|---------------------------
-Exim < 4.86.2 - Local Privilege Escalation                 | linux/local/39535.sh
+Exploit Title                                              |  Path
+-----------------------------------------------------------|------------------------
+Exim 4.84-3 - Local Privilege Escalation                   | linux/local/39535.sh
 Exim < 4.86.2 - Local Privilege Escalation                 | linux/local/39549.txt
-Exim < 4.90.1 - base64d Remote Code Execution              | linux/remote/44571.py
+Exim < 4.90.1 - 'base64d' Remote Code Execution            | linux/remote/44571.py
 PHPMailer < 5.2.20 with Exim MTA - Remote Code Execution   | php/webapps/42221.py
 ```
-The first result was exactly what I needed — Exim < 4.86.2 - Local Privilege Escalation at `linux/local/39535.sh`. Since the target was running `exim-4.84-3` which is below `4.86.2`, it was vulnerable.
+The first result matched what I was looking for: **Exim < 4.86.2 - Local Privilege Escalation** (`linux/local/39535.sh`).
+Since the target was running **Exim 4.84-3**, which is older than **4.86.2**, this exploit was applicable to the target.
+
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
 
 ### Downloaded the Exploit to Kali
 
