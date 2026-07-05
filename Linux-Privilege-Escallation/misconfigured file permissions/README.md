@@ -280,7 +280,7 @@ The new line was sitting right there in /etc/passwd. The user syss with UID 0 wa
 ```bash
 user@debian:~$ su syss
 ```
-```
+```bash
 Password: password100
 ```
 **Output:**
@@ -291,7 +291,7 @@ root@debian:/home/user#
 
 ### Confirmed Root Access
 
-```
+```bash
 root@debian:/home/user# whoami
 ```
 **Output:**
@@ -299,3 +299,77 @@ root@debian:/home/user# whoami
 ```
 root
 ```
+
+```bash
+root@debian:/home/user# id
+```
+```
+uid=0(root) gid=0(root) groups=0(root)
+```
+I went from a normal low privilege user to full root access just by writing one line to /etc/passwd. No exploit, no CVE — just a misconfigured file permission.
+
+## How Defenders Can Catch This
+
+```
+|                                    Indicator                         |                   What to look for         |
+|----------------------------------------------------------------------|--------------------------------------------|
+| **/etc/passwd** modified outside of normal administrative procedures | File integrity monitoring (AIDE, Tripwire) |
+| New user account with UID **0**                                      | Audit logs (**/var/log/auth.log**)         |
+| **su** used to switch to an unexpected username                      | PAM logs                                   |
+| World-writable permissions on **/etc/passwd**                        | Regular permission audits                  |
+```
+
+## How to Prevent It
+
+- **Fix the permissions on /etc/passwd immediately**
+
+```bash
+chmod 644 /etc/passwd
+```
+The correct permission for /etc/passwd is -rw-r--r-- — root can write, everyone else can only read.
+
+- **Audit critical file permissions regularly**
+
+```bash
+ls -la /etc/passwd
+ls -la /etc/shadow
+ls -la /etc/sudoers
+```
+- **Use file integrity monitoring**
+
+Tools like AIDE or Tripwire will alert you the moment /etc/passwd is modified outside of normal admin activity.
+
+- **Monitor for new UID 0 accounts**
+
+Run this regularly to check for any accounts with root level UID:
+
+```bash
+awk -F: '($3 == 0) {print}' /etc/passwd
+```
+This should only ever return the root account. Any other entry with UID 0 is a red flag.
+
+## What I Achieved 
+
+By completing this attack I showed that:
+
+- A single misconfigured file permission on /etc/passwd was enough to get full root access
+- No exploits or CVEs were needed — just openssl, nano, and one line added to a file
+- The fix is as simple as running chmod 644 /etc/passwd — yet this mistake shows up in real environments
+- File integrity monitoring is the best way to catch this kind of attack before it causes damage
+
+## References
+
+- **MITRE ATT&CK — `/etc/passwd` and `/etc/shadow`**  
+  https://attack.mitre.org/techniques/T1003/008
+
+- **HackTricks — Writable `/etc/passwd`**  
+  https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-etc-passwd
+
+- **PayloadsAllTheThings — `passwd` file**  
+  https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md#writable-etcpasswd
+
+- **Linux man page — `passwd`**  
+  https://www.man7.org/linux/man-pages/man5/passwd.5.html
+
+- **GTFOBins**  
+  https://gtfobins.github.io
