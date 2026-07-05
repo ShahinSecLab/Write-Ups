@@ -1,6 +1,6 @@
 # Misconfigured File Permissions — /etc/passwd
 
-**Date:** June 2026 <br>
+**Date:** July 2026 <br>
 **Author:** ShahinSecLab <br>
 **Category:** Privilege Escalation <br>
 **Difficulty:** Easy <br>
@@ -50,9 +50,9 @@ Since I can write to the file, I can add a brand new user with UID 0 (root level
 |                    What                  |                      Why                             |
 |------------------------------------------|------------------------------------------------------|
 | SSH credentials for a low-privilege user | Starting point for the attack                        |
-| Write access to `/etc/passwd`            | The misconfiguration that makes this attack possible |
-| `openssl` on Kali                        | To generate a password hash                          |
-| `nano` on the target                     | To edit `/etc/passwd`                                |
+| Write access to /etc/passwd              | The misconfiguration that makes this attack possible |
+| openssl on Kali                          | To generate a password hash                          |
+| nano on the target                       | To edit /etc/passwd                                  |
 ```
 
 ## What I Understood During the Process
@@ -227,7 +227,7 @@ I opened mousepad on Kali and built the new line by replacing `x` with the gener
 ```
 syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
 ```
-before:
+Before it was like that:
 ```
 root:x:0:0:root:/root:/bin/bash
 ```
@@ -315,12 +315,12 @@ I went from a normal low privilege user to full root access just by writing one 
 ## How Defenders Can Catch This
 
 ```
-|                                    Indicator                         |                   What to look for         |
-|----------------------------------------------------------------------|--------------------------------------------|
-| **/etc/passwd** modified outside of normal administrative procedures | File integrity monitoring (AIDE, Tripwire) |
-| New user account with UID **0**                                      | Audit logs (**/var/log/auth.log**)         |
-| **su** used to switch to an unexpected username                      | PAM logs                                   |
-| World-writable permissions on **/etc/passwd**                        | Regular permission audits                  |
+|                                    Indicator                     |                   What to look for         |
+|------------------------------------------------------------------|--------------------------------------------|
+| /etc/passwd modified outside of normal administrative procedures | File integrity monitoring (AIDE, Tripwire) |
+| New user account with UID 0                                      | Audit logs (/var/log/auth.log)             |
+| su used to switch to an unexpected username                      | PAM logs                                   |
+| World-writable permissions on /etc/passwd                        | Regular permission audits                  |
 ```
 
 ## How to Prevent It
