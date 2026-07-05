@@ -140,11 +140,11 @@ user@debian:~$ ls -la /etc/passwd
 ### Breakdown
 
 ```
-| Permission | Who           | What it means               |
-|------------|---------------|-----------------------------|
-|   rw-      | root (owner)  | Root can read and write     |
-|   r--      | root (group)  | Group can only read         |
-|   rw-      | Others        | Everyone can read and write |
+| Permission | Who            | What it means               |
+|------------|----------------|-----------------------------|
+|   rw-      | Owner (root)   | Root can read and write     |
+|   r--      | Group (root)   | Group members can only read |
+|   rw-      | Others         | Everyone can read and write |
 ```
 The last `rw-` was the problem. Any normal user on the system — including me — could write directly to `/etc/passwd`. This was a serious misconfiguration.
 
@@ -307,6 +307,10 @@ root@debian:/home/user# id
 uid=0(root) gid=0(root) groups=0(root)
 ```
 I went from a normal low privilege user to full root access just by writing one line to /etc/passwd. No exploit, no CVE — just a misconfigured file permission.
+
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
 ## How Defenders Can Catch This
 
