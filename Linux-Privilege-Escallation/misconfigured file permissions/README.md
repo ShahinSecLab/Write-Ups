@@ -182,3 +182,21 @@ user:x:1000:1000:user,,,:/home/user:/bin/bash
 statd:x:103:65534::/var/lib/nfs:/bin/false
 mysql:x:104:106:MySQL Server,,,:/var/lib/mysql:/bin/false
 ```
+I focused on the root line:
+
+```
+root:x:0:0:root:/root:/bin/bash
+```
+### What the Root Line Means
+
+```
+| Field       | Value       | Description                                            |
+|-------------|-------------|--------------------------------------------------------|
+| root        | root        | Username                                               |
+| x           | x           | Password placeholder — actual hash is in `/etc/shadow` |
+| 0           | 0           | User ID — 0 means root                                 |
+| 0           | 0           | Group ID — 0 means root group                          |
+| root        | root        | Description                                            |
+| /root       | /root       | Home directory                                         |
+| /bin/bash   | /bin/bash   | Shell                                                  |
+```
