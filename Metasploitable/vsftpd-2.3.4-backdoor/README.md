@@ -185,11 +185,10 @@ vsftpd 2.3.4 is a well known version with a backdoor — that was my target.
 
 From the nmap output I confirmed:
 
-```
-| Service | Port | Version         | Status                        |
-|---------|------|-----------------|-------------------------------|
+| Service | Port | Version         | Status   |
+|---------|------|-----------------|----------|
 | FTP     | 21   | vsftpd 2.3.4    | Vulnerable to backdoor exploit|
-```
+
 
 vsftpd 2.3.4 has a backdoor that was added directly into the source code in 2011. When triggered, it opens a root shell on port 6200. Metasploit has a ready made module for this.
 
@@ -343,14 +342,14 @@ The `whoami` and `id` commands confirmed that I had root access on the target ma
 
 ## How Defenders Can Catch This
 
-```
-|                      Indicator                   |                         What to Look For                                           |
-|--------------------------------------------------|------------------------------------------------------------------------------------|
+
+|  Indicator      |  What to Look For    |
+|-----------------|----------------------|
 | Unexpected connection to **port 6200**           | Firewall logs or network traffic showing connections to port 6200                  |
 | FTP login attempt with :) in the username        | FTP authentication logs showing usernames that contain :)                          |
 | vsftpd 2.3.4 running on the server               | Vulnerability scan results or software inventory identifying the vulnerable version|
 | Unusual outbound connection from the FTP service | Process monitoring and network logs showing unexpected outbound connections        |
-```
+
 
 ## How to Prevent It
 
