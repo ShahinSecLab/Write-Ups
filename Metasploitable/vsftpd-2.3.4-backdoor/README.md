@@ -73,7 +73,6 @@ Through the process of this attack, I understood that:
 
 ## Attack Flow
 
-```
 Powered on Metasploitable 2 and verified the IP address
                         ↓
 Switched to Kali and ran nmap version scan on 192.168.5.145
@@ -93,7 +92,6 @@ Backdoor triggered — shell opened on port 6200
 Got a root shell directly
                         ↓
 whoami → root
-```
 
 ## Step 1 — Setting Up and Verifying the Target
 
