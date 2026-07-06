@@ -135,7 +135,7 @@ user@debian:~$ ls -la /etc/passwd
 ```
 -rw-r--rw- 1 root root 1074 Jan 14 11:17 /etc/passwd
 ```
-### Breakdown
+**Breakdown**
 
 | Permission | Who            | What it means               |
 |------------|----------------|-----------------------------|
@@ -184,7 +184,7 @@ I focused on the root line:
 ```
 root:x:0:0:root:/root:/bin/bash
 ```
-### What the Root Line Means
+**What the Root Line Means**
 
 | Field       | Value       | Description                                            |
 |-------------|-------------|--------------------------------------------------------|
@@ -227,6 +227,7 @@ Before it was like that:
 ```
 root:x:0:0:root:/root:/bin/bash
 ```
+**Breakdown**
 
 |              Field                 | Value                | Description                                    |
 |------------------------------------|----------------------|------------------------------------------------|
