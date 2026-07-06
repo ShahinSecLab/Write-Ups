@@ -39,7 +39,7 @@ The Metasploitable installation comes with this vulnerable version of vsftpd.
 |-------------------|-----------------------------|
 | Attacker Machine  | Kali Linux                  |
 | Target Machine    | Metasploitable 2            |
-| Target IP         | 10.10.10.129                |
+| Target IP         | 192.168.5.145               |
 | Network           | VMware Host-Only Network    |
 ```
 
@@ -116,16 +116,16 @@ ifconfig
 
 ```
 eth0      Link encap:Ethernet  HWaddr 00:0c:29:48:60:38
-          inet addr:10.10.10.129  Bcast:10.10.10.255  Mask:255.255.255.0
+          inet addr:192.168.5.145  Bcast:192.168.5.255  Mask:255.255.255.0
           inet6 addr: fe80::20c:29ff:fe48:6038/64 Scope:Link
           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:14 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:86 errors:0 dropped:0 overruns:0 carrier:0
+          RX packets:57 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:66 errors:0 dropped:0 overruns:0 carrier:0
           collisions:0 txqueuelen:1000
-          RX bytes:2084 (2.0 KB)  TX bytes:12169 (11.8 KB)
+          RX bytes:5085 (4.9 KB)  TX bytes:6880 (6.7 KB)
           Interrupt:17 Base address:0x2000
 ```
-The machine was up and running at `10.10.10.129` I switched over to my Kali machine and started the attack from there.
+The machine was up and running at `192.168.5.145` I switched over to my Kali machine and started the attack from there.
 
 <p align="center">
   <img src="images/step1-2.png" width="600">
@@ -136,7 +136,58 @@ The machine was up and running at `10.10.10.129` I switched over to my Kali mach
 I ran an nmap scan to find open ports and identify running services on the target.
 
 ```bash
-nmap -sV -sC 10.10.10.129
+nmap -sV -sC 192.168.5.145
 ```
 `-sV`: Version detection — finds the exact version of each service running
 `-sC` : Runs default nmap scripts against discovered services
+
+**Output:**
+
+```
+Starting Nmap 7.98 ( https://nmap.org ) at 2026-07-06 01:36 -0400
+Nmap scan report for 192.168.5.145
+Host is up (0.0011s latency).
+Not shown: 977 closed tcp ports (reset)
+
+PORT     STATE SERVICE     VERSION
+21/tcp   open  ftp         vsftpd 2.3.4
+22/tcp   open  ssh         OpenSSH 4.7p1 Debian 8ubuntu1 (protocol 2.0)
+23/tcp   open  telnet      Linux telnetd
+25/tcp   open  smtp        Postfix smtpd
+53/tcp   open  domain      ISC BIND 9.4.2
+80/tcp   open  http        Apache httpd 2.2.8 ((Ubuntu) DAV/2)
+111/tcp  open  rpcbind     2 (RPC #100000)
+139/tcp  open  netbios-ssn Samba smbd 3.X - 4.X
+445/tcp  open  netbios-ssn Samba smbd 3.0.20-Debian
+512/tcp  open  exec        netkit-rsh rexecd
+513/tcp  open  login       OpenBSD or Solaris rlogind
+514/tcp  open  tcpwrapped
+1099/tcp open  java-rmi    GNU Classpath grmiregistry
+1524/tcp open  bindshell   Metasploitable root shell
+2049/tcp open  nfs         2-4 (RPC #100003)
+2121/tcp open  ftp         ProFTPD 1.3.1
+3306/tcp open  mysql       MySQL 5.0.51a-3ubuntu5
+5432/tcp open  postgresql  PostgreSQL DB 8.3.0 - 8.3.7
+5900/tcp open  vnc         VNC (protocol 3.3)
+6000/tcp open  X11         (access denied)
+6667/tcp open  irc         UnrealIRCd
+8009/tcp open  ajp13       Apache Jserv (Protocol v1.3)
+8180/tcp open  http        Apache Tomcat/Coyote JSP engine 1.1
+```
+The scan came back with a huge list of open ports and services. The machine was running a lot of outdated and vulnerable software. The one that stood out right away was:
+
+```
+21/tcp   open  ftp   vsftpd 2.3.4
+```
+vsftpd 2.3.4 is a well known version with a backdoor — that was my target.
+
+## Step 3 — Identifying the Vulnerable Service
+
+From the nmap output I confirmed:
+```
+| Service | Port | Version         | Status                        |
+|---------|------|-----------------|-------------------------------|
+| FTP     | 21   | vsftpd 2.3.4    | Vulnerable to backdoor exploit|
+```
+
+vsftpd 2.3.4 has a backdoor that was added directly into the source code in 2011. When triggered, it opens a root shell on port 6200. Metasploit has a ready made module for this.
