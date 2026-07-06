@@ -35,7 +35,7 @@ The password field in `/etc/passwd` normally contains an `x` — which tells Lin
 Since I can write to the file, I can add a brand new user with UID 0 (root level) and a password I control. When I switch to that user, Linux sees UID 0 and gives me a full root shell.
 
 ## Lab Setup
-```
+
 | Component        | Details                                  |
 |------------------|------------------------------------------|
 | Attacker Machine | Kali Linux                               |
@@ -43,17 +43,15 @@ Since I can write to the file, I can add a brand new user with UID 0 (root level
 | Victim IP        | 192.168.5.133                            |
 | Access Method    | SSH with valid low-privilege credentials |
 | Network          | VMware Host-Only Network                 |
-```
 
 ## What I Needed Before Starting
-```
+
 |                    What                  |                      Why                             |
 |------------------------------------------|------------------------------------------------------|
 | SSH credentials for a low-privilege user | Starting point for the attack                        |
 | Write access to /etc/passwd              | The misconfiguration that makes this attack possible |
 | openssl on Kali                          | To generate a password hash                          |
 | nano on the target                       | To edit /etc/passwd                                  |
-```
 
 ## What I Understood During the Process
 
@@ -139,13 +137,12 @@ user@debian:~$ ls -la /etc/passwd
 ```
 ### Breakdown
 
-```
 | Permission | Who            | What it means               |
 |------------|----------------|-----------------------------|
 |   rw-      | Owner (root)   | Root can read and write     |
 |   r--      | Group (root)   | Group members can only read |
 |   rw-      | Others         | Everyone can read and write |
-```
+
 The last `rw-` was the problem. Any normal user on the system — including me — could write directly to `/etc/passwd`. This was a serious misconfiguration.
 
 ### Read the Current Contents
@@ -189,7 +186,6 @@ root:x:0:0:root:/root:/bin/bash
 ```
 ### What the Root Line Means
 
-```
 | Field       | Value       | Description                                            |
 |-------------|-------------|--------------------------------------------------------|
 | root        | root        | Username                                               |
@@ -199,7 +195,7 @@ root:x:0:0:root:/root:/bin/bash
 | root        | root        | Description                                            |
 | /root       | /root       | Home directory                                         |
 | /bin/bash   | /bin/bash   | Shell                                                  |
-```
+
 The `x` in the password field means the real password hash is stored in `/etc/shadow`. If I replace that `x` with a hash I generate myself, Linux will use my password instead of checking `/etc/shadow` — giving me root access with a password I control.
 
 <p align="center">
@@ -231,7 +227,7 @@ Before it was like that:
 ```
 root:x:0:0:root:/root:/bin/bash
 ```
-```
+
 |              Field                 | Value                | Description                                    |
 |------------------------------------|----------------------|------------------------------------------------|
 | syss                               | syss                 | New username I am creating                     |
@@ -241,7 +237,7 @@ root:x:0:0:root:/root:/bin/bash
 | root                               | root                 | Description                                    |
 | /root                              | /root                | Home directory                                 |
 | /bin/bash                          | /bin/bash            | Shell                                          |
-```
+
 ### Opened /etc/passwd on the Target and Added the Line
 
 ```bash
@@ -314,14 +310,13 @@ I went from a normal low privilege user to full root access just by writing one 
 
 ## How Defenders Can Catch This
 
-```
 |                                    Indicator                     |                   What to look for         |
 |------------------------------------------------------------------|--------------------------------------------|
 | /etc/passwd modified outside of normal administrative procedures | File integrity monitoring (AIDE, Tripwire) |
 | New user account with UID 0                                      | Audit logs (/var/log/auth.log)             |
 | su used to switch to an unexpected username                      | PAM logs                                   |
 | World-writable permissions on /etc/passwd                        | Regular permission audits                  |
-```
+
 
 ## How to Prevent It
 
