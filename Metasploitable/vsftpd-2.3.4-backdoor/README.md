@@ -351,3 +351,53 @@ The `whoami` and `id` commands confirmed that I had root access on the target ma
 | vsftpd 2.3.4 running on the server               | Vulnerability scan results or software inventory identifying the vulnerable version|
 | Unusual outbound connection from the FTP service | Process monitoring and network logs showing unexpected outbound connections        |
 ```
+
+## How to Prevent It
+
+### Remove or upgrade vsftpd immediately
+
+```bash
+sudo apt remove vsftpd
+sudo apt install vsftpd
+```
+### Block port 6200 at the firewall
+
+```bash
+iptables -A INPUT -p tcp --dport 6200 -j DROP
+```
+### Disable FTP if not needed
+
+FTP is an outdated and insecure protocol. Use SFTP or SCP instead:
+
+```bash
+sudo systemctl stop vsftpd
+sudo systemctl disable vsftpd
+```
+### Run regular vulnerability scans
+
+Tools like OpenVAS or Nessus would flag vsftpd 2.3.4 immediately as a critical vulnerability.
+
+### Always check software versions against known CVEs
+
+```bash
+https://nvd.nist.gov
+```
+
+### What I Achieved
+By completing this attack I showed that:
+
+- A single outdated and unpatched service was enough to get direct root access without any privilege escalation
+- nmap version scanning is the most important first step in any penetration test
+- The vsftpd 2.3.4 backdoor is a good example of a supply chain attack — the malicious code was added to the source itself
+- Metasploit made the exploitation process fast and straightforward
+- Keeping software updated and running regular vulnerability scans would have prevented this completely
+
+## References
+
+| Resource | Link |
+|----------|------|
+| Exploit Database — **vsftpd 2.3.4 Backdoor** | https://www.exploit-db.com/exploits/17491 |
+| CVE Details — **CVE-2011-2523** | https://www.cvedetails.com/cve/CVE-2011-2523 |
+| Rapid7 — **vsftpd 2.3.4 Backdoor Module** | https://www.rapid7.com/db/modules/exploit/unix/ftp/vsftpd_234_backdoor |
+| MITRE ATT&CK — **T1190: Exploit Public-Facing Application** | https://attack.mitre.org/techniques/T1190/ |
+| National Vulnerability Database (NVD) — **CVE-2011-2523** | https://nvd.nist.gov/vuln/detail/CVE-2011-2523 |
