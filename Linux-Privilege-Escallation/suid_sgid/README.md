@@ -152,13 +152,12 @@ user@debian:~$ find / -type f -perm -4000 2>/dev/null
 
 **Flag Breakdown**
 
-|  Flag       |            Description                                           |
-|-------------|------------------------------------------------------------------|
-| /           | Starts searching from the root of the filesystem.                |
-| -type f     | Searches for files only.                                         |
-| -perm -4000 | Finds files with the SUID bit set.                               |
-| 2>/dev/null | Redirects error messages to `/dev/null` to keep the output clean.|
-
+|  Flag         |            Description                                           |
+|---------------|------------------------------------------------------------------|
+| `find /`      | Starts searching from the root of the filesystem.                |
+| `-type f`     | Searches for files only.                                         |
+| `-perm -4000` | Finds files with the SUID bit set.                               |
+| `2>/dev/null` | Redirects error messages to `/dev/null` to keep the output clean.|
 
 **Output:**
 
