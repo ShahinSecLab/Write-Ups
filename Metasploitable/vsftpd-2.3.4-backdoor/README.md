@@ -12,7 +12,7 @@
 * [Why This Attack Works](#why-this-attack-works)
 * [Lab Setup](#lab-setup)
 * [What I Needed Before Starting](#what-i-needed-before-starting)
-* [What I Understood During the Process](#what-i-understood-during-the-process)
+* [Lessons Learned](#lesson-learned)
 * [Attack Flow](#attack-flow)
 * [Step 1 — Setting Up and Verifying the Target](#step-1--setting-up-and-verifying-the-target)
 * [Step 2 — Scanning the Target with Nmap](#step-2--scanning-the-target-with-nmap)
@@ -22,11 +22,11 @@
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
 * [References](#references)
-* [What I Achieved](#what-i-achieved)
+* [Conclusion](#conclusion)
 
 ## Introduction
 
-Metasploitable is an intentionally vulnerable version of Linux virtual machine used for penetration testing practice. The vulnerability that I aimed to exploit in this lab is known as "vsftpd 2.3.4 Backdoor". It is a well-known vulnerability whereby the malicious backdoor was planted into vsftpd source code back in 2011. If anyone logs into the FTP service using :) in his/her username, the backdoor triggers, giving the root shell access on port 6200.
+Metasploitable 2 is a Linux virtual machine that contains several intentionally vulnerable services and applications for penetration testing practice. In this lab, I targeted the vsftpd 2.3.4 backdoor to gain root access to the target machine.
 
 ## Why This Attack Works
 
@@ -34,34 +34,34 @@ In 2011, there was a backdoor introduced in the vsftpd 2.3.4 source code. It was
 The Metasploitable installation comes with this vulnerable version of vsftpd.
 
 ## Lab Setup
-```
-| Component         | Details                     |
-|-------------------|-----------------------------|
+
+| Component   | Details    |
+|-------------|------------|
 | Attacker Machine  | Kali Linux                  |
 | Target Machine    | Metasploitable 2            |
 | Target IP         | 192.168.5.145               |
 | Network           | VMware Host-Only Network    |
-```
+
 
 ### Tools Used
-```
-| Tool        | Purpose                                       |
-|-------------|-----------------------------------------------|
+
+| Tool        | Purpose     |
+|-------------|-------------|
 | nmap        | Scan and identify open services on the target |
 | Metasploit  | Run the vsftpd 2.3.4 backdoor exploit         |
-```
+
 
 ## What I Needed Before Starting
-```
-| What                        | Why                                   |
-|-----------------------------|---------------------------------------|
+
+| What    | Why     |
+|---------|---------|
 | Metasploitable 2 VM running | Target machine                        |
 | Kali Linux                  | Attacker machine with all tools ready |
 | nmap                        | To scan and identify open services    |
 | Metasploit                  | To run the vsftpd exploit             |
-```
 
-## What I Understood During the Process
+
+## Lessons Learned
 
 Through the process of this attack, I understood that:
 
@@ -76,7 +76,7 @@ Through the process of this attack, I understood that:
 ```
 Powered on Metasploitable 2 and verified the IP address
                         ↓
-Switched to Kali and ran nmap version scan on 192.168.5.139
+Switched to Kali and ran nmap version scan on 192.168.5.145
                         ↓
 Found FTP port 21 open running vsftpd 2.3.4
                         ↓
@@ -84,7 +84,7 @@ Searched for vsftpd 2.3.4 exploit in Metasploit
                         ↓
 Found exploit/unix/ftp/vsftpd_234_backdoor
                         ↓
-Set RHOSTS to 192.168.5.139
+Set RHOSTS to 192.168.5.145
                         ↓
 Ran the exploit
                         ↓
@@ -279,7 +279,7 @@ msf exploit(vsftpd_234_backdoor) > set RHOSTS 192.168.5.145
 **Output:**
 
 ```
-RHOSTS => 192.168.5.139
+RHOSTS => 192.168.5.145
 ```
 <p align="center">
   <img src="images/step4-4.png" width="600">
@@ -335,7 +335,7 @@ root@metasploitable:/# id
 ```
 uid=0(root) gid=0(root)
 ```
-The `whoami` and `id` commands confirmed that I had root access on the target machine.
+The `whoami` and `id` commands confirmed that I had root access on the target machine. At this point, I had full control over the target machine as the root user.
 
 <p align="center">
   <img src="images/step5-1.png" width="600">
@@ -383,7 +383,8 @@ Tools like OpenVAS or Nessus would flag vsftpd 2.3.4 immediately as a critical v
 https://nvd.nist.gov
 ```
 
-## What I Achieved
+## Conclusion
+
 By completing this attack I showed that:
 
 - A single outdated and unpatched service was enough to get direct root access without any privilege escalation
