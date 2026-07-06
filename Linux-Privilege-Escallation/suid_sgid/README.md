@@ -41,7 +41,7 @@ The problem comes in when a binary with the SUID bit set is either:
 In either case, since the binary runs as root, whatever it does — including spawning a shell — happens as root.
 
 ## Lab Setup
-```
+
 | Component        | Details                                  |
 |------------------|------------------------------------------|
 | Attacker Machine | Kali Linux                               |
@@ -49,26 +49,24 @@ In either case, since the binary runs as root, whatever it does — including sp
 | Victim IP        | 192.168.5.133                            |
 | Access Method    | SSH with valid low-privilege credentials |
 | Network          | VMware Host-Only Network                 |
-```
 
 ## Tools Prepared on Kali Before Starting
-```
+
 |            Tool          |                Purpose                      |
 |--------------------------|---------------------------------------------|
 | `searchsploit`           | Find known exploits for discovered binaries |
 | `python3 -m http.server` | Host the exploit file for download          |
 | `wget`                   | Download the exploit onto the target        |
-```
+
 
 ## What I Needed Before Starting
-```
+
 |             What                         |                       Why                           |
 |------------------------------------------|-----------------------------------------------------|
 | SSH credentials for a low-privilege user | Starting point for the attack                       |
 | `find` command                           | To scan the system for SUID binaries                |
 | `searchsploit` on Kali                   | To find a working exploit for the vulnerable binary |
 | Python HTTP server                       | To host the exploit file for the target to download |
-```
 
 ## What I Understood During the Process
 
@@ -112,6 +110,7 @@ Got a root shell immediately
 ```bash
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
 ```
+**Breakdown**
 
 - `-o HostKeyAlgorithms=+ssh-rsa` : Allows older RSA host key algorithm — needed for older Linux systems
 - `-o PubkeyAcceptedAlgorithms=+ssh-rsa` : Allows older RSA public key algorithm for authentication
@@ -151,15 +150,15 @@ I searched the system for files with the SUID bit set using the following comman
 user@debian:~$ find / -type f -perm -4000 2>/dev/null
 ```
 
-### Flag Breakdown
-```
+**Flag Breakdown**
+
 |  Flag       |            Description                                           |
 |-------------|------------------------------------------------------------------|
 | /           | Starts searching from the root of the filesystem.                |
 | -type f     | Searches for files only.                                         |
 | -perm -4000 | Finds files with the SUID bit set.                               |
 | 2>/dev/null | Redirects error messages to `/dev/null` to keep the output clean.|
-```
+
 
 **Output:**
 
@@ -292,14 +291,14 @@ user@debian:~$ ls -l 39535.sh
 ```
 -rw-r--r-- 1 user user 638 Jul  4 06:17 39535.sh
 ```
+**Breakdown**
 
-```
 | Permission | Who    |            What it Means                           |
 |------------|--------|----------------------------------------------------|
 | `rw-`      | User   | The owner can read from and write to the file.     |
 | `r--`      | Group  | Members of the file's group can only read the file.|
 | `r--`      | Others | All other users can only read the file.            |
-```
+
 The exploit was downloaded successfully, but it did not have execute permission. I needed to make it executable before I could run it.
 
 <p align="center">
@@ -368,7 +367,6 @@ The `whoami` and `id` commands confirmed that I had successfully gained root pri
 
 ## How Defenders Can Catch This
 
-```
 |                     Indicator                            |            What to Look For                   |
 |----------------------------------------------------------|-----------------------------------------------|
 | Unusual SUID binaries on the system                      | Regular SUID audits                           |
@@ -376,7 +374,6 @@ The `whoami` and `id` commands confirmed that I had successfully gained root pri
 | Unexpected root shell spawned from a normal user session | Audit logs (for example, `/var/log/auth.log`) |
 | Outdated software with known CVEs                        | Regular vulnerability scans                   |
 | `chmod` run on a newly downloaded script                 | File activity monitoring                      |
-```
 
 ## How to Prevent It
 

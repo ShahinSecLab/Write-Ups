@@ -254,8 +254,7 @@ I went from a normal low privilege user straight to a fully unrestricted root ac
 
   Grant only the minimum permissions needed for users to perform their tasks. This reduces the risk of privilege escalation if an account is compromised.
 
-
-### Audit sudoers file regularly
+- **Audit sudoers file regularly**
 
 ```bash
 sudo visudo -c
@@ -263,7 +262,7 @@ cat /etc/sudoers
 ls /etc/sudoers.d/
 ```
 
-### Check GTFOBins for every binary granted sudo access
+- **Check GTFOBins for every binary granted sudo access**
 
 Before granting sudo rights to any tool, search it on gtfobins.github.io to see if it has a known privilege escalation path.
 
