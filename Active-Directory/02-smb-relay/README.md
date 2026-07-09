@@ -78,10 +78,10 @@ For this attack to succeed, the following conditions are typically present:
 - SMB signing is disabled or not enforced on the target.
 - The victim authenticates to a network resource controlled by the attacker.
 
-### Lab Setup
+## Lab Setup
 
 |    Machine         |      OS       |               Role                   |      Ip       |
-| ------------------ |------------------------------------------------------|---------------|
+|--------------------|---------------|--------------------------------------|---------------|
 | Attacker           | Kali Linux    | Attack machine                       | `192.168.5.128` |
 | Victim             | Windows 10    | Victim machine(Authentication Source)| `192.168.5.135` |
 | Windows Server / DC| Windows Server| Domain Controller / Protected Target | `192.168.5.134` |
@@ -317,7 +317,7 @@ Regularly review Windows Event Logs for unusual NTLM authentication and SMB acti
 Event Viewer → Windows Logs → Security
 ```
 
-### References
+## References
 
 - Microsoft Documentation – SMB Security  
   https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security
