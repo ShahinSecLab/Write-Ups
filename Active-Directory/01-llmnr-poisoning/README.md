@@ -1,81 +1,103 @@
 # LLMNR Poisoning Attack
 
-**Date:** May 2026  
-**Author:** ShahinSecLab  
-**Category:** Credential Access  
-**Difficulty:** Easy  
-**Tools:** Responder, Hashcat  
+**Date:** May 2026 <br> 
+**Author:** ShahinSecLab <br> 
+**Category:** Credential Access <br> 
+**Difficulty:** Easy <br> 
+**Tools:** Responder, Hashcat
 
 ## Table of Contents
 
-1. [Introduction?](#introduction)
-2. [Protocol Order (Windows Name Resolution)](#protocol-order-windows-name-resolution)
-3. [How the Attack Works](#how-the-attack-works)
-4. [Lab Setup](#lab-setup)
-5. [Attack Steps](#attack-steps)
-   - [Step 1 — Check My IP Address](#step-1--check-my-ip-address)
-   - [Step 2 — Start Responder](#step-2--start-responder)
-   - [Step 3 — Trigger from Victim Machine](#step-3--trigger-from-victim-machine)
-   - [Step 4 — Save the Captured Hash](#step-4--save-the-captured-hash)
-   - [Step 5 — Crack the Captured Hash](#step-5--crack-the-captured-hash)
-6. [Defense & Mitigation](#defense--mitigation)
-7. [Key Takeaways](#key-takeaways)
-8. [References](#references)
+- [Introduction](#introduction)
+- [Attack Flow](#attack-flow)
+- [Why This Attack Works](#why-this-attack-works)
+- [Lab Setup](#lab-setup)
+- [Tools Used](#tools-used)
+- [Prerequisites](#prerequisites)
+- [Step 1 — Checking My IP Address](#step-1--checking-my-ip-address)
+- [Step 2 — Starting Responder](#step-2--starting-responder)
+- [Step 3 — Triggering the Request from the Victim](#step-3--triggering-the-request-from-the-victim)
+- [Step 4 — Saving the Captured Hash](#step-4--saving-the-captured-hash)
+- [Step 5 — Cracking the Captured Hash](#step-5--cracking-the-captured-hash)
+- [How Defenders Can Catch This](#how-defenders-can-catch-this)
+- [How to Prevent It](#how-to-prevent-it)
+- [References](#references)
+- [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
-LLMNR stands for **Link-Local Multicast Name Resolution.**
+LLMNR stands for **Link-Local Multicast Name Resolution**.
 
-Windows uses this when it cannot find a computer name through DNS. When DNS fails, Windows shouts to the whole network:
+Windows uses LLMNR when it cannot find a computer name through DNS. If DNS cannot find the computer, Windows asks other devices on the same network if they know it.
 
-> *"Hey, does anyone know where \\fileserver is?"*
+The problem is that any device on the network can reply. An attacker running Responder can pretend to be the requested computer and capture the victim's NTLMv2 password hash.
 
-The problem is — any machine on the network can reply. So an attacker can say *"Yeah, that's me!"* and the victim sends their password hash without knowing.
+If the password is weak, the hash can be cracked to recover the password.
 
-## Protocol Order (Windows Name Resolution)
-
-- **DNS** → tries first  
-- **mDNS** → tries second  
-- **LLMNR** → tries third (can be abused)  
-- **NBT-NS** → tries last (can also be abused)  
-
-## How the Attack Works
+## Attack Flow
 
 ```
-Victim                    Network                         Attacker
-  |                          |                               |
-  |--- DNS request --------->|                               |
-  |<-- DNS: "I don't know" --|                               |
-  |                          |                               |
-  |--- LLMNR broadcast ----->|                               |
-  |    "Who knows            |<-- Responder listening -------|
-  |     fileserver?"         |                               |
-  |                          |                               |
-  |<-- "I know! I am him!" --|-------------------------------|
-  |                          |                               |
-  |--- NTLMv2 Hash --------->|------------------------------>|
-  |    (credentials sent)    |                               |
-  |                          |                 Attacker captures
-  |                          |                 NTLMv2 hash
+Victim Tries to Access a Shared Folder
+                ↓
+DNS Lookup Fails
+                ↓
+Windows Sends an LLMNR Broadcast
+                ↓
+Responder Replies to the Request
+                ↓
+Victim Sends NTLMv2 Authentication
+                ↓
+Responder Captures the NTLMv2 Hash
+                ↓
+Save the Hash
+                ↓
+Crack the Hash with Hashcat
+                ↓
+Recover the Password
 ```
+
+## Why This Attack Works
+
+This attack works because **LLMNR is enabled by default** on many Windows systems.
+
+When DNS cannot find a computer name, Windows sends an LLMNR request on the local network asking if any device knows that name.
+
+Responder listens for these requests and quickly replies, pretending to be the requested computer.
+
+The victim trusts the reply and tries to authenticate. During this process, the victim sends an **NTLMv2 password hash**, which Responder captures.
+
+If the password is weak, the captured hash can be cracked offline using a tool like Hashcat.
 
 ## Lab Setup
 
-```
-|   Component  |        Details          |
+|   Component  |   Details          |
 |--------------|-------------------------|
-| Attacker     |       Kali Linux        | 
-| Victim       |       Windows 10        | 
-| Tool 1       |       Responder         |
-| Tool 2       |       Hashcat           |
-| Attacker IP  |       192.168.5.128     |
-| Victim IP    |       192.168.5.136     |
-```
-Both machines on same VirtualBox Host-Only network.
+| Attacker     |   Kali Linux        | 
+| Victim       |   Windows 10        | 
+| Attacker IP  |   192.168.5.128     |
+| Victim IP    |   192.168.5.136     |
+| Network      |   VirtualBox Host-Only  |
 
-## Attack Steps
+## Tools Used
 
-## Step 1 — Check My IP Address
+| Tool | Purpose |
+|------|---------|
+| Responder | Captures NTLMv2 hashes by responding to LLMNR, NBT-NS, and mDNS requests |
+| Hashcat | Cracks captured NTLMv2 password hashes using a wordlist |
+
+## Prerequisites
+
+| What | Why |
+|------|-----|
+| Kali Linux machine | The attacker machine |
+| Windows victim machine | The target machine |
+| Active Directory lab | Needed for this attack |
+| `Responder` | To capture NTLMv2 hashes |
+| `Hashcat` | To crack the captured hash |
+| `rockyou.txt` wordlist | Used to guess the password |
+| Both machines on the same network | So the attack works |
+
+## Step 1 — Checking My IP Address
 
 Before starting Responder, I first identified my network interface name and IP address.
 
@@ -92,7 +114,7 @@ eth0: 192.168.5.128
   <img src="/Active-Directory/01-llmnr-poisoning/images/step1.png" width="600">
 </p>
 
-## Step 2 — Start Responder
+## Step 2 — Starting Responder
 
 After identifying my network interface, I launched Responder to listen for LLMNR, NBT-NS, and WPAD requests on the network.
 
@@ -115,7 +137,7 @@ Responder will now listen on the network and wait for someone to broadcast a nam
   <img src="/Active-Directory/01-llmnr-poisoning/images/step2.png" width="600">
 </p>
 
-## Step 3 — Trigger from Victim Machine
+## Step 3 — Triggering the Request from the Victim
 
 On the victim machine, I opened File Explorer and typed:
 
@@ -147,9 +169,9 @@ On my Kali machine, Responder captured the victim's NTLMv2 authentication attemp
   <img src="/Active-Directory/01-llmnr-poisoning/images/step3-2.png" width="600">
 </p>
 
-## Step 4 — Save the Captured Hash
+## Step 4 — Saving the Captured Hash
 
-#### Copy the Hash
+### Copied the Hash
 
 First, I copied the NTLMv2 hash captured by Responder.
 
@@ -157,7 +179,7 @@ First, I copied the NTLMv2 hash captured by Responder.
   <img src="/Active-Directory/01-llmnr-poisoning/images/step4-1.png" width="600">
 </p>
 
-#### Create a File for the Hash
+### Created a File for the Hash
 
 On my Kali machine, I created a new file using Nano:
 
@@ -165,7 +187,7 @@ On my Kali machine, I created a new file using Nano:
 nano hash.txt
 ```
 
-#### Open the File
+### Opened the File
 
 After running the command, I pressed Enter to open the file.
 
@@ -173,7 +195,7 @@ After running the command, I pressed Enter to open the file.
   <img src="/Active-Directory/01-llmnr-poisoning/images/step4-2.png" width="600">
 </p>
 
-#### Paste the Hash
+### Pasted the Hash
 
 Once Nano opened, I pasted the captured NTLMv2 hash into the file.
 
@@ -181,7 +203,7 @@ Once Nano opened, I pasted the captured NTLMv2 hash into the file.
   <img src="/Active-Directory/01-llmnr-poisoning/images/step4-3.png" width="600">
 </p>
 
-#### Save the File
+### Saved the File
 
 To save the file, I pressed:
 
@@ -193,7 +215,7 @@ Enter
 
 This saved the hash to hash.txt, which I used in the next step for password cracking.
 
-## Step 5 — Crack the Captured Hash
+## Step 5 — Cracking the Captured Hash
 
 After saving the NTLMv2 hash, I used Hashcat with the RockYou wordlist to try and recover the password.
 
@@ -234,63 +256,68 @@ Password1
 
 This confirmed that the captured NTLMv2 hash could be cracked using a common wordlist because the password was weak.
 
-## Defense & Mitigation
+## How Defenders Can Catch This Attack
 
-**Fix 1 — Disable LLMNR via Group Policy:**
+| What to Check | What It May Show |
+|---------------|------------------|
+| LLMNR and NBT-NS traffic | Unexpected name requests and replies on the network |
+| Responder activity | One device answering many name requests |
+| Failed name lookups | Systems trying to reach names that do not exist |
+| NTLM authentication logs | Users sending NTLM authentication to unexpected devices |
+| Network monitoring tools | Unusual LLMNR, NBT-NS, or mDNS traffic |
+| Endpoint security alerts | Tools like Responder running on a device |
 
-Computer Configuration
-→ Administrative Templates
-→ Network
-→ DNS Client
-→ Turn off Multicast Name Resolution
-→ Set to: ENABLED
+## How to Prevent It
 
-**Fix 2 — Disable NBT-NS:**
+**Disable LLMNR**
+Disable LLMNR through Group Policy to stop systems from using insecure name resolution:
 
-Control Panel
-→ Network and Sharing Center
-→ Change Adapter Settings
-→ Right click → Properties
-→ IPv4 → Advanced
-→ WINS tab
-→ Select "Disable NetBIOS over TCP/IP"
+```
+Group Policy Editor → Computer Configuration → Administrative Templates → Network → DNS Client → Turn off multicast name resolution → Enabled
+```
 
-**Fix 3 — Enable Network Access Control (NAC):**
+**Disable NBT-NS if not required**
+Disable NetBIOS Name Service to remove another way attackers can poison name requests.
 
-Prevent unknown devices from joining the network.
+```
+Network Adapter Settings → IPv4 Properties → Advanced → WINS → Disable NetBIOS over TCP/IP
+```
 
-**Fix 4 — Use Strong Passwords:**
+**Enable SMB Signing**
+SMB signing helps prevent attackers from relaying captured authentication requests.
 
-Long complex passwords make hash cracking extremely difficult or impossible.
-<table>
-  <tr>
-    <th>Password</th>
-    <th>Crack Time</th>
-  </tr>
-  <tr>
-    <td>Password123</td>
-    <td>Few seconds</td>
-  </tr>
-  <tr>
-    <td>P@ssw0rd!</td>
-    <td>Few minutes</td>
-  </tr>
-  <tr>
-    <td>X#9kL$mQ2@vR</td>
-    <td>Years</td>
-  </tr>
-</table>
+```
+Group Policy → Computer Configuration → Windows Settings → Security Settings → Local Policies → Security Options → Microsoft network server: Digitally sign communications (always)
+```
 
-## Key Takeaways
+**Use strong passwords**
+Strong passwords make it harder for attackers to crack captured NTLMv2 hashes.
 
-- Works on most corporate networks — LLMNR is on by default
-- No special access needed — just be on the same network
-- Full attack takes less than 5 minutes
-- Turning off LLMNR and NBT-NS fully stops this attack
+```
+Use long passwords with a mix of letters, numbers, and symbols
+```
+
+**Use Multi-Factor Authentication (MFA)**
+MFA adds an extra security layer if a user's password is compromised.
+
+**Monitor network traffic**
+Use network monitoring tools to detect unusual LLMNR, NBT-NS, and NTLM authentication activity.
+
+**Disable NTLM where possible**
+Use modern authentication methods like Kerberos instead of older NTLM authentication.
 
 ## References
 
-- [Responder GitHub](https://github.com/lgandx/Responder)
+- [Microsoft Documentation — LLMNR and Name Resolution Security](https://learn.microsoft.com/en-us/windows-server/networking/dns/what-is-name-resolution)
+- [Responder GitHub Repository](https://github.com/lgandx/Responder)
+- [Hashcat Official Website](https://hashcat.net/hashcat/)
+- [MITRE ATT&CK — LLMNR/NBT-NS Poisoning and SMB Relay](https://attack.mitre.org/techniques/T1557/001/)
 - [TCM Security — Practical Ethical Hacking](https://academy.tcm-sec.com/p/practical-ethical-hacking-the-complete-course)
-- [MITRE ATT&CK T1557.001](https://attack.mitre.org/techniques/T1557/001/)
 
+## Lessons Learned
+
+- Learned how LLMNR poisoning works and why insecure name resolution can be dangerous.
+- Learned how attackers can capture NTLMv2 hashes using Responder.
+- Learned how password strength affects the security of captured hashes.
+- Learned how Hashcat can be used to test password strength.
+- Learned how disabling LLMNR and improving authentication security can reduce this attack risk.
