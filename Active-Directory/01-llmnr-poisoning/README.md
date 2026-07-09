@@ -70,20 +70,20 @@ If the password is weak, the captured hash can be cracked offline using a tool l
 
 ## Lab Setup
 
-|   Component  |   Details          |
-|--------------|-------------------------|
-| Attacker     |   Kali Linux        | 
-| Victim       |   Windows 10        | 
-| Attacker IP  |   192.168.5.128     |
-| Victim IP    |   192.168.5.136     |
-| Network      |   VirtualBox Host-Only  |
+|   Component  | Details          |
+|--------------|-------------------|
+| Attacker     | Kali Linux        | 
+| Victim       | Windows 10        | 
+| Attacker IP  | 192.168.5.128     |
+| Victim IP    | 192.168.5.136     |
+| Network      | VirtualBox Host-Only|
 
 ## Tools Used
 
 | Tool | Purpose |
 |------|---------|
-| Responder | Captures NTLMv2 hashes by responding to LLMNR, NBT-NS, and mDNS requests |
-| Hashcat | Cracks captured NTLMv2 password hashes using a wordlist |
+| Responder | Captures `NTLMv2` hashes by responding to `LLMNR`, `NBT-NS`, and `mDNS` requests |
+| Hashcat | Cracks captured `NTLMv2` password hashes using a wordlist |
 
 ## Prerequisites
 
@@ -122,14 +122,12 @@ After identifying my network interface, I launched Responder to listen for LLMNR
 sudo responder -I eth0 -dwv
 ```
 
-```
 |    Flag   |     Meaning       |
 |-----------|-------------------|
-| -I eth0   | Network interface |
-|    -d     | DHCP poisoning    |
-|    -w     | WPAD proxy server |
-|    -v     | Verbose mode      |
-```
+| `-I eth0`   | Network interface |
+|    `-d`     | DHCP poisoning    |
+|    `-w`     | WPAD proxy server |
+|    `-v`     | Verbose mode      |
 
 Responder will now listen on the network and wait for someone to broadcast a name request.
 
@@ -147,7 +145,7 @@ On the victim machine, I opened File Explorer and typed:
 
 Since fakeshare does not exist, Windows could not find it through DNS and sent an LLMNR request on the network.
 
-In my lab, the victim machine name was VICTIM-2.
+**In my lab, the victim machine name was VICTIM-2**.
 
 <p align="center">
   <img src="/Active-Directory/01-llmnr-poisoning/images/step3-1.png" width="600">
@@ -181,7 +179,7 @@ First, I copied the NTLMv2 hash captured by Responder.
 
 ### Created a File for the Hash
 
-On my Kali machine, I created a new file using Nano:
+On my Kali machine, I created a new file using `Nano`:
 
 ```bash
 nano hash.txt
