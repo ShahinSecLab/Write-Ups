@@ -254,7 +254,7 @@ Password1
 
 This confirmed that the captured NTLMv2 hash could be cracked using a common wordlist because the password was weak.
 
-## How Defenders Can Catch This Attack
+## How Defenders Can Catch This
 
 | What to Check | What It May Show |
 |---------------|------------------|
