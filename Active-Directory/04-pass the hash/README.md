@@ -1,10 +1,10 @@
 # Pass The Hash
 
-**Date:** May 2026  
-**Author:** ShahinSecLab  
-**Category:** Lateral Movement
-**Difficulty:** Easy  
-**Tools:** CrackMapExec, PsExec.py, Hashcat 
+**Date:** May 2026 <br>
+**Author:** ShahinSecLab <br>
+**Category:** Lateral Movemen<br>
+**Difficulty:** Easy <br>
+**Tools:** CrackMapExec, PsExec.py, Hashcat
 
 ## Table of Contents
 
