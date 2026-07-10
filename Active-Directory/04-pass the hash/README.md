@@ -14,7 +14,7 @@
 * [Lab Setup](#lab-setup)
 * [Tools Used](#tools-used)
 * [Prerequisites](#prerequisites)
-* [Step 1 — Spraying the Network and Dumping SAM Hashes with CrackMapExec](#step-1--spraying-the-network-and-dumping-sam-hashes-with-crackmapexec)
+* [Step 1 — Enumerating SMB Hosts and Dumping SAM Hashes with CrackMapExec](#step-1--enumerating-smb-hosts-and-dumping-sam-hashes-with-crackmapexec)
 * [Step 2 — Dumping Additional Credentials with secretsdump.py](#step-2--dumping-additional-credentials-with-secretsdump)
 * [Step 3 — Saving the Hashes](#step-3--saving-the-hashes)
 * [Step 4 — Cracking the Hashes with Hashcat](#step-4--cracking-the-hashes-with-hashcat)
@@ -29,7 +29,7 @@
 
 Pass-the-Hash (PtH) is a technique that allows someone to authenticate using an NTLM hash instead of the actual password. In Windows environments, passwords are stored as hashes, and NTLM authentication uses those hashes during the login process.
 
-This means that if an NTLM hash is obtained from a compromised system, it can often be used to access other systems without knowing the user's real password. There is no need to crack the hash or recover the plaintext password first.
+This means that if an NTLM hash is obtained from a compromised system, it can often be used to access other systems without knowing the user's real password. There is no need to crack the hash or recover the plaintext password first. In this lab, Hashcat was used only to demonstrate password reuse and confirm that multiple accounts shared the same password.
 
 Pass-the-Hash has been around for a long time and is still commonly seen in Windows networks. After gaining access to one machine and obtaining credential hashes, it can be used to move to other systems where the same account has permissions, making it a popular lateral movement technique.
 
@@ -75,19 +75,20 @@ Gaining Access to the Target
 ```
 ## Why This Attack Works
 
-Pass-the-Hash works because Windows allows users to authenticate using NTLM hashes instead of the actual password.
+Pass-the-Hash works because Windows allows authentication using NTLM hashes instead of requiring the original password.
 
-When a user logs into a Windows system, the password is converted into an NTLM hash. Windows uses this hash during authentication. If an attacker gets access to this hash, they can use it to authenticate to other systems without knowing the original password.
+When a user logs into a Windows system, the password is converted into an NTLM hash. Windows uses this hash during NTLM authentication. If an attacker obtains a valid NTLM hash, they can reuse it to authenticate to other systems without knowing the user's plaintext password.
 
-This attack is more effective when:
+This attack becomes more effective when:
 
-- The same local administrator password is used on multiple machines.
+- The same local administrator password is reused on multiple machines.
 - Users have unnecessary administrator privileges.
 - NTLM authentication is enabled across the network.
 - Administrators use privileged accounts on regular user machines.
 - Credential protection features are not enabled.
+- Local account NTLM hashes are stored in the SAM database and can be extracted after gaining administrative access.
 
-In this lab, the attack was possible because the same password was reused on multiple systems. The NTLM hash:
+In this lab, the attack was possible because the same local administrator password was reused across multiple systems. The recovered NTLM hash:
 
 ## Lab Setup
 
@@ -105,7 +106,7 @@ In this lab, the attack was possible because the same password was reused on mul
 | `CrackMapExec` | Used to scan SMB services, test credentials, dump SAM hashes, and perform Pass-the-Hash authentication. |
 | `PsExec.py` | Used to obtain a remote SYSTEM shell on Windows machines using valid credentials. |
 | `secretsdump.py` | Used to extract SAM hashes, cached credentials, LSA secrets, and other credential material from Windows systems. |
-| `Hashcat` | Used to crack NTLM hashes and recover plaintext passwords when possible. |
+| `Hashcat` | **Optional:** Attempt to recover plaintext passwords from NTLM hashes. |
 
 ## Prerequisites
 
@@ -116,9 +117,16 @@ In this lab, the attack was possible because the same password was reused on mul
 | SMB service enabled (TCP 445) | Required for Windows remote authentication and lateral movement |
 | Network connectivity between machines | Required for communication between attacker and target systems |
 | Local administrator privileges on target machines | Required to dump SAM hashes and extract credentials |
-| Valid domain credentials | Domain: `READTEAMBD.local`<br>User: `rahimkhan`<br>Password: `Password1` |
 
-## Step 1 — Spraying the Network and Dumping SAM Hashes with CrackMapExec
+Before starting the attack, I already had valid domain credentials:
+
+| Field | Value |
+|---|---|
+| Domain | `READTEAMBD.local` |
+| Username | `rahimkhan` |
+| Password | `Password1` |
+
+## Step 1 — Enumerating SMB Hosts and Dumping SAM Hashes with CrackMapExec
 
 I already had valid domain credentials for **rahimkhan** from an earlier step. My first goal was to find which systems these credentials could access and check whether the account had local administrator privileges.
 
@@ -339,7 +347,7 @@ The `-m 1000` option tells Hashcat that the hashes are in NTLM format.
 Hashcat successfully recovered the password for the NTLM hash `64f12cddaa88057e06a81b54e73b949b`.
 The results also confirmed that the following accounts were using the same password:
 
-**Results:**
+**Output:**
 
 ```
 64f12cddaa88057e06a81b54e73b949b:Password1                
