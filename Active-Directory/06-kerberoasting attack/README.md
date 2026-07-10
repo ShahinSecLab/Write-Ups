@@ -149,7 +149,7 @@ Information gathered:
 - Domain: READTEAMBD.local
 
 <p align="center">
-  <img src="/Active-Directory/06-Kerberoasting attack/images/step1.png" width="600">
+  <img src="images/step1.png" width="600">
 </p>
 
 ## Step 2 – Saving Hash to File
@@ -187,7 +187,7 @@ Recovered Password: Mypassword123#
 Hashcat successfully recovered the password for the sqlservice account:
 
 <p align="center">
-  <img src="/Active-Directory/06-Kerberoasting attack/images/step3.png" width="600">
+  <img src="images/step3.png" width="600">
 </p>
 
 ## How Defenders Can Catch This
