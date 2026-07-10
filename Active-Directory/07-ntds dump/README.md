@@ -1,33 +1,107 @@
 # ntds Dumping
 
-**Date:** June 2026  
-**Author:** ShahinSecLab  
-**Category:** Credential Access  
-**Difficulty:** Easy  
+**Date:** June 2026 <br>
+**Author:** ShahinSecLab <br>
+**Category:** Credential Access <br>
+**Difficulty:** Easy <br>
 **Tools:** NetExec, Evil-winrm
 
 ## Table of Contents
 
-- [Overview](#ntds-dumping)
-- [What I Understood During the Process](#what-i-understood-during-the-process)
-- [Why This Step Was Important in the Lab](#why-this-step-was-important-in-the-lab)
-- [Attack Process](#attack-process)
-  - [Step 1 — Token Impersonation & Privilege Escalation](#step---1-token-impersonation-and-privilege-escallation)
-  - [Step 2 — NTDS Dump with NetExec](#step---2-ntds-dump--netexec)
-  - [Step 3 — Getting a Shell with Evil-WinRM](#step---3-getting-a-shell-with-evil-winrm)
-- [What I Achieved](#what-i-achieved)
-- [Mitigations](#mitigations)
-- [Key Takeaways](#key-takeaways)
-- [References](#references)
+* [Overview](#ntds-dumping)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [Step 1 — Performing Token Impersonation & Privilege Escalation](#step---1-performing-token-impersonation-and-privilege-escallation)
+* [Step 2 — Dumping NTDS with NetExec](#step---2-dumping-ntds-with-netexec)
+* [Step 3 — Getting a Shell with Evil-WinRM](#step---3-getting-a-shell-with-evil-winrm)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
+## Introduction
 
-## NTDS Dumping 
+From an attacker’s perspective, NTDS dumping is one of the most important steps during an Active Directory attack.
 
-From an attacker perspective during this Active Directory lab, NTDS dumping was one of the most important and high-impact stages of the entire attack chain.
+After obtaining Domain Admin privileges, I was able to access the Domain Controller and extract the Active Directory database file (`NTDS.dit`). This file contains important domain information, including password hashes of user and computer accounts.
 
-After gaining access to a system with elevated privileges on the Domain Controller, I focused on extracting the Active Directory database file (NTDS.dit). This file is critical because it contains the core authentication data of the entire domain.
+Instead of targeting a single user or machine, NTDS dumping allows an attacker to access the credential database of the entire domain. These hashes can then be used for further attacks such as Pass-the-Hash, offline password cracking, and gaining further access within the network.
 
-Instead of targeting a single user or machine, I shifted focus toward the full domain credential database.
+## Attack Flow
+```
+Initial Domain Access
+              ↓
+Obtaining User-Level Access
+              ↓
+Performing Token Impersonation Attack
+              ↓
+Escalating Privileges to Domain Admin
+              ↓
+Using Domain Admin Credentials Against Domain Controller
+              ↓
+Dumping NTDS.dit Database with NetExec
+              ↓
+Extracting NTLM Password Hashes
+              ↓
+Obtaining Administrator Hash
+              ↓
+Performing Pass-the-Hash Attack
+              ↓
+Accessing Domain Controller with Evil-WinRM
+              ↓
+Getting Administrator Shell
+              ↓
+Full Domain Compromise
+```
+
+## Why This Attack Works
+
+NTDS dumping works because the Active Directory database stores credential information for all domain accounts in the `NTDS.dit` file.
+
+The `NTDS.dit` file is located on the Domain Controller and contains password hashes of users, computers, and service accounts. If an attacker gains Domain Admin privileges or enough access to the Domain Controller, they can extract these hashes.
+
+The attack does not require knowing the actual passwords. The extracted NTLM hashes can be used for further attacks such as Pass-the-Hash, offline password cracking, or accessing other systems in the domain.
+
+This attack is possible when:
+
+- An attacker gains administrative privileges on the Domain Controller.
+- Domain Admin accounts are not properly protected.
+- Privileged account access is not monitored.
+- Weak security controls allow unauthorized access to sensitive systems.
+- NTLM authentication is still enabled and can be abused.
+
+To reduce the risk, organizations should protect privileged accounts, limit administrative access, monitor unusual activity, and implement strong security controls across Active Directory.
+
+## Lab Setup
+
+| Machine | Role | IP Address |
+|---------------------|----------------------|---------------|
+| Windows Server 2022 | Domain Controller | `192.168.5.134` |
+| Windows 10 | Domain User | `192.168.5.142` |
+| Kali Linux | Attacker Machine | `192.168.5.128` |
+
+## Tools Used
+
+| Tool | Purpose |
+|----------------|----------------------------------------------|
+| `NetExec (NXC)` | Used to authenticate to the Domain Controller and dump NTDS hashes |
+| `Evil-WinRM` | Used to access the Windows machine remotely using WinRM |
+| Active Directory | Provides the domain environment for testing credential attacks |
+
+## Prerequisites
+
+| What   | Why  |
+|--------|------|
+| Kali Linux machine | Used as the attacker machine for running security tools |
+| Active Directory environment | Required for testing domain-based attacks |
+| Domain Controller | Stores the Active Directory database (`NTDS.dit`) |
+| Administrative or Domain Admin privileges | Required to access and dump NTDS hashes |
+| Network connectivity | Required for communication between attacker and target systems |
+| Enabled WinRM service | Required for remote access using Evil-WinRM |
+| Authorization to test the environment | Ensures the activity is performed legally |
 
 ## What I Understood During the Process
 
@@ -40,17 +114,7 @@ While working on this technique, I realized that:
 
 This made it clear that compromising this file is equivalent to gaining deep visibility into the entire domain environment.
 
-## Why This Step Was Important in the Lab
-
-In the attack flow, NTDS dumping represented the final and most powerful stage of credential access. Earlier steps helped to move deeper into the system, but this step provided:
-
-- A complete list of domain user credentials (in hash form)
-- Potential access to high-privilege accounts
-- A way to extend control across the network
-
-## Attack Process
-
-## Step 1 — Token Impersonation & Privilege Escalation
+## Step 1 — Performing Token Impersonation & Privilege Escalation
 
 Before performing the NTDS dump, I first carried out a Token Impersonation attack to escalate my privileges within the domain.
 
@@ -58,31 +122,28 @@ During this phase, the `test` user account was added to the Domain Admins group.
 
 I then used the credentials of this Domain Admin account to authenticate and continue with the NTDS dumping process as part of the post-exploitation phase.
 
-### Credentials:
+Before starting the attack, I already had valid domain credentials:
 
 - user name: `test`
 - password: `@shahin123#!`
 
-## Step - 2 NTDS Dump — NetExec
+## Step 2 — Dumping NTDS with NetExec
 
 After obtaining Domain Admin privileges through Token Impersonation, I used the test account to dump the Active Directory database from the Domain Controller.
 
 ```bash
 nxc smb 192.168.5.134 -u test -p '@shahin123#!' --ntds
 ```
+**Flag Breakdown**
 
-## Command Breakdown
-
-```
-|         Part        |                        Description                                                              |
-|---------------------|-------------------------------------------------------------------------------------------------|
+|         Flag        |  Description  |
+|---------------------|----------------|
 | `nxc`               | NetExec — a network penetration testing tool (successor to CrackMapExec)                        |
 | `smb`               | Protocol being used — Server Message Block (SMB)                                                |
 | `192.168.5.134`     | IP address of the target Domain Controller                                                      |
 | `-u test`           | Username used for authentication                                                                |
 | `-p '@shahin123#!'` | Password for the specified user                                                                 |
 | `--ntds`            | Attempts to extract the NTDS.dit database, which contains Active Directory user password hashes |
-```
 
 When I executed the command, NetExec authenticated to the Domain Controller over SMB using the Domain Admin credentials and successfully dumped the contents of the NTDS.dit database.
 
@@ -120,7 +181,7 @@ The command completed successfully and extracted the NTLM hashes from the Domain
   <img src="/Active-Directory/07-ntds dump/images/step2.png" width="600">
 </p>
 
-# Step - 3 Getting a Shell with Evil-WinRM
+## Step 3 — Getting a Shell with Evil-WinRM
 
 After dumping the NTDS.dit and getting the Administrator hash, I used
 Evil-WinRM to log into the Domain Controller directly using the hash —
@@ -130,12 +191,14 @@ no password needed.
 evil-winrm -i 192.168.5.134 -u 'administrator' -H 'fc525c9683e8fe067095ba2ddc971889'
 ```
 
-## Command Breakdown
+**Flag Breakdown**
 
-- `evil-winrm` - A tool used to remotely access Windows machines via the WinRM (Windows Remote Management) protocol.
-- `-i 192.168.5.134`- IP address of the target machine.
-- `-u administrator`- Username used for authentication.
-- `-H 'jlkahflahfklasklfashl'`- Last portion of administrator NTLM hash.
+| Flag | Description |
+|-------------------------------|----------------------------------------------|
+| `evil-winrm` | A tool used to connect to Windows machines remotely using the WinRM protocol. |
+| `-i 192.168.5.134` | Specifies the IP address of the target machine. |
+| `-u administrator` | Specifies the username used for authentication. |
+| `-H 'fc525c9683e8fe067095ba2ddc971889'` | Uses the NTLM hash of the Administrator account for Pass-the-Hash authentication instead of using the password. |
 
 This is a Pass the Hash attack. Instead of using the actual password, I used the NTLM hash I dumped earlier from NTDS.dit to log straight into the Domain Controller as Administrator — no cracking needed.
 Once the command runs successfully, I get a full interactive shell on the Domain Controller.
@@ -163,62 +226,48 @@ I successfully logged in as **Domain Administrator** without ever knowing the re
   <img src="/Active-Directory/07-ntds dump/images/step3.png" width="600">
 </p>
 
-## What I Achieved
+## How Defenders Can Catch This
 
-By reaching this stage, I demonstrated that:
+| Indicator | What to look for |
+|-------------------------------|----------------------------------------------|
+| Unauthorized Domain Admin access | Check for users who suddenly get administrative privileges |
+| Access to NTDS.dit | Monitor suspicious attempts to access Active Directory database files |
+| Unusual SMB activity | Look for unknown systems connecting to the Domain Controller |
+| Suspicious WinRM usage | Monitor unexpected remote PowerShell sessions |
+| Pass-the-Hash activity | Check for login attempts using NTLM hashes |
+| Privilege changes | Monitor changes to groups like Domain Admins |
+| Security event logs | Review authentication and privilege-related events |
 
-- I had control over a Domain Controller-level environment
-- I could extract sensitive authentication data from Active Directory
-- I could use this data for further analysis and lateral movement in a real scenario
+## How to Prevent It
 
-## Mitigations
-
-- Protect NTDS.dit at the File Level
-- Control Who Can Reach the Domain Controller
-- Stop Pass the Hash
-- Harden WinRM and Remote Access
-- Detect the Dump Before It Completes
-- Make Stolen Hashes Useless
-- Audit Privileged Group Membership
-
-
-## Key Takeaways
-
-| # | Takeaway |
-|---|----------|
-| 1 | NTDS.dit is not just a file — it is a copy of every credential in the domain. Treating it like a normal system file is a mistake. |
-| 2 | A Domain Admin account is all an attacker needs to dump the entire database. The access control problem comes before the dump, not during. |
-| 3 | Pass the Hash is what makes this attack so fast and damaging — cracking is optional when you can just use the hash directly. |
-| 4 | NetExec and similar tools are loud if you are watching — they hit SMB, trigger VSS, and write to disk. The signals are there. |
-| 5 | The `krbtgt` hash is inside NTDS.dit — a successful dump also enables Golden Ticket attacks, so the response scope is always larger than just resetting user passwords. |
-| 6 | WinRM is the door Evil-WinRM walks through. If it is open to the whole network, assume it will be used the moment someone has a valid hash. |
-| 7 | Group membership changes that are not alerted on are invisible. A test account sitting in Domain Admins is just as dangerous as a real admin account. |
+- Give Domain Admin access only to trusted users.
+- Use separate accounts for normal work and administrative tasks.
+- Use strong passwords for administrator accounts.
+- Enable Multi-Factor Authentication (MFA) for important accounts.
+- Regularly check members of privileged groups.
+- Disable unnecessary remote access services.
+- Keep Domain Controllers updated and protected.
+- Monitor unusual login activity.
+- Limit access to sensitive Active Directory systems.
 
 ## References
 
-### Microsoft Official Docs
+| Category | Resource | Link |
+|----------------|--------------------------------|----------------------------------------------|
+| MITRE ATT&CK | OS Credential Dumping: NTDS (T1003.003) | https://attack.mitre.org/techniques/T1003/003/ |
+| MITRE ATT&CK | Pass the Hash (T1550.002) | https://attack.mitre.org/techniques/T1550/002/ |
+| Microsoft Docs | Active Directory Security Best Practices | https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/best-practices-for-securing-active-directory |
+| Microsoft Docs | Windows Security Auditing | https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/security-auditing-overview |
+| Tool | NetExec | https://github.com/Pennyw0rth/NetExec |
+| Tool | Evil-WinRM | https://github.com/Hackplayers/evil-winrm |
 
-- [Securing Active Directory — Microsoft Docs](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/best-practices-for-securing-active-directory)
-- [Protected Users Security Group](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group)
-- [Local Administrator Password Solution (LAPS)](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview)
-- [Credential Guard](https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/credential-guard)
-- [Privileged Identity Management (PIM)](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure)
-- [Windows Security Auditing Event Reference](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/security-auditing-overview)
+## Lessons Learned
 
-### MITRE ATT&CK
+- The `NTDS.dit` file contains password hashes of all domain accounts.
+- An attacker with Domain Admin access can dump the entire domain database.
+- Password hashes can be used without knowing the original password.
+- Pass-the-Hash attacks can give direct access to other systems.
+- Protecting administrator accounts is very important in Active Directory.
+- Regularly checking user permissions can prevent unauthorized access.
+- Monitoring login activity can help find suspicious behavior early.
 
-- [T1003.003 — OS Credential Dumping: NTDS](https://attack.mitre.org/techniques/T1003/003/)
-- [T1550.002 — Pass the Hash](https://attack.mitre.org/techniques/T1550/002/)
-- [T1078.002 — Valid Accounts: Domain Accounts](https://attack.mitre.org/techniques/T1078/002/)
-- [T1021.006 — Remote Services: Windows Remote Management](https://attack.mitre.org/techniques/T1021/006/)
-
-### Tools Referenced in the Writeup
-
-- [NetExec (NXC)](https://github.com/Pennyw0rth/NetExec)
-- [Evil-WinRM](https://github.com/Hackplayers/evil-winrm)
-
-### Further Reading
-
-- [Sean Metcalf — Extracting Password Hashes from the Ntds.dit File (ADSecurity.org)](https://adsecurity.org/?p=2398)
-- [SANS — Protecting Active Directory from Known Attacks](https://www.sans.org/blog/protecting-active-directory-from-known-attacks/)
-- [Microsoft — Detecting and Mitigating Pass the Hash](https://www.microsoft.com/en-us/download/details.aspx?id=36036)
