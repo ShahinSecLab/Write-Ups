@@ -8,7 +8,7 @@
 
 ## Table of Contents
 
-* [Overview](#ntds-dumping)
+* [Introduction](#ntds-dumping)
 * [Attack Flow](#attack-flow)
 * [Why This Attack Works](#why-this-attack-works)
 * [Lab Setup](#lab-setup)
@@ -89,7 +89,6 @@ To reduce the risk, organizations should protect privileged accounts, limit admi
 |----------------|----------------------------------------------|
 | `NetExec (NXC)` | Used to authenticate to the Domain Controller and dump NTDS hashes |
 | `Evil-WinRM` | Used to access the Windows machine remotely using WinRM |
-| Active Directory | Provides the domain environment for testing credential attacks |
 
 ## Prerequisites
 
