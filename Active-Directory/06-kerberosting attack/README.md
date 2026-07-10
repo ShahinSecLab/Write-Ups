@@ -122,14 +122,11 @@ This command lists all service accounts and automatically requests Kerberos serv
 
 | Flag                  |                     Description                      |
 |-----------------------|------------------------------------------------------|
-| `GetUserSPNs.py`      | Impacket tool used for Kerberoasting.                |
-|                       | Finds service accounts with SPNs in Active Directory |
-|                       | and requests Kerberos service tickets (TGS)          |
+| `GetUserSPNs.py`      | Impacket tool used for Kerberoasting. Finds service accounts with SPNs in Active Directory and requests Kerberos service tickets (TGS)|
 | `readteambd.local`    | Active Directory domain name                         |
 | `rahimkhan:Password1` | Domain username and password used to authenticate    |
 | `-dc-ip 192.168.5.134`| IP address of the Domain Controller                  |
-| `-request`            | Tells the tool to actually pull the TGS tickets in   |
-|                       | crackable hash format                                |
+| `-request`            | Tells the tool to actually pull the TGS tickets in crackable hash format   |
 
 **Output:**
 
