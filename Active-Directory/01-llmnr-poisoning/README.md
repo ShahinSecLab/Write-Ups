@@ -70,13 +70,13 @@ If the password is weak, the captured hash can be cracked offline using a tool l
 
 ## Lab Setup
 
-|   Component  | Details          |
-|--------------|-------------------|
-| Attacker     | Kali Linux        | 
-| Victim       | Windows 10        | 
-| Attacker IP  | 192.168.5.128     |
-| Victim IP    | 192.168.5.136     |
-| Network      | VirtualBox Host-Only|
+| Component | Details |
+|-----------|---------|
+| Attacker Machine | Kali Linux |
+| Victim Machine | Windows 10 |
+| Attacker IP | `192.168.5.128` |
+| Victim IP | `192.168.5.136` |
+| Network | VirtualBox Host-Only Network |
 
 ## Tools Used
 
@@ -84,18 +84,19 @@ If the password is weak, the captured hash can be cracked offline using a tool l
 |------|---------|
 | `Responder` | Captures `NTLMv2` hashes by responding to `LLMNR`, `NBT-NS`, and `mDNS` requests |
 | `Hashcat` | Cracks captured `NTLMv2` password hashes using a wordlist |
+| `rockyou.txt` wordlist | Used to guess the password |
 
 ## Prerequisites
 
 | What | Why |
 |------|-----|
-| Kali Linux machine | The attacker machine |
-| Windows victim machine | The target machine |
-| Active Directory lab | Needed for this attack |
-| `Responder` | To capture NTLMv2 hashes |
-| `Hashcat` | To crack the captured hash |
-| `rockyou.txt` wordlist | Used to guess the password |
-| Both machines on the same network | So the attack works |
+| Kali Linux machine | Attacker machine with required penetration testing tools installed |
+| Windows victim machine | Target machine for testing LLMNR poisoning |
+| Active Directory environment | Provides Windows authentication and NTLMv2 authentication flow |
+| LLMNR enabled on the network | Required for the attack to capture authentication requests |
+| Network connectivity between machines | Required for communication during the attack |
+| User account with network authentication activity | Needed to generate NTLMv2 authentication requests |
+| Authorization to perform the test | Ensures the assessment is performed legally |
 
 ## Step 1 — Checking My IP Address
 

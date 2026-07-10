@@ -88,9 +88,9 @@ This attack is possible because of the following conditions:
 
 | Machine   | Role                | OS                  | IP Address      |
 |-----------|---------------------|---------------------|-----------------|
-| Attacker  | Attacker            | Kali Linux          | `192.168.5.128` |
+| Attacker Machine  | Attacker            | Kali Linux          | `192.168.5.128` |
 | Server    | Domain Controller   | Windows Server 2019 | `192.168.5.134` |
-| Victim    | Victim Workstation  | Windows 10          | `192.168.5.135` |
+| Victim Machine   | Victim Workstation  | Windows 10          | `192.168.5.135` |
 
 ## Tools Used
 

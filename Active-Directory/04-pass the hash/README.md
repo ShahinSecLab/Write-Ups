@@ -93,17 +93,30 @@ In this lab, the attack was possible because the same password was reused on mul
 
 | Machine  | Operating System |         Role          |    Ip         |
 |----------|------------------|-----------------------|---------------|
-| Attacker | Kali Linux       | Attacker machine      | `192.168.5.128` |
+| Attacker Machine | Kali Linux       | Attacker machine      | `192.168.5.128` |
 | Server   | Windows Server   | Domain Controller     | `192.168.5.134` |
 | Victim 1 | Windows 10       | Domain joined machine | `192.168.5.135` |
 | Victim 2 | Windows 10       | Domain joined machine | `192.168.5.136` |
 
+## Tools Used
 
-Before starting the attack, I already had the following valid domain credentials:
+| Tool | Purpose |
+|----------------|----------------------------------------------|
+| `CrackMapExec` | Used to scan SMB services, test credentials, dump SAM hashes, and perform Pass-the-Hash authentication. |
+| `PsExec.py` | Used to obtain a remote SYSTEM shell on Windows machines using valid credentials. |
+| `secretsdump.py` | Used to extract SAM hashes, cached credentials, LSA secrets, and other credential material from Windows systems. |
+| `Hashcat` | Used to crack NTLM hashes and recover plaintext passwords when possible. |
 
-- Domain: `readteambd.local`
-- User: `rahimkhan`
-- Pass: `Password1`
+## Prerequisites
+
+| What | Why |
+|-------------------------------|----------------------------------------------|
+| Kali Linux machine | Attacker machine with penetration testing tools installed |
+| Windows Active Directory environment | Target environment for performing the attack |
+| SMB service enabled (TCP 445) | Required for Windows remote authentication and lateral movement |
+| Network connectivity between machines | Required for communication between attacker and target systems |
+| Local administrator privileges on target machines | Required to dump SAM hashes and extract credentials |
+| Valid domain credentials | Domain: `READTEAMBD.local`<br>User: `rahimkhan`<br>Password: `Password1` |
 
 ## Step 1 — Spraying the Network and Dumping SAM Hashes with CrackMapExec
 

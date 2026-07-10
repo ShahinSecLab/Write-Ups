@@ -82,10 +82,10 @@ For this attack to succeed, the following conditions are typically present:
 
 |    Machine         |      OS       |               Role                   |      Ip       |
 |--------------------|---------------|--------------------------------------|---------------|
-| Attacker           | Kali Linux    | Attack machine                       | `192.168.5.128` |
-| Victim             | Windows 10    | Victim machine(Authentication Source)| `192.168.5.135` |
+| Attacker Machine           | Kali Linux    | Attack machine                       | `192.168.5.128` |
+| Victim Machine            | Windows 10    | Victim machine(Authentication Source)| `192.168.5.135` |
 | Windows Server / DC| Windows Server| Domain Controller / Protected Target | `192.168.5.134` |
-| Target             | Windows 10    | Relay Target (Vulnerable Host)       | `192.168.5.136` |
+| Target Machine            | Windows 10    | Relay Target (Vulnerable Host)       | `192.168.5.136` |
 
 ## Tools Used
 
@@ -100,12 +100,15 @@ For this attack to succeed, the following conditions are typically present:
 
 | What | Why |
 |------|-----|
-| Kali Linux machine | Attacker machine with the required tools installed |
-| Active Directory lab | Provides the victim, target, and domain controller for testing |
-| `Responder` | Captures NTLM authentication by responding to LLMNR/NBT-NS requests |
-| `ntlmrelayx.py` | Relays captured NTLM authentication to the target system |
-| `Nmap` | Checks whether SMB signing is enabled on target systems |
-| SMB signing disabled | Allows the target to accept relayed NTLM authentication |
+| Kali Linux machine | Attacker machine with required penetration testing tools installed |
+| Active Directory environment | Provides domain users, authentication flow, and target systems |
+| Victim machine connected to the network | Generates NTLM authentication requests that can be captured and relayed |
+| Relay target machine | The system where captured authentication will be forwarded |
+| Network connectivity between all machines | Required for communication between attacker, victim, and target systems |
+| LLMNR/NBT-NS enabled | Allows the attacker to capture authentication requests from name resolution poisoning |
+| SMB signing disabled on target systems | Allows NTLM authentication to be relayed successfully |
+| User account with network authentication activity | Needed to generate NTLM authentication traffic |
+| Authorization to perform the test | Ensures the assessment is performed legally |
 
 ## Step 1 — Disabling SMB and HTTP in Responder
 
