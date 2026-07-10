@@ -1,4 +1,4 @@
-# Kerberosting Attack
+# Kerberoasting Attack
 
 **Date:** June 2026  <br>
 **Author:** ShahinSecLab <br>
@@ -63,10 +63,10 @@ The problem happens when service accounts use weak passwords. After getting the 
 
 This attack is possible when:
 
-Service accounts have SPNs configured.
-Service account passwords are weak.
-Service accounts are not properly managed.
-Privileged services run with high-level accounts.
+- Service accounts have SPNs configured.
+- Service account passwords are weak.
+- Service accounts are not properly managed.
+- Privileged services run with high-level accounts.
 
 To reduce the risk, organizations should use strong passwords for service accounts, limit account permissions, regularly check SPNs, and monitor unusual Kerberos activity.
 
@@ -98,7 +98,6 @@ To reduce the risk, organizations should use strong passwords for service accoun
 | Service account with SPN | Required as the target account for Kerberoasting |
 | Network connectivity | Required for communication between attacker and target systems |
 | Authorization to test the environment | Ensures the testing is performed legally |
-
 
 Before starting the attack, I already had valid domain credentials:
 
@@ -150,7 +149,7 @@ Information gathered:
 - Domain: READTEAMBD.local
 
 <p align="center">
-  <img src="/Active-Directory/06-kerberosting attack/images/step1.png" width="600">
+  <img src="/Active-Directory/06-Kerberoasting attack/images/step1.png" width="600">
 </p>
 
 ## Step 2 – Saving Hash to File
@@ -188,7 +187,7 @@ Recovered Password: Mypassword123#
 Hashcat successfully recovered the password for the sqlservice account:
 
 <p align="center">
-  <img src="/Active-Directory/06-kerberosting attack/images/step3.png" width="600">
+  <img src="/Active-Directory/06-Kerberoasting attack/images/step3.png" width="600">
 </p>
 
 ## How Defenders Can Catch This
