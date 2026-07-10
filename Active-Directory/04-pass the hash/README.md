@@ -73,6 +73,22 @@ Gaining Access to the Target
                   ▼
  Moving to Other Systems
 ```
+## Why This Attack Works
+
+Pass-the-Hash works because Windows allows users to authenticate using NTLM hashes instead of the actual password.
+
+When a user logs into a Windows system, the password is converted into an NTLM hash. Windows uses this hash during authentication. If an attacker gets access to this hash, they can use it to authenticate to other systems without knowing the original password.
+
+This attack is more effective when:
+
+- The same local administrator password is used on multiple machines.
+- Users have unnecessary administrator privileges.
+- NTLM authentication is enabled across the network.
+- Administrators use privileged accounts on regular user machines.
+- Credential protection features are not enabled.
+
+In this lab, the attack was possible because the same password was reused on multiple systems. The NTLM hash:
+
 ## Lab Setup
 
 | Machine  | Operating System |         Role          |    Ip         |
