@@ -6,7 +6,7 @@
 **Difficulty:** Easy <br>
 **Tools:** NetExec, Evil-winrm
 
-## Table of Contents
+## Table of Contents 
 
 * [Introduction](#ntds-dumping)
 * [Attack Flow](#attack-flow)
@@ -14,9 +14,9 @@
 * [Lab Setup](#lab-setup)
 * [Tools Used](#tools-used)
 * [Prerequisites](#prerequisites)
-* [Step 1 — Performing Token Impersonation & Privilege Escalation](#step---1-performing-token-impersonation-and-privilege-escallation)
-* [Step 2 — Dumping NTDS with NetExec](#step---2-dumping-ntds-with-netexec)
-* [Step 3 — Getting a Shell with Evil-WinRM](#step---3-getting-a-shell-with-evil-winrm)
+* [Step 1 — Performing Token Impersonation & Privilege Escalation](#step-1--performing-token-impersonation-and-privilege-escallation)
+* [Step 2 — Dumping NTDS with NetExec](#step-2--dumping-ntds-with-netexec)
+* [Step 3 — Getting a Shell with Evil-WinRM](#step-3--getting-a-shell-with-evil-winrm)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
 * [References](#references)
