@@ -72,6 +72,8 @@ Since the forged ticket is signed with the correct `krbtgt` hash, the Domain Con
 | Attacker Machine     | Kali Linux          |
 | Domain Controller    | Windows Server 2022 |
 | Victim Machine       | Windows 10          |
+| Attacker IP         | `192.168.5.128`      |
+| Victim IP            | `192.168.5.142`     |
 | Domain               | `readteambd.local`  |
 | Domain Admin Account | `Administrator`     |
 
