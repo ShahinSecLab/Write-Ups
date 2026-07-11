@@ -363,11 +363,15 @@ This confirms that the Golden Ticket attack worked successfully. I moved from th
 * Use strong passwords for administrator accounts.
 * Remove unused privileged accounts.
 * Limit access between systems to reduce lateral movement.
+* Enable AES Kerberos encryption and disable weak RC4 encryption where possible.
+* Monitor Domain Controllers for abnormal access to LSASS memory.
+* Use Protected Users security group for privileged accounts.
 
 ## References
 
 | Resource                                                 | Link                                                                                                                                 |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+|Sean Metcalf - Golden Ticket Attacks & Defenses          | https://adsecurity.org/?p=1640 |
 | Kerberos Authentication Overview                         | https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview                                  |
 | Credential Guard                                         | https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/credential-guard                             |
 | Protected Users Security Group                           | https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group       |
