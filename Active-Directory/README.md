@@ -4,7 +4,6 @@ A collection of AD attack writeups for learning and reference.
 
 ## Writeups
 
-```
 | # |      Topic                 | Status |
 |---|----------------------------|--------|
 | 1 | LLMNR Poisoning            |  Done  |
@@ -15,7 +14,6 @@ A collection of AD attack writeups for learning and reference.
 | 6 | Kerberoasting              |  Done  |
 | 7 | ntds Dumping               |  Done  |
 | 8 | Golden Ticket Generation   |  Done  |
-```
 
 ## Tools Used
 
@@ -32,6 +30,8 @@ A collection of AD attack writeups for learning and reference.
 \- Meterpreter
 \- Incognito
 \- Impacket
+\- NetExec
+\- Evil-winrm
 
 
 
