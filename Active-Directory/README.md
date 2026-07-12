@@ -4,8 +4,8 @@ A collection of AD attack writeups for learning and reference.
 
 ## Writeups
 
-| # |      Topic                 | Status |
-|---|----------------------------|--------|
+| # | Topic  | Status |
+|---|--------|--------|
 | 1 | LLMNR Poisoning            |  Done  |
 | 2 | SMB Relay Attack           |  Done  |
 | 3 | IPv6 attack with mitm6     |  Done  |

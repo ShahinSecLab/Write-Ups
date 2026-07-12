@@ -126,7 +126,7 @@ Before starting the attack, I already had valid domain credentials:
 - user name: `test`
 - password: `@shahin123#!`
 
-## Step 2 — Dumping NTDS with NetExec
+## Step 2 — Dumping NTDS with `NetExec`
 
 After obtaining Domain Admin privileges through Token Impersonation, I used the test account to dump the Active Directory database from the Domain Controller.
 
@@ -137,7 +137,7 @@ nxc smb 192.168.5.134 -u test -p '@shahin123#!' --ntds
 
 |         Flag        |  Description  |
 |---------------------|----------------|
-| `nxc`               | NetExec — a network penetration testing tool (successor to CrackMapExec)                        |
+| `nxc`               | `NetExec` — a network penetration testing tool (successor to CrackMapExec)                        |
 | `smb`               | Protocol being used — Server Message Block (SMB)                                                |
 | `192.168.5.134`     | IP address of the target Domain Controller                                                      |
 | `-u test`           | Username used for authentication                                                                |
