@@ -272,6 +272,7 @@ The relay attack worked successfully, and the authentication was accepted by the
 ## How to Prevent It
 
 **Disable LLMNR**
+
 LLMNR allows systems to ask other machines on the network to resolve names. Disable it through Group Policy:
 
 ```
@@ -279,6 +280,7 @@ Computer Configuration → Administrative Templates → Network → DNS Client �
 ```
 
 **Disable NBT-NS**
+
 NBT-NS can be abused to capture NTLM authentication. Disable it on network adapters:
 
 ```
@@ -286,6 +288,7 @@ Network Adapter Settings → IPv4 Properties → Advanced → WINS → Disable N
 ```
 
 **Enable SMB Signing**
+
 SMB signing prevents attackers from relaying SMB authentication requests. Enable it through Group Policy:
 
 ```
@@ -295,6 +298,7 @@ Computer Configuration → Windows Settings → Security Settings
 ```
 
 **Disable NTLM Authentication Where Possible**
+
 NTLM is an older authentication protocol and can be abused in relay attacks. Use Kerberos authentication whenever possible.
 
 ```
@@ -304,6 +308,7 @@ Computer Configuration → Windows Settings → Security Settings
 ```
 
 **Keep Systems Updated**
+
 Regularly update Windows systems, domain controllers, and security policies to reduce security risks.
 
 ```
@@ -311,31 +316,25 @@ Windows Update → Check for Updates
 ```
 
 **Use Network Segmentation**
+
 Separate critical systems from normal user networks. This limits the attacker's ability to move between machines.
 
 **Monitor Authentication Logs**
+
 Regularly review Windows Event Logs for unusual NTLM authentication and SMB activity.
 
 ```
 Event Viewer → Windows Logs → Security
 ```
-
 ## References
 
-- Microsoft Documentation – SMB Security  
-  https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security
-
-- Microsoft NTLM Overview  
-  https://learn.microsoft.com/en-us/windows-server/security/kerberos/ntlm-overview
-
-- Impacket Project (ntlmrelayx tool)  
-  https://github.com/fortra/impacket
-
-- Responder Tool Documentation  
-  https://github.com/lgandx/Responder
-
-- SMB Relay Attack Explanation (General Concept)  
-  https://attack.mitre.org/techniques/T1557/001/
+| Resource | Link |
+|----------|------|
+| Microsoft Documentation — SMB Security | https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security |
+| Microsoft NTLM Overview | https://learn.microsoft.com/en-us/windows-server/security/kerberos/ntlm-overview |
+| Impacket Project (ntlmrelayx tool) | https://github.com/fortra/impacket |
+| Responder Tool Documentation | https://github.com/lgandx/Responder |
+| SMB Relay Attack Explanation (General Concept) | https://attack.mitre.org/techniques/T1557/001/ |
 
   ## Lessons Learned
 

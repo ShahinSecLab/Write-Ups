@@ -243,12 +243,15 @@ A normal user account was able to get full root access because of an incorrect s
 ## How to Prevent It
 
 **Never give sudo access to shell-capable binaries unless it is absolutely necessary.**
+
   Tools such as `find`, `vim`, `awk`, `less`, `man`, `nmap`, and many others can be used to spawn a shell. Before allowing any binary in the `sudoers` file, check whether it appears in GTFOBins.
 
 **Require a password for sudo whenever possible.**
+
   Avoid using `NOPASSWD` unless there is a valid business or administrative reason. Requiring a password adds an extra layer of security.
 
 **Restrict sudo rules to specific commands and arguments.**
+
   Instead of allowing users to run an entire binary with `sudo`, limit the rule to only the commands or arguments they actually need by using precise `sudoers` entries.
 
  **Example:**
@@ -258,9 +261,11 @@ A normal user account was able to get full root access because of an incorrect s
   ```
   
 **Review sudo permissions regularly.**
+
   Periodically audit the `sudoers` file to remove unnecessary privileges and ensure users have only the permissions they require.
 
 **Follow the principle of least privilege.**
+
   Grant only the minimum permissions needed for users to perform their tasks. This reduces the risk of privilege escalation if an account is compromised.
 
 **Audit sudoers file regularly**
@@ -272,6 +277,7 @@ ls /etc/sudoers.d/
 ```
 
 **Check GTFOBins for every binary granted sudo access**
+
 Before granting sudo rights to any tool, search it on gtfobins.github.io to see if it has a known privilege escalation path.
 
 ## References

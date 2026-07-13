@@ -369,9 +369,11 @@ ls -la /etc/shadow
 ls -la /etc/sudoers
 ```
 **Use file integrity monitoring**
+
 Tools like AIDE or Tripwire will alert you the moment /etc/passwd is modified outside of normal admin activity.
 
 **Monitor for new UID 0 accounts**
+
 Run this regularly to check for any accounts with root level UID:
 
 ```bash

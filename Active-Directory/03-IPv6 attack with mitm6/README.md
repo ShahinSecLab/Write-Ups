@@ -281,6 +281,7 @@ Next, I opened **`domain_users_by_group.html`** in a web browser to analyze doma
 ## How to Prevent It
 
 **Disable IPv6 if it is not required**  
+
 If IPv6 is not being used in the environment, disable it to reduce the attack surface:
 
 ```
@@ -288,6 +289,7 @@ Group Policy → Computer Configuration → Administrative Templates → Network
 ```
 
 **Disable WPAD**
+
 WPAD can be abused to redirect authentication requests to an attacker-controlled system. Disable WPAD through Group Policy:
 
 ```
@@ -295,6 +297,7 @@ Group Policy → Computer Configuration → Administrative Templates → Windows
 ```
 
 **Block unauthorized DHCPv6 traffic**
+
 Only allow trusted DHCPv6 servers on the network. Block unauthorized DHCPv6 responses from unknown devices:
 
 ```
@@ -302,6 +305,7 @@ Network Firewall → Block Unauthorized DHCPv6 Traffic
 ```
 
 **Enable LDAP Signing and Channel Binding**
+
 LDAP signing helps prevent attackers from relaying NTLM authentication to the Domain Controller:
 
 ```
@@ -309,6 +313,7 @@ Group Policy → Computer Configuration → Windows Settings → Security Settin
 ```
 
 **Enable SMB Signing**
+
 SMB signing prevents attackers from relaying authentication requests to SMB services:
 
 ```
@@ -316,6 +321,7 @@ Group Policy → Computer Configuration → Windows Settings → Security Settin
 ```
 
 **Restrict NTLM Authentication**
+
 Reduce the use of NTLM authentication and use Kerberos authentication whenever possible:
 
 ```

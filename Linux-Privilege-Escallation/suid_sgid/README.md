@@ -409,6 +409,7 @@ The `whoami` and `id` commands confirmed that I had successfully gained root pri
 ## How to Prevent It
 
 **Audit SUID binaries regularly**
+
 Run this regularly and compare against a known good baseline:
 
 ```bash
@@ -421,12 +422,14 @@ chmod u-s /usr/sbin/exim-4.84-3
 ```
 
 **Keep software updated**
+
 CVE-2016-1531 was patched in Exim 4.86.2. Keeping software updated removes the vulnerability completely:
 
 ```bash
 sudo apt update && sudo apt upgrade
 ```
 **Remove unnecessary software**
+
 If Exim or any other mail server is not needed on the machine, remove it completely:
 
 ```bash
@@ -434,9 +437,11 @@ sudo apt remove exim4
 ```
 
 **Monitor for unusual SUID binaries**
+
 Use file integrity monitoring tools like AIDE or Tripwire to alert you when the SUID bit is set on any file outside of the normal baseline.
 
 **Restrict outbound connections from servers**
+
 If the target machine could not reach my Kali HTTP server, the exploit download would have failed. Restricting outbound connections limits what an attacker can pull onto the machine.
 
 ## References

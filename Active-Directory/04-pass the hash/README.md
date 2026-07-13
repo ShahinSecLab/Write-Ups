@@ -442,33 +442,40 @@ This demonstrates how Pass-the-Hash works. If two accounts share the same NTLM h
 Pass-the-Hash works because stolen NTLM hashes can still be reused for authentication. The goal of defense is to stop hash reuse and limit where credentials can travel.
 
 **Disable or Reduce NTLM Usage**
+
 - Prefer Kerberos authentication instead of NTLM
 - Restrict NTLM where possible using Group Policy
 - Monitor systems still using NTLM
 
 **Enable Credential Guard**
+
 - Isolates and protects credentials from memory extraction
 - Prevents tools from accessing LSASS easily
 
 **Use Unique Local Administrator Passwords**
+
 - Never reuse the same local admin password across machines
 - Use tools like LAPS (Local Administrator Password Solution)
 
 **Apply Least Privilege**
+
 - Users should not have admin rights unless required
 - Separate admin accounts from normal user accounts
 - Avoid logging in as Domain Admin on workstations
 
 **Limit Lateral Movement**
+
 - Segment the network (users, servers, DCs)
 - Restrict SMB (port 445) between workstations where possible
 - Block admin shares from non-admin systems
 
 **Protect LSASS Process**
+
 - Enable RunAsPPL (Protected Process Light)
 - Prevent credential dumping from memory
 
 **Patch and Update Systems**
+
 - Keep Windows and domain controllers updated
 - Fix known SMB and authentication vulnerabilities
                                                                                

