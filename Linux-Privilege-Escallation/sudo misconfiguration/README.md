@@ -171,7 +171,7 @@ The page showed different methods, including Shell, File Write, SUID, and Sudo. 
   <img src="images/step2-1.png" width="600">
 </p>
 
-## Step 3 — Using `find` with sudo to Get a Root Shell
+## Step 3 — Using `find` with `sudo` to Get a Root Shell
 
 GTFOBins gave me the exact command for the Sudo function of `find`:
 
@@ -198,7 +198,7 @@ user@debian:~$ sudo find . -exec /bin/sh \; -quit
 ```
 sh-4.1#
 ```
-The prompt changed from `user@debian` to `sh-4.1#`, which shows that the shell was running with root privileges.
+The prompt changed from `user@debian` to `sh-4.1#`, The `#` symbol indicates that the shell was running with root privileges.
 
 ## Step 4 — Confirming Full Root Access
 
