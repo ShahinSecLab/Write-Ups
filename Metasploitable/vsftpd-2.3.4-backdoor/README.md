@@ -369,6 +369,8 @@ I checked the current user:
 ```bash
 root@metasploitable:/# whoami
 ```
+**Output:**
+
 ```
 root
 ```
@@ -377,6 +379,8 @@ Then I verified the user ID:
 ```bash
 root@metasploitable:/# id
 ```
+**Output:**
+
 ```
 uid=0(root) gid=0(root)
 ```
@@ -399,18 +403,18 @@ The `whoami` and `id` commands confirmed that I had root access on the target ma
 
 ## How to Prevent It
 
-**Remove or upgrade vsftpd immediately**
+- **Remove or upgrade vsftpd immediately**
 
 ```bash
 sudo apt remove vsftpd
 sudo apt install vsftpd
 ```
-**Block port 6200 at the firewall**
+- **Block port 6200 at the firewall**
 
 ```bash
 iptables -A INPUT -p tcp --dport 6200 -j DROP
 ```
-**Disable FTP if not needed**
+- **Disable FTP if not needed**
 
 FTP is an outdated and insecure protocol. Use SFTP or SCP instead:
 
@@ -418,11 +422,11 @@ FTP is an outdated and insecure protocol. Use SFTP or SCP instead:
 sudo systemctl stop vsftpd
 sudo systemctl disable vsftpd
 ```
-**Run regular vulnerability scans**
+- **Run regular vulnerability scans**
 
 Tools like OpenVAS or Nessus would flag vsftpd 2.3.4 immediately as a critical vulnerability.
 
-**Always check software versions against known CVEs**
+- **Always check software versions against known CVEs**
 
 ```bash
 https://nvd.nist.gov
