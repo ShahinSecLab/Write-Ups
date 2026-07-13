@@ -93,9 +93,9 @@ Since the target was running an older SSH setup, I had to add extra flags to all
 ```bash
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag | Description |
+| Part | Description |
 |------|-------------|
 | `-o HostKeyAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA host key algorithm, which is required by some older Linux systems |
 | `-o PubkeyAcceptedAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA public key algorithm for authentication |
@@ -184,9 +184,9 @@ find . -exec /bin/sh \; -quit
 ```bash
 user@debian:~$ sudo find . -exec /bin/sh \; -quit
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag | Description |
+| Part | Description |
 |------|--------------------------------------------|
 | `sudo find` | Runs the `find` command with root privileges |
 | `.` | Searches in the current directory |

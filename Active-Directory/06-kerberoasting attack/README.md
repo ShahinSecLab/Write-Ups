@@ -117,9 +117,9 @@ GetUserSPNs.py readteambd.local/rahimkhan:Password1 -dc-ip 192.168.5.134 -reques
 ```
 This command lists all service accounts and automatically requests Kerberos service tickets in a crackable format.
 
-**Flag Breakdown**
+**Breakdown**
 
-| Flag                  |                     Description                      |
+| Part                  |                     Description                      |
 |-----------------------|------------------------------------------------------|
 | `GetUserSPNs.py`      | Impacket tool used for Kerberoasting. Finds service accounts with SPNs in Active Directory and requests Kerberos service tickets (TGS)|
 | `readteambd.local`    | Active Directory domain name                         |
@@ -168,9 +168,9 @@ Next, I used Hashcat to perform offline password cracking.
 ```bash
 hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag             |                 Description                     |
+| Part             |                 Description                     |
 |------------------|-------------------------------------------------|
 | `-m 13100`       | Hash mode — Kerberos 5 TGS-REP (etype 23 / RC4) |
 | `kerberoast.txt` | The file containing the extracted hash          |

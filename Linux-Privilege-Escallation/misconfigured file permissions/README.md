@@ -95,9 +95,9 @@ Since the target was running an older SSH setup, I had to add extra flags to all
 ```bash
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag | Description |
+| Part | Description |
 |------|-------------|
 | `-o HostKeyAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA host key algorithm, which is required by some older Linux systems |
 | `-o PubkeyAcceptedAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA public key algorithm for authentication |
@@ -214,9 +214,9 @@ I generated a password hash using OpenSSL on the Kali machine.
 ```bash
 openssl passwd "password100"
 ```
-**Flag Breakdown**
+**Breakdown**
 
-| Flag | Description |
+| Part | Description |
 |------|---------|
 | `openssl` | OpenSSL command-line utility used for cryptographic operations |
 | `passwd` | OpenSSL subcommand used to generate a password hash |

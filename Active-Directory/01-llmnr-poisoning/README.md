@@ -105,9 +105,9 @@ Before starting Responder, I first identified my network interface name and IP a
 ```bash
 ip a
 ```
-**Flag Breakdown**
+**Breakdown**
 
-|    Flag   |     Meaning       |
+|    Part   |     Meaning       |
 |-----------|-------------------|
 | `ip`      | The tool itself, used to show and manage network interfaces, addresses, and routing on Linux |
 | `a`       | Short for `address`, shows IP addresses assigned to all network interfaces                   |
@@ -140,9 +140,9 @@ After identifying my network interface, I launched Responder to listen for LLMNR
 ```bash
 sudo responder -I eth0 -dwv
 ```
-**Flag Breakdown**
+**Breakdown**
 
-|    Flag   |     Meaning       |
+|    Part   |     Meaning       |
 |-----------|-------------------|
 | `-I eth0`   | Network interface |
 |    `-d`     | DHCP poisoning    |
@@ -254,10 +254,10 @@ After saving the NTLMv2 hash, I used Hashcat with the RockYou wordlist to try an
 ```bash
 hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt
 ```
-**Flag Breakdown**
+**Breakdown**
 
 ```
-|             Flag                 |                   Meaning                     |
+|             Part                 |                   Meaning                     |
 | -------------------------------- | --------------------------------------------- |
 | hashcat                          | Password cracking tool                        |
 | -m 5600                          | Hash type (NTLMv2 hash mode)                  |
