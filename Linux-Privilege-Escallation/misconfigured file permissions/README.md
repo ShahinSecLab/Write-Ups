@@ -31,26 +31,26 @@ Misconfigured File Permissions is one of the simplest privilege escalation techn
 
 ```
 Connected to the target over SSH with low privilege credentials
-                        ↓
+              ↓
 Checked permissions on /etc/passwd
-                        ↓
+              ↓
 Found /etc/passwd was world writable (-rw-r--rw-)
-                        ↓
+              ↓
 Read the contents of /etc/passwd
-                        ↓
+              ↓
 Generated a password hash on Kali using openssl
-                        ↓
+              ↓
 Built a new root user line with UID 0 and the generated hash
-                        ↓
+              ↓
 Opened /etc/passwd with nano and added the new line
-                        ↓
+              ↓
 Switched to the new user with su syss
-                        ↓
+              ↓
 Entered the password shahin
-                        ↓
+              ↓
 Got a full root shell
-                        ↓
-                whoami → root
+              ↓
+    whoami → root
 ```
 
 ## Why This Attack Works
