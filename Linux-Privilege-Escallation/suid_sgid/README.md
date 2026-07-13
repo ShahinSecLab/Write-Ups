@@ -9,74 +9,25 @@
 
 # Table of Contents
 
-- [Introduction](#introduction)
-- [Why This Attack Works](#why-this-attack-works)
-- [Lab Setup](#lab-setup)
-- [What I Needed Before Starting](#what-i-needed-before-starting)
-- [What I Understood During the Process](#what-i-understood-during-the-process)
-- [Attack Flow](#attack-flow)
-- [Step 1 — Connecting to the Target via SSH](#step-1--connecting-to-the-target-via-ssh)
-- [Step 2 — Finding SUID Binaries](#step-2--finding-suid-binaries)
-- [Step 3 — Searching for an Exploit with Searchsploit](#step-3--searching-for-an-exploit-with-searchsploit)
-- [Step 4 — Downloading the Exploit to the Target](#step-4--downloading-the-exploit-to-the-target)
-- [Step 5 — Running the Exploit and Getting Root](#step-5--running-the-exploit-and-getting-root)
-- [How Defenders Can Catch This](#how-defenders-can-catch-this)
-- [How to Prevent It](#how-to-prevent-it)
-- [References](#references)
-- [What I Achieved](#what-i-achieved)
+* [Introduction](#introduction)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [Step 1 — Connecting to the Target via SSH](#step-1--connecting-to-the-target-via-ssh)
+* [Step 2 — Finding SUID Binaries](#step-2--finding-suid-binaries)
+* [Step 3 — Searching for an Exploit with Searchsploit](#step-3--searching-for-an-exploit-with-searchsploit)
+* [Step 4 — Downloading the Exploit to the Target](#step-4--downloading-the-exploit-to-the-target)
+* [Step 5 — Running the Exploit and Getting Root](#step-5--running-the-exploit-and-getting-root)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
 SUID (Set User ID) is a special Linux file permission bit. When a binary has the SUID bit set, it runs as the owner of the file — not as the user who launched it. Most SUID binaries on a system are owned by root, which means they run as root regardless of who executes them. If one of those binaries is vulnerable or can be abused, a normal user can use it to get a root shell.
-
-## Why This Attack Works
-
-Linux uses file permission bits to control who can read, write, or execute files. The SUID bit is an extra permission that tells the system to run the file as its owner instead of the person running it. This is used legitimately by tools like `passwd` — which needs root access to modify /`etc/shadow` even when run by a normal user.
-
-The problem comes in when a binary with the SUID bit set is either:
-
-- Vulnerable to a known CVE — like Exim 4.84-3 in this case
-- Abusable to spawn a shell — like `find`, `vim`, or `bash` with the SUID bit set
-
-In either case, since the binary runs as root, whatever it does — including spawning a shell — happens as root.
-
-## Lab Setup
-
-| Component        | Details                                  |
-|------------------|------------------------------------------|
-| Attacker Machine | Kali Linux                               |
-| Victim Machine   | Debian Linux                             |
-| Victim IP        | 192.168.5.133                            |
-| Access Method    | SSH with valid low-privilege credentials |
-| Network          | VMware Host-Only Network                 |
-
-## Tools Prepared on Kali Before Starting
-
-|            Tool          |                Purpose                      |
-|--------------------------|---------------------------------------------|
-| `searchsploit`           | Find known exploits for discovered binaries |
-| `python3 -m http.server` | Host the exploit file for download          |
-| `wget`                   | Download the exploit onto the target        |
-
-
-## What I Needed Before Starting
-
-|             What                         |                       Why                           |
-|------------------------------------------|-----------------------------------------------------|
-| SSH credentials for a low-privilege user | Starting point for the attack                       |
-| `find` command                           | To scan the system for SUID binaries                |
-| `searchsploit` on Kali                   | To find a working exploit for the vulnerable binary |
-| Python HTTP server                       | To host the exploit file for the target to download |
-
-## What I Understood During the Process
-
-While working through this attack I realized that:
-
-- Finding SUID binaries should be one of the first things checked on any Linux machine after getting initial access
-- Most SUID binaries on a system are there for legitimate reasons — the key is spotting the ones that are unusual or outdated
-- exim-4.84-3 stood out straight away because it is a mail server binary and does not need to be SUID in most environments
-- Searchsploit made finding the right exploit fast — I just copied the version number and searched
-- The exploit worked straight out of the box without any modifications needed
 
 ## Attack Flow
 ```
@@ -104,6 +55,44 @@ Got a root shell immediately
                         ↓
                 whoami → root
 ```
+
+## Why This Attack Works
+
+Linux uses file permission bits to control who can read, write, or execute files. The SUID bit is an extra permission that tells the system to run the file as its owner instead of the person running it. This is used legitimately by tools like `passwd` — which needs root access to modify /`etc/shadow` even when run by a normal user.
+
+The problem comes in when a binary with the SUID bit set is either:
+
+- Vulnerable to a known CVE — like Exim 4.84-3 in this case
+- Abusable to spawn a shell — like `find`, `vim`, or `bash` with the SUID bit set
+
+In either case, since the binary runs as root, whatever it does — including spawning a shell — happens as root.
+
+## Lab Setup
+
+| Component        | Details                                  |
+|------------------|------------------------------------------|
+| Attacker Machine | Kali Linux                               |
+| Victim Machine   | Debian Linux                             |
+| Victim IP        | 192.168.5.133                            |
+| Access Method    | SSH with valid low-privilege credentials |
+| Network          | VMware Host-Only Network                 |
+
+## Tools Used
+
+|            Tool          |                Purpose                      |
+|--------------------------|---------------------------------------------|
+| `searchsploit`           | Find known exploits for discovered binaries |
+| `python3 -m http.server` | Host the exploit file for download          |
+| `wget`                   | Download the exploit onto the target        |
+
+## Prerequisites
+
+|             What                         |                       Why                           |
+|------------------------------------------|-----------------------------------------------------|
+| SSH credentials for a low-privilege user | Starting point for the attack                       |
+| `find` command                           | To scan the system for SUID binaries                |
+| `searchsploit` on Kali                   | To find a working exploit for the vulnerable binary |
+| Python HTTP server                       | To host the exploit file for the target to download |
 
 ## Step 1 — Connecting to the Target via SSH
 
@@ -281,7 +270,7 @@ Saving to: “39535.sh.1”
   <img src="images/step4-2.png" width="600">
 </p>
 
-### Confirming the File Was Downloaded
+### Confirmed the File Was Downloaded
 
 ```bash
 user@debian:~$ ls -l 39535.sh
@@ -376,8 +365,7 @@ The `whoami` and `id` commands confirmed that I had successfully gained root pri
 
 ## How to Prevent It
 
-- **Audit SUID binaries regularly**
-
+**Audit SUID binaries regularly**
 Run this regularly and compare against a known good baseline:
 
 ```bash
@@ -389,38 +377,24 @@ Remove the SUID bit from any binary that does not absolutely need it:
 chmod u-s /usr/sbin/exim-4.84-3
 ```
 
-- **Keep software updated**
-
+**Keep software updated**
 CVE-2016-1531 was patched in Exim 4.86.2. Keeping software updated removes the vulnerability completely:
 
 ```bash
 sudo apt update && sudo apt upgrade
 ```
-- **Remove unnecessary software**
-
+**Remove unnecessary software**
 If Exim or any other mail server is not needed on the machine, remove it completely:
 
 ```bash
 sudo apt remove exim4
 ```
 
-- **Monitor for unusual SUID binaries**
-
+**Monitor for unusual SUID binaries**
 Use file integrity monitoring tools like AIDE or Tripwire to alert you when the SUID bit is set on any file outside of the normal baseline.
 
-- **Restrict outbound connections from servers**
-
+**Restrict outbound connections from servers**
 If the target machine could not reach my Kali HTTP server, the exploit download would have failed. Restricting outbound connections limits what an attacker can pull onto the machine.
-
-## What I Achieved
-
-By completing this attack I showed that:
-
-- A single SUID binary with a known CVE was enough to go from a normal user to full root access
-- Searchsploit made finding the right exploit fast — just copy the version number and search
-- The exploit worked straight out of the box without any modifications
-- Outdated software with the SUID bit set is one of the most common privilege escalation paths found in real Linux environments
-- Regular SUID audits and software updates would have prevented this completely
 
 ## References
 
@@ -430,3 +404,14 @@ By completing this attack I showed that:
 - MITRE ATT&CK — SUID and SGID : https://attack.mitre.org/techniques/T1548/001
 - HackTricks — SUID Privilege Escalation : https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#suid-and-sgid 
 - PayloadsAllTheThings — SUID : https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md#suid 
+
+## Lessons Learned
+
+While working through this attack I realized that:
+
+- Finding SUID binaries should be one of the first things checked on any Linux machine after getting initial access
+- Most SUID binaries on a system are there for legitimate reasons — the key is spotting the ones that are unusual or outdated
+- exim-4.84-3 stood out straight away because it is a mail server binary and does not need to be SUID in most environments
+- Searchsploit made finding the right exploit fast — I just copied the version number and searched
+- The exploit worked straight out of the box without any modifications needed
+

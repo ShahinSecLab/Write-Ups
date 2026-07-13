@@ -8,60 +8,24 @@
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Why This Attack Works](#why-this-attack-works)
-- [Lab Setup](#lab-setup)
-- [What I Needed Before Starting](#what-i-needed-before-starting)
-- [What I Understood During the Process](#what-i-understood-during-the-process)
-- [Attack Flow](#attack-flow)
-- [Step 1 — Connecting to the Target via SSH](#step-1--connecting-to-the-target-via-ssh)
-- [Step 2 — Checking `/etc/passwd` Permissions](#step-2--checking-etcpasswd-permissions)
-- [Step 3 — Generating a Password Hash and Editing `/etc/passwd`](#step-3--generating-a-password-hash-and-editing-etcpasswd)
-- [Step 4 — Logging in as Root with the New User](#step-4--logging-in-as-root-with-the-new-user)
-- [How Defenders Can Catch This](#how-defenders-can-catch-this)
-- [How to Prevent It](#how-to-prevent-it)
-- [References](#references)
-- [What I Achieved](#what-i-achieved)
+* [Introduction](#introduction)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [Step 1 — Connecting to the Target via SSH](#step-1--connecting-to-the-target-via-ssh)
+* [Step 2 — Checking `/etc/passwd` Permissions](#step-2--checking-etcpasswd-permissions)
+* [Step 3 — Generating a Password Hash and Editing `/etc/passwd`](#step-3--generating-a-password-hash-and-editing-etcpasswd)
+* [Step 4 — Logging in as Root with the New User](#step-4--logging-in-as-root-with-the-new-user)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
 Misconfigured File Permissions is one of the simplest privilege escalation techniques on Linux. If a critical system file like /etc/passwd is writable by normal users, I can add my own root level user directly to it. The next time I switch to that user, Linux gives me a full root shell — no exploit or CVE needed.
-
-## Why This Attack Works
-
-On a normal Linux system, `/etc/passwd` is readable by everyone but only writable by root. This file holds basic user account information — usernames, user IDs, group IDs, home directories, and shell paths.
-The password field in `/etc/passwd` normally contains an `x` — which tells Linux to look at 
-`/etc/shadow` for the real password hash. But if I replace that `x` with an actual password hash I generate myself, Linux will use my hash directly — completely skipping `/etc/shadow`.
-Since I can write to the file, I can add a brand new user with UID 0 (root level) and a password I control. When I switch to that user, Linux sees UID 0 and gives me a full root shell.
-
-## Lab Setup
-
-| Component        | Details                                  |
-|------------------|------------------------------------------|
-| Attacker Machine | Kali Linux                               |
-| Victim Machine   | Debian Linux                             |
-| Victim IP        | 192.168.5.133                            |
-| Access Method    | SSH with valid low-privilege credentials |
-| Network          | VMware Host-Only Network                 |
-
-## What I Needed Before Starting
-
-|                    What                  |                      Why                             |
-|------------------------------------------|------------------------------------------------------|
-| SSH credentials for a low-privilege user | Starting point for the attack                        |
-| Write access to /etc/passwd              | The misconfiguration that makes this attack possible |
-| openssl on Kali                          | To generate a password hash                          |
-| nano on the target                       | To edit /etc/passwd                                  |
-
-## What I Understood During the Process
-
-While working through this attack I realized that:
-
-- `/etc/passwd` being world writable is one of the most dangerous misconfigurations on any Linux system
-- I did not need any exploit or CVE — just one line added to a file was enough to get root
-- The `x` in the password field is the key — replacing it with a real hash bypasses `/etc/shadow` completely
-- Setting UID to `0` in the new user entry gives root level access regardless of the username
-- This kind of misconfiguration is easy to miss during system setup and very hard to detect without proper file integrity monitoring
 
 ## Attack Flow
 
@@ -88,6 +52,34 @@ Got a full root shell
                         ↓
                 whoami → root
 ```
+
+## Why This Attack Works
+
+On a normal Linux system, `/etc/passwd` is readable by everyone but only writable by root. This file holds basic user account information — usernames, user IDs, group IDs, home directories, and shell paths.
+The password field in `/etc/passwd` normally contains an `x` — which tells Linux to look at 
+`/etc/shadow` for the real password hash. But if I replace that `x` with an actual password hash I generate myself, Linux will use my hash directly — completely skipping `/etc/shadow`.
+Since I can write to the file, I can add a brand new user with UID 0 (root level) and a password I control. When I switch to that user, Linux sees UID 0 and gives me a full root shell.
+
+## Lab Setup
+
+| Component        | Details                                  |
+|------------------|------------------------------------------|
+| Attacker Machine | Kali Linux                               |
+| Victim Machine   | Debian Linux                             |
+| Victim IP        | 192.168.5.133                            |
+| Access Method    | SSH with valid low-privilege credentials |
+| Network          | VMware Host-Only Network                 |
+
+## Tools Used
+
+## Prerequisites
+
+|                    What                  |                      Why                             |
+|------------------------------------------|------------------------------------------------------|
+| SSH credentials for a low-privilege user | Starting point for the attack                        |
+| Write access to /etc/passwd              | The misconfiguration that makes this attack possible |
+| openssl on Kali                          | To generate a password hash                          |
+| nano on the target                       | To edit /etc/passwd                                  |
 
 ## Step 1 — Connecting to the Target via SSH
 
@@ -321,41 +313,30 @@ I went from a normal low privilege user to full root access just by writing one 
 
 ## How to Prevent It
 
-- **Fix the permissions on /etc/passwd immediately**
+**Fix the permissions on /etc/passwd immediately**
 
 ```bash
 chmod 644 /etc/passwd
 ```
 The correct permission for /etc/passwd is -rw-r--r-- — root can write, everyone else can only read.
 
-- **Audit critical file permissions regularly**
+**Audit critical file permissions regularly**
 
 ```bash
 ls -la /etc/passwd
 ls -la /etc/shadow
 ls -la /etc/sudoers
 ```
-- **Use file integrity monitoring**
-
+**Use file integrity monitoring**
 Tools like AIDE or Tripwire will alert you the moment /etc/passwd is modified outside of normal admin activity.
 
-- **Monitor for new UID 0 accounts**
-
+**Monitor for new UID 0 accounts**
 Run this regularly to check for any accounts with root level UID:
 
 ```bash
 awk -F: '($3 == 0) {print}' /etc/passwd
 ```
 This should only ever return the root account. Any other entry with UID 0 is a red flag.
-
-## What I Achieved 
-
-By completing this attack I showed that:
-
-- A single misconfigured file permission on /etc/passwd was enough to get full root access
-- No exploits or CVEs were needed — just openssl, nano, and one line added to a file
-- The fix is as simple as running chmod 644 /etc/passwd — yet this mistake shows up in real environments
-- File integrity monitoring is the best way to catch this kind of attack before it causes damage
 
 ## References
 
@@ -373,3 +354,13 @@ By completing this attack I showed that:
 
 - **GTFOBins**  
   https://gtfobins.github.io
+
+  ## Lessons Learned
+
+While working through this attack I realized that:
+
+- A single misconfigured file permission on `/etc/passwd` was enough to get full root access.
+- No need any exploit or CVE, just one line added to a file was enough to get root.
+- The `x` in the password field is the key, replacing it with a real hash bypasses `/etc/shadow` completely.
+- Setting UID to `0` in the new user entry gives root level access regardless of the username.
+- File integrity monitoring is the best way to catch this kind of attack before it causes damage

@@ -7,62 +7,26 @@
 **Difficulty:** Easy <br>
 **Tools:** SSH, sudo, find, GTFOBins 
 
-
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Why This Attack Works](#why-this-attack-works)
-- [Lab Setup](#lab-setup)
-- [What I Needed Before Starting](#what-i-needed-before-starting)
-- [What I Understood During the Process](#what-i-understood-during-the-process)
-- [Attack Flow](#attack-flow)
-- [Step 1 — Connecting to the Target and Checking Sudo Permissions](#step-1--connecting-to-the-target-and-checking-sudo-permissions)
-- [Step 2 — Picking a Binary and Checking GTFOBins](#step-2--picking-a-binary-and-checking-gtfobins)
-- [Step 3 — Abusing find with Sudo to Get a Root Shell](#step-3--abusing-find-with-sudo-to-get-a-root-shell)
-- [Step 4 — Confirming Full Root Access](#step-4--confirming-full-root-access)
-- [How Defenders Can Catch This](#how-defenders-can-catch-this)
-- [How to Prevent It](#how-to-prevent-it)
-- [What I Achieved](#what-i-achieved)
-- [References](#references)
+* [Introduction](#introduction)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [Step 1 — Connecting to the Target and Checking Sudo Permissions](#step-1--connecting-to-the-target-and-checking-sudo-permissions)
+* [Step 2 — Picking a Binary and Checking GTFOBins](#step-2--picking-a-binary-and-checking-gtfobins)
+* [Step 3 — Abusing find with Sudo to Get a Root Shell](#step-3--abusing-find-with-sudo-to-get-a-root-shell)
+* [Step 4 — Confirming Full Root Access](#step-4--confirming-full-root-access)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
 Sudo Misconfiguration is one of the most common and easiest privilege escalation techniques on Linux. When a normal user is allowed to run certain binaries as root through sudo — especially with NOPASSWD — and that binary has a way to spawn a shell or execute commands, the user can break out into a full root shell with almost no effort.
-
-## Why This Attack Works
-
-Sudo is meant to let normal users run specific commands as root without giving them full root access. But the problem comes in when the binaries allowed through sudo are not just simple, harmless tools. Many common Linux binaries like find, vim, awk, less, nmap, and man have hidden functions that let them execute shell commands.
-If sudo allows a user to run one of these binaries as root, the user can trigger that hidden shell escape function. Since the binary itself is running as root, the shell it spawns is also root — completely bypassing the whole point of sudo restrictions.
-
-## Lab Setup
-
-| Component        | Details                                  |
-|------------------|------------------------------------------|
-| Attacker Machine | Kali Linux                               |
-| Victim Machine   | Debian Linux                             |
-| Victim IP        | 192.168.5.133                            |
-| Access Method    | SSH with valid low-privilege credentials |
-| Network          | VMware Host-Only Network                 |
-
-
-## What I Needed Before Starting
-
-| What                                     | Why                                            |
-|------------------------------------------|------------------------------------------------|
-| SSH credentials for a low-privilege user | Starting point for the attack                  |
-| `sudo -l` access                         | To see which commands I could run as root      |
-| GTFOBins website                         | To find the shell escape for the allowed binary|
-
-
-## What I Understood During the Process
-
-While working through this attack I realized that:
-
-- Running sudo -l should be the very first thing checked on any Linux box
-- A long list of NOPASSWD binaries is basically a free pass to root if even one of them is on GTFOBins
-- GTFOBins makes this attack almost effortless — you do not need to remember exploit syntax, just search the binary and copy the command
-- Many admins do not realize how dangerous it is to give sudo access to tools like find, vim, or less
-- One misconfigured sudo rule was enough to go from a normal user straight to full root with (ALL) ALL permissions
 
 ## Attack Flow
 ```
@@ -84,6 +48,32 @@ Confirmed with whoami and id
                         ↓
 Checked sudo -l as root — full (ALL) ALL access confirmed
 ```
+
+## Why This Attack Works
+
+Sudo is meant to let normal users run specific commands as root without giving them full root access. But the problem comes in when the binaries allowed through sudo are not just simple, harmless tools. Many common Linux binaries like find, vim, awk, less, nmap, and man have hidden functions that let them execute shell commands.
+If sudo allows a user to run one of these binaries as root, the user can trigger that hidden shell escape function. Since the binary itself is running as root, the shell it spawns is also root — completely bypassing the whole point of sudo restrictions.
+
+## Lab Setup
+
+| Component        | Details                                  |
+|------------------|------------------------------------------|
+| Attacker Machine | Kali Linux                               |
+| Victim Machine   | Debian Linux                             |
+| Victim IP        | 192.168.5.133                            |
+| Access Method    | SSH with valid low-privilege credentials |
+| Network          | VMware Host-Only Network                 |
+
+## Tools Used
+
+## Prerequisites
+
+| What                                     | Why                                            |
+|------------------------------------------|------------------------------------------------|
+| SSH credentials for a low-privilege user | Starting point for the attack                  |
+| `sudo -l` access                         | To see which commands I could run as root      |
+| GTFOBins website                         | To find the shell escape for the allowed binary|
+
 
 ## Step 1 — Connecting to the Target and Checking Sudo Permissions
 
@@ -124,7 +114,7 @@ I logged in as `user` — a normal low privilege account on the system.
   <img src="images/step1-1.png" width="600">
 </p>
 
-### Checking Sudo Permissions
+### Checked Sudo Permissions
 
 ```bash
 user@debian:~$ sudo -l
@@ -228,16 +218,13 @@ I went from a normal low privilege user straight to a fully unrestricted root ac
 
 ## How to Prevent It
 
-- **Never give sudo access to shell-capable binaries unless it is absolutely necessary.**
-
+**Never give sudo access to shell-capable binaries unless it is absolutely necessary.**
   Tools such as `find`, `vim`, `awk`, `less`, `man`, `nmap`, and many others can be used to spawn a shell. Before allowing any binary in the `sudoers` file, check whether it appears in GTFOBins.
 
-- **Require a password for sudo whenever possible.**
-
+**Require a password for sudo whenever possible.**
   Avoid using `NOPASSWD` unless there is a valid business or administrative reason. Requiring a password adds an extra layer of security.
 
-- **Restrict sudo rules to specific commands and arguments.**
-
+**Restrict sudo rules to specific commands and arguments.**
   Instead of allowing users to run an entire binary with `sudo`, limit the rule to only the commands or arguments they actually need by using precise `sudoers` entries.
 
  **Example:**
@@ -246,15 +233,13 @@ I went from a normal low privilege user straight to a fully unrestricted root ac
   user ALL=(root) NOPASSWD: /usr/bin/find /var/log -type f
   ```
   
-- **Review sudo permissions regularly.**
-
+**Review sudo permissions regularly.**
   Periodically audit the `sudoers` file to remove unnecessary privileges and ensure users have only the permissions they require.
 
-- **Follow the principle of least privilege.**
-
+**Follow the principle of least privilege.**
   Grant only the minimum permissions needed for users to perform their tasks. This reduces the risk of privilege escalation if an account is compromised.
 
-- **Audit sudoers file regularly**
+**Audit sudoers file regularly**
 
 ```bash
 sudo visudo -c
@@ -262,18 +247,9 @@ cat /etc/sudoers
 ls /etc/sudoers.d/
 ```
 
-- **Check GTFOBins for every binary granted sudo access**
+**Check GTFOBins for every binary granted sudo access**
 
 Before granting sudo rights to any tool, search it on gtfobins.github.io to see if it has a known privilege escalation path.
-
-## What I Achieved
-
-By completing this attack I showed that:
-
-- A single misconfigured sudo rule was enough to go from a normal user to full root access
-- No exploits, CVEs, or complex techniques were needed — just a list of NOPASSWD binaries and GTFOBins
-- This is one of the most common privilege escalation paths found in real Linux environments
-- Admins often do not realize how dangerous it is to give sudo access to everyday tools like find or vim
 
 ## References
 
@@ -286,3 +262,13 @@ By completing this attack I showed that:
 | **MITRE ATT&CK — Sudo and Sudo Caching** | https://attack.mitre.org/techniques/T1548/003 |
 | **HackTricks — Sudo Privilege Escalation** | https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid |
 | **PayloadsAllTheThings — Sudo Exploitation** | https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md#sudo-exploitation |
+
+## Lessons Learned
+
+While working through this attack I realized that:
+
+- Running `sudo -l` should be the very first thing checked on any Linux box.
+- A long list of NOPASSWD binaries is basically a free pass to root if even one of them is on GTFOBins.
+- GTFOBins makes this attack almost effortless — you do not need to remember exploit syntax, just search the binary and copy the command
+- Many admins do not realize how dangerous it is to give sudo access to tools like find, vim, or less.
+- One misconfigured sudo rule was enough to go from a normal user straight to full root with (ALL) ALL permissions.

