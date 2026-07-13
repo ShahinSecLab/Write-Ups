@@ -1,6 +1,5 @@
 # Sudo Misconfiguration
 
-**Sudo **Misconfiguration <br>
 **Date:** July 2026 <br>
 **Author:** ShahinSecLab <br>
 **Category:** Privilege Escalation <br>
@@ -17,7 +16,7 @@
 * [Prerequisites](#prerequisites)
 * [Step 1 — Connecting to the Target and Checking Sudo Permissions](#step-1--connecting-to-the-target-and-checking-sudo-permissions)
 * [Step 2 — Picking a Binary and Checking GTFOBins](#step-2--picking-a-binary-and-checking-gtfobins)
-* [Step 3 —Using find with sudo to Get a Root Shell](#step-3--using-find-with-sudo-to-get-a-root-shell)
+* [Step 3 — Using find with sudo to Get a Root Shell](#step-3--using-find-with-sudo-to-get-a-root-shell)
 * [Step 4 — Confirming Full Root Access](#step-4--confirming-full-root-access)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
@@ -85,7 +84,7 @@ If sudo allows a user to run one of these binaries as root, the user can trigger
 | A binary allowed to run as root | Used to get a root shell |
 | Access to GTFOBins | Used to find the correct command for the allowed binary |
 
-## Step 1 — Connecting to the Target and Checking Sudo Permissions
+## Step 1 — Connecting to the Target and Checking `Sudo` Permissions
 
 ### Connected to the Target via SSH
 
@@ -127,7 +126,7 @@ I logged in as `user` — a normal low privilege account on the system.
   <img src="images/step1-1.png" width="600">
 </p>
 
-### Checked Sudo Permissions
+### Checked `Sudo` Permissions
 
 ```bash
 user@debian:~$ sudo -l
@@ -172,7 +171,7 @@ The page showed different methods, including Shell, File Write, SUID, and Sudo. 
   <img src="images/step2-1.png" width="600">
 </p>
 
-## Step 3 —Using find with sudo to Get a Root Shell
+## Step 3 — Using `find` with sudo to Get a Root Shell
 
 GTFOBins gave me the exact command for the Sudo function of `find`:
 
