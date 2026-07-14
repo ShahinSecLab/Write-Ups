@@ -356,7 +356,6 @@ I started the service again to trigger the DLL loading process.
 ```bash
 net start dllsvc
 ```
-**Flag Breakdown**
 **Breakdown**
 
 | Part | Description |
