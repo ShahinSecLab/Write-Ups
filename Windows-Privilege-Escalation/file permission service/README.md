@@ -329,6 +329,7 @@ C:\Windows\system32> whoami
 ```
 nt authority\system
 ```
+
 The `whoami` command confirmed that I had successfully gained **SYSTEM** privileges. By replacing the service executable and starting the service, Windows ran my payload with the same privileges as the service.
 
 ## How Defenders Can Catch This
