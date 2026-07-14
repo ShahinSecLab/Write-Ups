@@ -4,7 +4,7 @@
 **Author:** ShahinSecLab<br>
 **Category:** Privilege Escalation<br>
 **Difficulty:** Easy<br>
-**Tools:** msfvenom, Metasploit, winPEAS, accesschk.exe, certutil
+**Tools:** msfvenom, Metasploit, winPEAS, accesschk.exe
 
 ## Table of Contents
 
@@ -85,6 +85,15 @@ It stops at the first one it finds. So if I drop a file called Common.exe inside
 | **Victim IP**        | `192.168.5.144`            |
 | **Network**          | VMware Host-Only Network |
 | **Domain**           | WORKGROUP                |
+
+## Tools Used
+
+| Tool | Location | Purpose |
+|------|----------|---------|
+| `winPEASany.exe` | `/home/kali/Desktop/tools/` | Find privilege escalation opportunities |
+| `accesschk.exe` | `/home/kali/Desktop/tools/` | Check write permissions on folders |
+| `msfvenom` | Built into Kali | Generate the reverse shell payload |
+| `Metasploit` | Built into Kali | Receive the reverse shell |
 
 ## Prerequisites
 
