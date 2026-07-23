@@ -90,7 +90,6 @@ The Metasploitable installation comes with this vulnerable version of vsftpd.
 I powered on the Metasploitable 2 virtual machine in VMware. Once it booted up, the login screen showed the default credentials:
 I powered on the Metasploitable 2 virtual machine in VMware. Once it booted up, the login screen showed the default credentials:
 
-
 ```bash
 Login: msfadmin
 Password: msfadmin
