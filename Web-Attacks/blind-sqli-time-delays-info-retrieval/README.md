@@ -2,22 +2,27 @@
 
 ## Table of Contents
 
+
+
+
+
+
 * [Introduction](#introduction)
 * [Attack Flow](#attack-flow)
 * [Why This Attack Works](#why-this-attack-works)
 * [Lab Setup](#lab-setup)
 * [Tools Used](#tools-used)
 * [Prerequisites](#prerequisites)
-* [Step 1 - Setting Up the Lab and Intercepting the Request](#step-1-setting-up-the-lab-and-intercepting-the-request)
-* [Step 2 - Confirming the SQL Injection Point with a Time Delay](#step-2-confirming-the-sql-injection-point-with-a-time-delay)
-* [Step 3 - Testing a False Condition](#step-3-testing-a-false-condition)
-* [Step 4 - Checking if the "administrator" User Exists](#step-4-checking-if-the-administrator-user-exists)
-* [Step 5 - Finding the Password Length](#step-5-finding-the-password-length)
-* [Step 6 - Setting Up Burp Intruder for Character Extraction](#step-6-configuring-burp-intruder)
-* [Step 7 - Configuring the Resource Pool](#step-7-configuring-the-resource-pool)
-* [Step 8 - Finding the First Character of the Password](#step-8-finding-the-first-character-of-the-password)
-* [Step 9 - Recovering the Remaining Password Characters](#step-9-recovering-the-remaining-password-characters)
-* [Step 10 - Logging In as the Administrator](#step-10-logging-in-as-the-administrator)
+* [Step 1 - Setting Up the Lab and Intercepting the Request](#step-1---setting-up-the-lab-and-intercepting-the-request)
+* [Step 2 - Confirming the SQL Injection Point with a Time Delay](#step-2---confirming-the-sql-injection-point-with-a-time-delay)
+* [Step 3 - Testing a False Condition](#step-3---testing-a-false-condition)
+* [Step 4 - Checking if the "administrator" User Exists](#step-4---checking-if-the-administrator-user-exists)
+* [Step 5 - Finding the Password Length](#step-5---finding-the-password-length)
+* [Step 6 - Configuring Burp Intruder](#step-6---configuring-burp-intruder)
+* [Step 7 - Configuring the Resource Pool](#step-7---configuring-the-resource-pool)
+* [Step 8 - Finding the First Character of the Password](#step-8---finding-the-first-character-of-the-password)
+* [Step 9 - Recovering the Remaining Password Characters](#step-9---recovering-the-remaining-password-characters)
+* [Step 10 - Logging In as the Administrator](#step-10---logging-in-as-the-administrator)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
 * [References](#references)
@@ -27,7 +32,7 @@
 
 This writeup covers a lab from PortSwigger's Web Security Academy called **"Blind SQL injection with time delays and information retrieval"**. In this lab, the app doesn't show any errors or extra data on screen when I inject SQL into a cookie. The only way to tell if my injected query worked was by watching how long the server took to respond. I used this timing trick to pull out the administrator's password one character at a time, then logged in with it to solve the lab.
 
-## Workflow
+## Attack Flow
 
 Intercept the Request
           ↓
@@ -385,7 +390,7 @@ This completed the **Blind SQL injection with time delays and information retrie
 - [PortSwigger Web Security Academy - Blind SQL Injection Labs](https://portswigger.net/web-security/sql-injection/blind)
 - [OWASP SQL Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html)
 
-## Lesson Learned
+## Lessons Learned
 
 - Even when an app shows nothing on screen, no error, no extra data, it can still leak information through something as simple as response time
 - Blind SQL injection does not mean the application is safe. If input reaches a query unfiltered, there's always some way to pull data out, it just takes more patience
