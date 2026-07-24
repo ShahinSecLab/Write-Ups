@@ -191,7 +191,7 @@ I used the following payload:
 TrackingId=Q3SWxllcbjggnqJ0'%3BSELECT CASE WHEN (username='administrator' AND LENGTH(password)>1) THEN pg_sleep(5) ELSE pg_sleep(0) END FROM users--
 ```
 
-### Payload Breakdown
+**Breakdown**
 
 | Part | Description |
 |------|-------------|
@@ -236,8 +236,118 @@ The response came back in **261 ms**, no delay. which meant the condition was **
 </p>
 
 
+## Step 6 - Configuring Burp Intruder
 
-## Step 11 - Logging In and Solving the Lab
+After finding that the administrator's password was **20 characters** long, the next step was to recover it one character at a time.
+
+Doing this manually in **Burp Repeater** would be slow, so I sent the request to **Burp Intruder**.
+
+I selected **Sniper** as the attack type because I only needed to test one character position at a time.
+
+Then I modified the `TrackingId` cookie with the following payload:
+
+```bash
+TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+SUBSTRING(password,1,1)='§a§')+THEN+pg_sleep(5)+ELSE+pg_sleep(0)+END+FROM+users--
+```
+
+### Breakdown
+
+| Part | Description |
+|------|-------------|
+| `SUBSTRING(password,1,1)` | Extracts the first character of the administrator's password. |
+| `='§a§'` | Compares the extracted character with a guess. The `§` symbols mark the payload position where Intruder inserts each payload value. |
+
+Next, I opened the **Payloads** tab and configured the following options:
+
+- **Payload type:** `Simple list`
+- **Payload values:** `a-z` and `0-9`
+
+The passwords in this lab contain only lowercase letters and numbers, so this payload list covers every possible character.
+
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
+
+
+## Step 7 - Configuring the Resource Pool
+
+This attack depends on measuring the response time for each request.
+
+If Burp sends several requests at the same time, the response times can overlap, making it difficult to tell which request actually caused the delay.
+
+To avoid this, I opened the **Resource Pool** tab and created a new resource pool named **time delay**.
+
+Then I enabled **Maximum concurrent requests** and set the value to **1**.
+
+With this setting, Burp Intruder sends one request, waits for the response, and only then sends the next one. This keeps the response times consistent and makes it easy to identify the correct character.
+
+<p align="center">
+  <img src="images/step7-1.png" width="600">
+</p>
+
+
+## Step 8 - Finding the First Character of the Password
+
+After configuring Burp Intruder and the resource pool, I clicked **Start attack**.
+
+Intruder sent one request for each character in the payload list (`a-z` and `0-9`). For every request, it replaced the payload marker with a different character and tested it against the first character of the administrator's password using this payload:
+
+```bash
+TrackingId=x'%3BSELECT+CASE+WHEN+(username='administrator'+AND+SUBSTRING(password,1,1)='§a§')+THEN+pg_sleep(5)+ELSE+pg_sleep(0)+END+FROM+users--
+```
+
+After the attack finished, I checked the **Response received** column.
+
+Most requests returned in about **200–450 ms**, but the request with the payload **`7`** took about **5,209 ms**.
+
+The longer response time showed that the condition was **true** only when the guessed character was `7`.
+
+From this result, I determined that the **first character** of the administrator's password was **`7`**.
+
+<p align="center">
+  <img src="images/step8-1.png" width="600">
+</p>
+
+
+## Step 9 - Recovering the Remaining Password Characters
+
+After finding the first character, I repeated the same process for the remaining positions in the password.
+
+For the second character, I went back to the request in **Burp Intruder** and changed the `SUBSTRING()` function from position `1` to position `2`:
+
+```sql
+SUBSTRING(password,2,1)='§a§'
+```
+
+I started the attack again and checked the **Response received** column. The request with the longest response time revealed the correct character for the second position.
+
+I repeated the same steps for the remaining positions by changing only the first number in the `SUBSTRING()` function:
+
+```sql
+SUBSTRING(password,3,1)='§a§'
+SUBSTRING(password,4,1)='§a§'
+SUBSTRING(password,5,1)='§a§'
+...
+SUBSTRING(password,20,1)='§a§'
+```
+
+For each attack, the request with the longest response time identified the correct character for that position.
+
+After repeating this process for all **20 positions**, I recovered the complete administrator password.
+
+<p align="center">
+  <img src="images/step9-1.png" width="600">
+</p>
+
+
+
+
+
+
+
+
+
+## Step 10 - Logging In and Solving the Lab
 
 With all 20 characters put together, I now had the full password for the administrator account. I went to the My account login page, entered administrator as the username along with the password I had extracted, and logged in successfully.
 
