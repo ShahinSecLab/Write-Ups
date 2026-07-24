@@ -335,23 +335,25 @@ For each attack, the request with the longest response time identified the corre
 
 After repeating this process for all **20 positions**, I recovered the complete administrator password.
 
+## Step 11 - Logging In as the Administrator
+
+After recovering all **20 characters** of the password, I opened the application's login page.
+
+I entered the following credentials:
+
+- **Username:** `administrator`
+- **Password:** `7x8f0ivbnbpl2eu9s9rx`
+
+After submitting the login form, I was successfully logged in as the `administrator` user.
+
+This completed the **Blind SQL injection with time delays and information retrieval** lab.
+
 <p align="center">
-  <img src="images/step9-1.png" width="600">
+  <img src="images/step10-1.png" width="600">
 </p>
-
-
-
-
-
-
-
-
-
-## Step 10 - Logging In and Solving the Lab
-
-With all 20 characters put together, I now had the full password for the administrator account. I went to the My account login page, entered administrator as the username along with the password I had extracted, and logged in successfully.
-
-The lab was marked as solved.
+<p align="center">
+  <img src="images/step10-2.png" width="600">
+</p>
 
 ## How Defenders Can Catch This
 
