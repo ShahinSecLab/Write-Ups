@@ -1,5 +1,13 @@
 # DLL Hijacking
 
+**Date:** July 2026<br>
+**Author:** ShahinSecLab<br>
+**Category:** SQL Injection<br>
+**Vulnerability:** UNION-based SQL Injection<br>
+**Difficulty:** Easy<br>
+**Platform:** PortSwigger Web Security Academy<br>
+**Database:** PostgreSQL<br>
+**Tools:** Burp Suite Community Edition, Firefox
 **Date:** June 2026<br>
 **Author:** ShahinSecLab<br>
 **Category:** Privilege Escalation<br>

@@ -1,5 +1,14 @@
 # SQL injection UNION attack, retrieving data from other tables
 
+**Date:** July 2026<br>
+**Author:** ShahinSecLab<br>
+**Category:** SQL Injection<br>
+**Vulnerability:** UNION-based SQL Injection<br>
+**Difficulty:** Easy<br>
+**Platform:** PortSwigger Web Security Academy<br>
+**Database:** PostgreSQL<br>
+**Tools:** Burp Suite Community Edition, Firefox
+
 ## Table of Contents
 
 * [Introduction](#introduction)
@@ -25,29 +34,29 @@ SQL Injection is one of the most common and dangerous vulnerabilities in web app
 
 One type of SQL Injection is **UNION-based SQL Injection**. In this attack, the attacker uses the SQL `UNION` operator to combine the original query with another `SELECT` query. If both queries have the same structure, the database returns the results from both queries together.
 
-This allows the attacker to view data from database tables that the application was never meant to show.
+As a result, the attacker can access data from database tables that are normally hidden from the application’s users.
 
 ## Attack Flow
 ```
 User selects a product category
             │
             ▼
-Application builds a SQL query
+The application sends a SQL query to the database
             │
             ▼
 The category parameter is vulnerable to SQL injection
             │
             ▼
-A UNION query is added to the original SQL statement
+The attacker adds a UNION SELECT payload
             │
             ▼
-The database executes the combined query
+The database runs the modified query
             │
             ▼
-Results from another database table are returned
+Data from another table is returned
             │
             ▼
-The application displays the combined results
+The application displays the returned data
             │
             ▼
 Sensitive data becomes visible in the response
@@ -63,7 +72,7 @@ The `UNION` operator allows the results of two `SELECT` statements to be combine
 
 Instead of showing only product data, the application may also return data from another table, such as usernames or passwords, if the database user has permission to read those tables.
 
-This happens because the database cannot tell the difference between the original query and the injected one. It simply runs the final SQL statement it receives from the application.
+The database does not know which part of the SQL query was written by the application and which part was injected by the attacker. It simply executes the final SQL query it receives, which allows the injected query to return additional data.
 
 For a UNION attack to work, a few conditions must be met:
 
@@ -73,7 +82,7 @@ For a UNION attack to work, a few conditions must be met:
 - The data types of the matching columns must be compatible.
 - The database user must have permission to read the target table.
 
-If all of these conditions are true, the attacker can make the application display data that was never meant to be exposed.
+If all of these conditions are true, the attacker can access data from database tables that are normally hidden from the application’s users.
 
 ## Lab Setup
 
@@ -91,8 +100,8 @@ If all of these conditions are true, the attacker can make the application displ
 
 | Tool | Purpose |
 |------|---------|
-| **Burp Suite Community Edition** | Intercepted and modified HTTP requests |
-| **Firefox** | Accessed the target application |
+| **Burp Suite Community Edition** | Intercepted, modified, and replayed HTTP requests using Proxy and Repeater |
+| **Firefox** | Accessed and tested the target application |
 
 ## Prerequisites
 
@@ -109,11 +118,11 @@ If all of these conditions are true, the attacker can make the application displ
 
 ## Step 1 - Launching the Lab and Identifying the Injection Point
 
-First, I launched the lab from PortSwigger Web Security Academy and opened the target application in Firefox.
+First, I launched the lab from **PortSwigger Web Security Academy** and opened the target application in Firefox.
 
 The application is an online shop where products can be filtered by category. I configured Firefox to work with Burp Suite and enabled Intercept to capture the HTTP requests.
 
-After selecting a product category, I captured the request in Burp Suite and sent it to Repeater for testing.
+After selecting a product category, I captured the request in Burp Suite and sent it to **Repeater** for testing.
 
 **Captured Request:**
 
@@ -124,7 +133,7 @@ Host: 0ae6002704b03b508417e66b007600cf.web-security-academy.net
 
 The category value was sent as a request parameter, so I started testing this parameter to check whether the application was handling user input safely.
 
-I added a single quote (`'`) at the end of the category value:
+I added a single quote (`'`) at the end of the `category` value:
 
 ```http
 category=Gifts'
@@ -136,7 +145,7 @@ After sending the request, the application returned a database error instead of 
   <img src="images/step1-1.png" width="600">
 </p>
 
-I also tested the input with additional quotes and noticed that the error behavior changed. This showed that the application was directly using the user input inside an SQL query.
+I also tested the input with additional quotes (`''`). This time, the application returned a normal response instead of an SQL error. This showed that the application was directly using the user input inside an SQL query.
 
 <p align="center">
   <img src="images/step1-2.png" width="600">
@@ -144,17 +153,11 @@ I also tested the input with additional quotes and noticed that the error behavi
 
 Based on these responses, I identified the `category` parameter as a possible SQL injection point and continued further testing.
 
-**What I observed:**
-
-- The `category` parameter was reflected in the SQL query.
-- Adding a single quote caused a database error.
-- This confirmed that the `category` parameter was a possible SQL injection point.
-
-# Step 2 - Determining the Number of Columns
+## Step 2 - Determining the Number of Columns
 
 After identifying the possible SQL injection point, the next step was to find the number of columns returned by the original SQL query.
 
-This is required because a UNION query only works when both SELECT statements return the same number of columns.
+This is required because a UNION query only works when both `SELECT` statements return the same number of columns.
 
 I tested the parameter with a UNION-based query and used different numbers of `NULL` values to match the columns returned by the original query.
 
@@ -163,52 +166,48 @@ Example:
 ```sql
 Gift' UNION SELECT NULL,NULL --
 ```
+**Breakdown**
 
-After sending the request, I checked the application's response. The query was accepted when the number of columns matched the original query.
+| Part | Description |
+|--------------|-------------|
+| `Gift` | The original category value. |
+| `'` | Closes the original string in the SQL query. |
+| `UNION` | Combines the results of another `SELECT` query with the original query. |
+| `SELECT` | Specifies the values to return. |
+| `NULL, NULL` | Placeholder values used to match the number of columns in the original query. |
+| `--` | Comments out the rest of the original SQL query so it is ignored by the database. |
 
-This confirmed the number of columns used by the original SQL statement and allowed me to continue with the next step.
+After sending the request, the payload worked when I used two `NULL` values. This confirmed that the original SQL query returned two columns, so I moved on to the next step.
 
 <p align="center">
   <img src="images/step2-1.png" width="600">
 </p>
 
-**What I observed:**
+## Step 3 - Identifying String-Compatible Columns
 
-- The application accepted the UNION query when the column count was correct.
-- Incorrect column counts caused the query to fail.
-- The original query returned three columns.
+After determining the number of columns, the next step was to identify which columns could accept string values.
 
-# Step 3 - Identifying String-Compatible Columns
+This is important because the data I wanted to retrieve from the database, such as usernames and passwords, is stored as text. For a `UNION` query to work, the data types in both queries must be compatible.
 
-After determining the number of columns, the next step was to find which columns could accept and display string values.
-
-This step is important because the data we want to retrieve from the database is stored as text. The UNION query needs compatible data types in order to return the results successfully.
-
-I tested the columns by placing simple string values and checking the application's response.
+To test this, I replaced the `NULL` values with simple string values and observed the application's response.
 
 Payload used:
 
 ```sql
 Gifts' UNION SELECT 'a','a' --
 ```
-After sending the request, the application returned a normal response without any SQL error. This confirmed that the selected columns were able to handle string data.
+After sending the request, the application returned a normal response without any SQL errors. This confirmed that both columns accepted string values, allowing me to retrieve text data in the next step.
 
 <p align="center">
   <img src="images/step3-1.png" width="600">
 </p>
 
-What I observed:
 
-- The UNION query executed successfully.
-- The selected columns accepted string values.
-- The columns were suitable for retrieving text-based information in the next step.
+## Step 4 - Retrieving Data from Another Table
 
+After identifying the number of columns and the columns that supported string values, the next step was to test whether data from another database table could be retrieved.
 
-# Step 4 - Retrieving Data from Another Table
-
-After identifying the number of columns and the column that supports string values, the next step was to test whether data from other database tables could be retrieved.
-
-The application was originally displaying product information, but using a UNION-based SQL injection, I attempted to combine the original query with a query targeting the `users` table.
+The application was originally displaying product information, but by using a `UNION` query, I attempted to retrieve data from the `users` table.
 
 Payload used:
 
@@ -219,29 +218,25 @@ Gifts' UNION SELECT username, password FROM users --
   <img src="images/step4-1.png" width="600">
 </p>
 
-# Step 5 - Identifying Administrator Credentials
+After sending the request, the application returned the contents of the `users` table instead of only product data. The response included usernames and passwords, confirming that the `UNION` query successfully retrieved data from another database table.
 
-After successfully retrieving data from the `users` table, the next step was to analyze the returned information and identify high-value accounts.
+## Step 5 - Identifying Administrator Credentials
 
-The extracted data contained usernames and password values, including the administrator account.
+After successfully retrieving data from the `users` table, the next step was to review the returned data and identify the administrator account.
+
+The response contained usernames and their corresponding passwords. Among them was the `administrator` account and its password.
 
 <p align="center">
   <img src="images/step5-1.png" width="600">
 </p>
 
-**What I observed:**
+At this point, I had successfully extracted the administrator's credentials from the database. This demonstrated the impact of the SQL injection vulnerability, as sensitive authentication data could be accessed without authorization.
 
-- The `users` table contained authentication-related information.
-- An administrator account was identified in the extracted data.
-- Exposure of this information could allow attackers to compromise user accounts.
+## Step 6 - Logging in as Administrator
 
-This demonstrated the impact of the SQL Injection vulnerability, as sensitive authentication data could be accessed directly from the database.
+Using the extracted administrator credentials, I attempted to log in to the application.
 
-# Step 6 - Logging in as Administrator
-
-Using the extracted administrator credentials, I attempted to authenticate to the application.
-
-The login was successful, confirming that the SQL Injection vulnerability could lead to account compromise and unauthorized administrative access.
+The login was successful, confirming that the retrieved credentials were valid.
 
 <p align="center">
   <img src="images/step6-1.png" width="600">
@@ -250,122 +245,91 @@ The login was successful, confirming that the SQL Injection vulnerability could 
   <img src="images/step6-2.png" width="600">
 </p>
 
-**Final Impact:**
-
-- Sensitive database information was exposed.
-- Administrator credentials were compromised.
-- Unauthorized access to administrative functionality was possible.
+Successfully logging in as the administrator demonstrated the full impact of the SQL injection vulnerability. By retrieving credentials directly from the database, an attacker could gain unauthorized access to administrative functionality.
 
 ## How Defenders Can Catch This
 
-Defenders can detect UNION-based SQL Injection attacks by monitoring application behavior, database activity, and incoming requests.
+There are several ways defenders can detect or identify UNION-based SQL injection attempts before they cause serious damage.
 
-### 1. Web Application Logs Monitoring
+1. Monitor Web Requests
 
-Review web server logs for suspicious patterns such as:
+Check web server logs for suspicious input containing SQL keywords or special characters, such as:
 
-- SQL keywords appearing in user-controlled parameters:
-  - `UNION`
-  - `SELECT`
-  - `FROM`
-  - `--`
-  - `'`
-- Unusual requests containing encoded SQL characters.
+- `UNION`
+- `SELECT`
+- `FROM`
+- `--`
+- `'`
 
 Example:
 ```
 category=Gifts' UNION SELECT username,password FROM users --
 ```
 
-### 2. Database Query Monitoring
+2. Monitor Database Activity
 
-Database administrators can monitor unusual queries and detect:
+Watch for unusual database queries, especially those accessing sensitive tables like users or returning large amounts of data.
 
-- Unexpected access to sensitive tables.
-- Queries retrieving large amounts of user information.
-- Unauthorized access to tables like `users`, `accounts`, or `credentials`.
+3. Use a Web Application Firewall (WAF)
 
-### 3. Web Application Firewall (WAF)
+A properly configured WAF can detect and block many common SQL injection payloads before they reach the application.
 
-A properly configured WAF can detect and block common SQL Injection patterns by identifying malicious payloads before they reach the application.
+4. Monitor Database Errors
 
-### 4. Error Monitoring
+Unexpected SQL errors or repeated database exceptions may indicate someone is testing for SQL injection vulnerabilities.
 
-Excessive database errors may indicate SQL Injection attempts.
+5. Perform Regular Security Testing
 
-Examples:
-
-- SQL syntax errors
-- Invalid column errors
-- Database exception messages
-
-### 5. Security Testing
-
-Regular security assessments such as:
-
-- Penetration testing
-- Code reviews
-- Automated vulnerability scanning
-
-can help identify SQL Injection vulnerabilities before attackers exploit them.
+Regular penetration testing, code reviews, and vulnerability scans can help identify SQL injection vulnerabilities before they are exploited.
 
 ## How to Prevent It
 
-The best way to prevent UNION-based SQL Injection is to ensure that user input is never directly included in SQL queries.
+The best way to prevent UNION-based SQL injection is to ensure that user input is never treated as part of an SQL query.
 
 ### 1. Use Parameterized Queries (Prepared Statements)
 
-Prepared statements separate SQL code from user input, preventing attackers from modifying the query structure.
+Parameterized queries keep user input separate from the SQL statement, preventing attackers from changing the query.
 
-Example:
-
-Unsafe:
+**Unsafe:**
 
 ```sql
 SELECT * FROM products WHERE category = 'Gifts'
 ```
-Safe approach:
-```
+
+**Safe:**
+
+```sql
 SELECT * FROM products WHERE category = ?
 ```
 
-2. Implement Input Validation
+### 2. Validate User Input
 
-Validate user input based on expected values and reject unexpected characters or patterns.
+Only accept input that matches the expected format. For example, allow only valid category names and reject unexpected values whenever possible.
 
-For example:
+### 3. Apply the Principle of Least Privilege
 
-Allow only valid category names.
-Reject suspicious SQL keywords when appropriate.
-3. Apply Least Privilege Database Permissions
+Give the application's database account only the permissions it needs. Avoid granting administrative privileges or unnecessary access to sensitive tables.
 
-The application database user should only have the minimum permissions required.
+### 4. Hide Database Error Messages
 
-Avoid giving application accounts:
+Do not expose database errors to users. Instead, return a generic error message.
 
-Administrative privileges
-Access to sensitive tables unnecessarily
-4. Hide Database Error Messages
+**Instead of:**
 
-Do not expose detailed database errors to users.
-
-Instead of:
-```
+```text
 SQL syntax error near UNION SELECT
 ```
-show a generic message:
-```
+
+**Show:**
+
+```text
 Something went wrong. Please try again later.
 ```
-5. Use Security Testing Practices
 
-Perform regular:
+### 5. Perform Regular Security Testing
 
-Code reviews
-Vulnerability assessments
-Penetration testing
+Regular code reviews, vulnerability assessments, and penetration testing can help identify and fix SQL injection vulnerabilities before they are exploited.
 
-to identify and fix SQL Injection issues.
 
 ## References
 
@@ -383,14 +347,14 @@ to identify and fix SQL Injection issues.
 
 ## Lessons Learned
 
-During this lab, I learned how UNION-based SQL Injection vulnerabilities can allow attackers to retrieve sensitive information from a database.
+This lab helped me understand how a UNION-based SQL injection vulnerability can be used to retrieve data from database tables that were never intended to be exposed.
 
-Key takeaways:
+Some of the key things I learned were:
 
-- SQL Injection occurs when user-controlled input is directly included in SQL queries.
-- The UNION operator can be abused to combine attacker-controlled queries with the original database query.
-- Determining the correct number of columns is an important step before performing a UNION attack.
-- Attackers can extract sensitive information such as usernames and passwords if proper security controls are missing.
-- Parameterized queries and secure coding practices are the most effective defenses against SQL Injection.
+- How to identify a UNION-based SQL injection point.
+- Why the number of columns must match before a `UNION` query works.
+- How to determine which columns can display string data.
+- How a `UNION` query can be used to retrieve data from another database table.
+- Why parameterized queries are one of the most effective ways to prevent SQL injection.
 
-This exercise improved my understanding of SQL Injection exploitation techniques and highlighted the importance of secure database interaction.
+Overall, this lab gave me a better understanding of how UNION-based SQL injection works in practice and why secure database queries are important.
