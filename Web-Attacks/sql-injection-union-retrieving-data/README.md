@@ -12,7 +12,7 @@
 * [Step 2 - Determining the Number of Columns](#step-2---determining-the-number-of-columns)
 * [Step 3 - Identifying String-Compatible Columns](#step-3---identifying-string-compatible-columns)
 * [Step 4 - Retrieving Data from Another Table](#step-4---retrieving-data-from-another-table)
-* [Step 5 - Extracting the Administrator Credentials](#step-5---extracting-the-administrator-credentials)
+* [Step 5 - Identifying Administrator Credentials](#step-5---identifying-administrator-credentials)
 * [Step 6 - Logging In as the Administrator](#step-6---logging-in-as-the-administrator)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
@@ -132,7 +132,15 @@ category=Gifts'
 
 After sending the request, the application returned a database error instead of the normal response. This happened because the additional quote affected the SQL query structure created by the application.
 
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
+
 I also tested the input with additional quotes and noticed that the error behavior changed. This showed that the application was directly using the user input inside an SQL query.
+
+<p align="center">
+  <img src="images/step1-2.png" width="600">
+</p>
 
 Based on these responses, I identified the `category` parameter as a possible SQL injection point and continued further testing.
 
@@ -141,13 +149,6 @@ Based on these responses, I identified the `category` parameter as a possible SQ
 - The `category` parameter was reflected in the SQL query.
 - Adding a single quote caused a database error.
 - This confirmed that the `category` parameter was a possible SQL injection point.
-
-![Step 1](images/01-identifying-injection-point.png)
-
-
-<p align="center">
-  <img src="images/step1-1.png" width="600">
-</p>
 
 # Step 2 - Determining the Number of Columns
 
@@ -160,20 +161,22 @@ I tested the parameter with a UNION-based query and used different numbers of `N
 Example:
 
 ```sql
-Gift' UNION SELECT NULL,NULL,NULL --
+Gift' UNION SELECT NULL,NULL --
 ```
 
 After sending the request, I checked the application's response. The query was accepted when the number of columns matched the original query.
 
 This confirmed the number of columns used by the original SQL statement and allowed me to continue with the next step.
 
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
+
 **What I observed:**
 
 - The application accepted the UNION query when the column count was correct.
 - Incorrect column counts caused the query to fail.
 - The original query returned three columns.
-
-![Step 2](images/02-column-count.png)
 
 # Step 3 - Identifying String-Compatible Columns
 
@@ -190,6 +193,10 @@ Gifts' UNION SELECT 'a','a' --
 ```
 After sending the request, the application returned a normal response without any SQL error. This confirmed that the selected columns were able to handle string data.
 
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
+
 What I observed:
 
 - The UNION query executed successfully.
@@ -199,66 +206,55 @@ What I observed:
 
 # Step 4 - Retrieving Data from Another Table
 
-After identifying the number of columns and the columns that support string values, the next step was to retrieve data from another database table.
+After identifying the number of columns and the column that supports string values, the next step was to test whether data from other database tables could be retrieved.
 
-The application was originally displaying product information, but the goal was to check whether data from other tables could also be returned in the response.
-
-I used a UNION query to combine the original query with another query that retrieves information from the `users` table.
+The application was originally displaying product information, but using a UNION-based SQL injection, I attempted to combine the original query with a query targeting the `users` table.
 
 Payload used:
 
 ```sql
 Gifts' UNION SELECT username, password FROM users --
 ```
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
-After sending the request, the application returned data from the `users` table along with the normal response.
+# Step 5 - Identifying Administrator Credentials
 
-This confirmed that the SQL injection vulnerability could be used to access data from tables that were not part of the original application function.
+After successfully retrieving data from the `users` table, the next step was to analyze the returned information and identify high-value accounts.
+
+The extracted data contained usernames and password values, including the administrator account.
+
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
 
 **What I observed:**
 
-- The UNION query successfully returned data from the `users` table.
-- The response exposed user-related information that was not part of the original page content.
-- The administrator account details were visible in the application response.
-- This confirmed that the SQL injection vulnerability allowed access to data from another table.
+- The `users` table contained authentication-related information.
+- An administrator account was identified in the extracted data.
+- Exposure of this information could allow attackers to compromise user accounts.
 
-![Step 4 - Retrieving Data from Another Table](images/04-retrieving-data.png)
+This demonstrated the impact of the SQL Injection vulnerability, as sensitive authentication data could be accessed directly from the database.
 
-![Step 4](images/04-retrieving-data.png)
+# Step 6 - Logging in as Administrator
 
-## Step 5 - Extracting Administrator Credentials
+Using the extracted administrator credentials, I attempted to authenticate to the application.
 
-After identifying the vulnerable parameter and confirming that the application is processing our SQL injection payload, the next step was to retrieve sensitive data from another database table.
+The login was successful, confirming that the SQL Injection vulnerability could lead to account compromise and unauthorized administrative access.
 
-The `UNION SELECT` statement was used to combine the original query result with data from the `users` table.
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
+<p align="center">
+  <img src="images/step6-2.png" width="600">
+</p>
 
-Payload:
+**Final Impact:**
 
-```sql
-Gifts' UNION SELECT username, password FROM users --
-```
-
-## Step 6 - Logging in as Administrator
-
-After successfully extracting the administrator credentials from the database, the next step was to verify whether the credentials could be used to access the administrator account.
-
-Using the retrieved username and password, I logged into the application as the administrator user.
-
-The successful login confirmed that the SQL Injection vulnerability could lead to complete account compromise.
-
-**Final Result:**
-
-- SQL Injection vulnerability was successfully exploited.
-- Administrator credentials were extracted from the database.
-- Unauthorized administrative access was achieved.
-
-**Security Impact:**
-
-An attacker exploiting this vulnerability could:
-- Access restricted areas of the application.
-- Steal sensitive user information.
-- Modify application data.
-- Take full control of user accounts.
+- Sensitive database information was exposed.
+- Administrator credentials were compromised.
+- Unauthorized access to administrative functionality was possible.
 
 ## How Defenders Can Catch This
 
