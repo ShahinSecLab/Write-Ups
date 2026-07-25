@@ -232,7 +232,7 @@ The response contained usernames and their corresponding passwords. Among them w
 
 At this point, I had successfully extracted the administrator's credentials from the database. This demonstrated the impact of the SQL injection vulnerability, as sensitive authentication data could be accessed without authorization.
 
-## Step 6 - Logging in as Administrator
+## [Step 6 - Logging In as the Administrator
 
 Using the extracted administrator credentials, I attempted to log in to the application.
 
