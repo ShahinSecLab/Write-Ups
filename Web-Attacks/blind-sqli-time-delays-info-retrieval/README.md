@@ -2,11 +2,6 @@
 
 ## Table of Contents
 
-
-
-
-
-
 * [Introduction](#introduction)
 * [Attack Flow](#attack-flow)
 * [Why This Attack Works](#why-this-attack-works)
@@ -68,23 +63,23 @@ This lets me ask the database simple true or false questions. For example, I can
 
 ## Lab Setup
 
-- Target: PortSwigger Web Security Academy lab environment
-- Database: PostgreSQL
-- Vulnerable parameter: TrackingId cookie
-- Tool used: Burp Suite Community Edition (Proxy, Repeater, Intruder)
+| Item | Details |
+|------|---------|
+| **Platform** | PortSwigger Web Security Academy lab environment |
+| **Database** | PostgreSQL |
+| **Vulnerable Parameter** | `TrackingId` cookie |
+| **Tool Used** | Burp Suite Community Edition (Proxy, Repeater, Intruder) |
 
 ## Tools Used
 
-- Burp Suite Community Edition
-  - Proxy
-  - Repeater
-  - Intruder
-- PortSwigger Web Security Academy
-- PostgreSQL functions:
-  - `CASE WHEN`
-  - `pg_sleep()`
-  - `SUBSTRING()`
-  - `LENGTH()`
+| Tool | Purpose |
+|------|---------|
+| **Burp Suite Community Edition** | Intercepting, modifying, and testing HTTP requests |
+| ├── Proxy | Intercept and inspect HTTP requests and responses |
+| ├── Repeater | Send and modify requests manually |
+| └── Intruder | Automate payload testing and brute-force attacks |
+| **PortSwigger Web Security Academy** | Vulnerable lab environment |
+| **PostgreSQL Functions** | `CASE WHEN`, `pg_sleep()`, `SUBSTRING()`, `LENGTH()` |
 
 ## Prerequisites
 
