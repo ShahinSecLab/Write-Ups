@@ -105,8 +105,85 @@ Payload used:
 ```sql
 Gifts' UNION SELECT NULL,'string' --
 ```
+**Breakdown**
+
+| Part | Description |
+|--------------|-------------|
+| `Gifts'` | Closes the original SQL query after the `Gifts` category value. |
+| `UNION SELECT` | Combines the original query with a new query. |
+| `NULL` | Placeholder for the first column. It is used because no text value is needed in this column. |
+| `'string'` | Tests whether the second column accepts and displays text data. If `string` appears in the response, the column is string-compatible. |
+| `--` | Comments out the rest of the original SQL query to prevent syntax errors. |
+
 After sending the request, the application returned a normal response without any SQL errors. This confirmed that both columns accepted string values, allowing me to retrieve text data in the next step.
 
 <p align="center">
   <img src="images/step3-1.png" width="600">
 </p>
+
+## Step 4 - Combining the Username and Password into One Column
+
+The application only displayed one column that could contain text, but the information I wanted to retrieve was stored in two separate columns: username and password.
+
+To return both values in a single column, I used PostgreSQL's string concatenation operator (`||`). I also added the `~` character between the username and password to make the output easier to read.
+
+```sql
+Gift' UNION SELECT NULL, username||'~'||password FROM users--
+```
+**Breakdown**
+
+| Part | Description |
+|------|-------------|
+| `Gift'` | Closes the original string in the SQL query after the category value. |
+| `UNION SELECT` | Combines the original query with a new query. |
+| `NULL` | Placeholder for the first column. |
+| `username` | Retrieves the username from the `users` table. |
+| `||` | PostgreSQL string concatenation operator used to join values together. |
+| `'~'` | Adds a separator between the username and password, making the output easier to read. |
+| `||` | Concatenates the next value to the existing string. |
+| `password` | Retrieves the password from the `users` table. |
+| `FROM users` | Specifies that the data should be retrieved from the `users` table. |
+| `--` | Comments out the rest of the original SQL query to prevent syntax errors. |
+
+This payload combines the username and password into a single value, such as **administrator~password**, allowing both values to be returned in the same column.
+
+After confirming that the payload executed successfully, I proceeded to retrieve all usernames and passwords from the database.
+
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
+
+## Step 5 - Retrieving Usernames and Passwords
+
+After combining the username and password values into a single column, I sent the request using the payload from the previous step.
+
+The application returned the contents of the users table, with each username and password separated by the ~ character.
+
+Example output:
+
+administrator~8k2m4x7n9p1q5r6s
+carlos~mypassword
+wiener~letmein
+
+The response contained the credentials for all users, including the administrator account.
+
+<p align="center">
+ <img src="images/step5-1.png" width="600"> 
+ </p>
+
+From the results, I located the administrator username and copied its password. These credentials were then used in the final step to log in as the administrator user and complete the lab.
+
+## Step 6 - Logging In as the Administrator
+
+Using the extracted administrator credentials, I attempted to log in to the application.
+
+The login was successful, confirming that the retrieved credentials were valid.
+
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
+<p align="center">
+  <img src="images/step6-2.png" width="600">
+</p>
+
+Successfully logging in as the administrator demonstrated the full impact of the SQL injection vulnerability. By retrieving credentials directly from the database, an attacker could gain unauthorized access to administrative functionality.

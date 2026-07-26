@@ -196,6 +196,16 @@ Payload used:
 ```sql
 Gifts' UNION SELECT 'a','a' --
 ```
+**Breakdown**
+
+| Payload Part | Description |
+|--------------|-------------|
+| `Gifts'` | Closes the original SQL query after the `Gifts` category value. |
+| `UNION SELECT` | Combines the original query with a new query.|
+| `'a'` | Tests whether the first column accepts and displays text data. |
+| `'a'` | Tests whether the second column accepts and displays text data. |
+| `--` | Comments out the rest of the original SQL query to prevent syntax errors. |
+
 After sending the request, the application returned a normal response without any SQL errors. This confirmed that both columns accepted string values, allowing me to retrieve text data in the next step.
 
 <p align="center">
@@ -232,7 +242,7 @@ The response contained usernames and their corresponding passwords. Among them w
 
 At this point, I had successfully extracted the administrator's credentials from the database. This demonstrated the impact of the SQL injection vulnerability, as sensitive authentication data could be accessed without authorization.
 
-## [Step 6 - Logging In as the Administrator
+## Step 6 - Logging In as the Administrator
 
 Using the extracted administrator credentials, I attempted to log in to the application.
 
