@@ -61,3 +61,52 @@ I also tested the input with additional quotes (`''`). This time, the applicatio
 </p>
 
 Based on these responses, I identified the `category` parameter as a possible SQL injection point and continued further testing.
+
+## Step 2 - Determining the Number of Columns
+
+After identifying the possible SQL injection point, the next step was to find the number of columns returned by the original SQL query.
+
+This is required because a UNION query only works when both `SELECT` statements return the same number of columns.
+
+I tested the parameter with a UNION-based query and used different numbers of `NULL` values to match the columns returned by the original query.
+
+Example:
+
+```sql
+Gift' UNION SELECT NULL,NULL --
+```
+**Breakdown**
+
+| Part | Description |
+|--------------|-------------|
+| `Gift` | The original category value. |
+| `'` | Closes the original string in the SQL query. |
+| `UNION` | Combines the results of another `SELECT` query with the original query. |
+| `SELECT` | Specifies the values to return. |
+| `NULL, NULL` | Placeholder values used to match the number of columns in the original query. |
+| `--` | Comments out the rest of the original SQL query so it is ignored by the database. |
+
+After sending the request, the payload worked when I used two `NULL` values. This confirmed that the original SQL query returned two columns, so I moved on to the next step.
+
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
+
+## Step 3 - Identifying String-Compatible Columns
+
+After determining the number of columns, the next step was to identify which columns could accept string values.
+
+This is important because the data I wanted to retrieve from the database, such as usernames and passwords, is stored as text. For a `UNION` query to work, the data types in both queries must be compatible.
+
+To test this, I replaced the `NULL` values with simple string values and observed the application's response.
+
+Payload used:
+
+```sql
+Gifts' UNION SELECT NULL,'string' --
+```
+After sending the request, the application returned a normal response without any SQL errors. This confirmed that both columns accepted string values, allowing me to retrieve text data in the next step.
+
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
