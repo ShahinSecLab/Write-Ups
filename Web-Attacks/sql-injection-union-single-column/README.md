@@ -128,7 +128,7 @@ The application only displayed one column that could contain text, but the infor
 To return both values in a single column, I used PostgreSQL's string concatenation operator (`||`). I also added the `~` character between the username and password to make the output easier to read.
 
 ```sql
-Gift' UNION SELECT NULL, username||'~'||password FROM users--
+Gift' UNION SELECT NULL, username||':'||password FROM users--
 ```
 **Breakdown**
 
@@ -139,7 +139,7 @@ Gift' UNION SELECT NULL, username||'~'||password FROM users--
 | `NULL` | Placeholder for the first column. |
 | `username` | Retrieves the username from the `users` table. |
 | `||` | PostgreSQL string concatenation operator used to join values together. |
-| `'~'` | Adds a separator between the username and password, making the output easier to read. |
+| `':'` | Adds a separator between the username and password, making the output easier to read. |
 | `||` | Concatenates the next value to the existing string. |
 | `password` | Retrieves the password from the `users` table. |
 | `FROM users` | Specifies that the data should be retrieved from the `users` table. |
@@ -147,7 +147,7 @@ Gift' UNION SELECT NULL, username||'~'||password FROM users--
 
 This payload combines the username and password into a single value, such as **administrator~password**, allowing both values to be returned in the same column.
 
-After confirming that the payload executed successfully, I proceeded to retrieve all usernames and passwords from the database.
+This made it easy to identify each username and its corresponding password. In the next step, I used this payload to retrieve all usernames and passwords from the `users` table.
 
 <p align="center">
   <img src="images/step4-1.png" width="600">
@@ -155,16 +155,16 @@ After confirming that the payload executed successfully, I proceeded to retrieve
 
 ## Step 5 - Retrieving Usernames and Passwords
 
-After combining the username and password values into a single column, I sent the request using the payload from the previous step.
+After sending the payload from the previous step, the application returned the data from the users table.
 
-The application returned the contents of the users table, with each username and password separated by the ~ character.
+Each result contained a username and password separated by the `:` character, making it easy to identify which password belonged to each user.
 
-Example output:
-
-administrator~8k2m4x7n9p1q5r6s
-carlos~mypassword
-wiener~letmein
-
+**Output:**
+```
+administrator:mgp.................
+carlos:2xx.................
+wiener:z2y.................
+```
 The response contained the credentials for all users, including the administrator account.
 
 <p align="center">
