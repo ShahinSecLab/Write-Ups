@@ -22,7 +22,7 @@
 * [Step 3 - Identifying String-Compatible Columns](#step-3---identifying-string-compatible-columns)
 * [Step 4 - Combining the Username and Password into One Column](#step-4---combining-the-username-and-password-into-one-column)
 * [Step 5 - Retrieving Usernames and Passwords](#step-5---retrieving-usernames-and-passwords)
-* [Step 6 - Logging In as the Administrator](#step-6---logging-in-as-administrator)
+* [Step 6 - Logging in as Administrator](#step-6---logging-in-as-administrator)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
 * [References](#references)
@@ -253,7 +253,7 @@ The response contained the credentials for all users, including the administrato
 
 From the results, I located the administrator username and copied its password. These credentials were then used in the final step to log in as the administrator user and complete the lab.
 
-## Step 6 - Logging In as the Administrator
+## Step 6 - Logging in as Administrator
 
 Using the extracted administrator credentials, I attempted to log in to the application.
 
