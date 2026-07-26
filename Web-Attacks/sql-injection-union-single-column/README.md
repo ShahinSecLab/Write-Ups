@@ -1,5 +1,14 @@
 # SQL injection UNION attack, retrieving multiple values in a single column
 
+**Date:** July 2026<br>
+**Author:** ShahinSecLab<br>
+**Category:** SQL Injection<br>
+**Vulnerability:** UNION-based SQL Injection<br>
+**Difficulty:** Easy<br>
+**Platform:** PortSwigger Web Security Academy<br>
+**Database:** PostgreSQL<br>
+**Tools:** Burp Suite Community Edition, Firefox
+
 ## Table of Contents
 
 * [Introduction](#introduction)
@@ -14,16 +23,87 @@
 * [Step 4 - Combining the Username and Password into One Column](#step-4---combining-the-username-and-password-into-one-column)
 * [Step 5 - Retrieving Usernames and Passwords](#step-5---retrieving-usernames-and-passwords)
 * [Step 6 - Logging in as Administrator](#step-6---logging-in-as-administrator)
-* [How to Detect This Attack](#how-to-detect-this-attack)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
-* [Lessons Learned](#lessons-learned)
 * [References](#references)
+* [Lessons Learned](#lessons-learned)
 
+## Introduction
 
+This lab demonstrates how a UNION-based SQL injection can be used to retrieve multiple values in a single column.
 
+The application is vulnerable because it directly includes user input in an SQL query without proper validation. Since the application only displays one text column, the `username` and `password` values must be combined into a single string before they can be returned.
 
+In this write-up, I show how I identified the SQL injection point, determined the query structure, combined two database columns into one, extracted user credentials, and logged in as the administrator.
 
+## Attack Flow
 
+```text
+User selects a product category
+            │
+            ▼
+The application sends a SQL query to database
+            │
+            ▼
+The category parameter is vulnerable to SQL injection
+            │
+            ▼
+Determine the number of columns
+            │
+            ▼
+Identify String-Compatible Columns
+            │
+            ▼
+The username and password are combined into one column
+            │
+            ▼
+A UNION SELECT query is used
+            │
+            ▼
+The database returns usernames and password
+            │
+            ▼
+The administrator credentials are found
+            │
+            ▼
+The administrator account is accessed
+```
+## Why This Attack Works
+
+The application builds SQL queries by directly using the value supplied in the `category` parameter.
+
+Because the input is not properly validated, an attacker can inject a` UNION SELECT` statement into the original query.
+
+The application only displays one text column, so the `username` and `password` values are combined into a single string using PostgreSQL's `||` operator. This allows both values to be returned in the same column and displayed in the application's response.
+
+## Lab Setup
+
+| Item | Details |
+|------|---------|
+| **Platform** | PortSwigger Web Security Academy |
+| **Category** | SQL Injection |
+| **Technique** | UNION-based SQL Injection |
+| **Injection Point** | Product category parameter |
+| **Operating System** | Kali Linux |
+| **Browser** | Firefox |
+| **Proxy Tool** | Burp Suite Community Edition |
+
+## Tools Used
+
+| Tool | Purpose |
+|------|---------|
+| **Burp Suite Community Edition** | Intercepted, modified, and replayed HTTP requests using Proxy and Repeater |
+| **Firefox** | Accessed and tested the target application |
+
+## Prerequisites
+
+Before starting this lab, you should understand:
+
+- Basic SQL queries
+- How `UNION SELECT` works
+- HTTP requests and responses
+- Using Burp Suite Proxy and Repeater
+- Basic knowledge of PostgreSQL string concatenation (`||`)
 
 ## Step 1 - Launching the Lab and Identifying the Injection Point
 
@@ -125,7 +205,7 @@ After sending the request, the application returned a normal response without an
 
 The application only displayed one column that could contain text, but the information I wanted to retrieve was stored in two separate columns: username and password.
 
-To return both values in a single column, I used PostgreSQL's string concatenation operator (`||`). I also added the `~` character between the username and password to make the output easier to read.
+To return both values in a single column, I used PostgreSQL's string concatenation operator (`||`). I also added the `:` character between the username and password to make the output easier to read.
 
 ```sql
 Gift' UNION SELECT NULL, username||':'||password FROM users--
@@ -187,3 +267,39 @@ The login was successful, confirming that the retrieved credentials were valid.
 </p>
 
 Successfully logging in as the administrator demonstrated the full impact of the SQL injection vulnerability. By retrieving credentials directly from the database, an attacker could gain unauthorized access to administrative functionality.
+
+## How Defenders Can Catch This
+
+- Monitor for SQL keywords such as `UNION`, `SELECT`, and comment characters (`--`) in user input.
+- Watch for repeated requests with different SQL payloads.
+- Review web server and application logs for unusual requests.
+- Use a Web Application Firewall (WAF) to detect and block common SQL injection payloads.
+- Monitor for unexpected database queries and failed SQL statements.
+
+## How to Prevent It
+
+- Use parameterized queries or prepared statements.
+- Never build SQL queries by directly concatenating user input.
+- Validate and filter user input.
+- Apply the principle of least privilege to database accounts.
+- Return generic error messages instead of database errors.
+- Keep the application and database software up to date.
+- Test the application regularly for SQL injection vulnerabilities.
+
+## References
+
+- [PortSwigger Web Security Academy](https://portswigger.net/web-security)
+- [Lab: SQL injection UNION attack, retrieving multiple values in a single column](https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-multiple-values-in-single-column)
+- [PostgreSQL Documentation - String Functions and Operators](https://www.postgresql.org/docs/current/functions-string.html)
+- [OWASP SQL Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html)
+- [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+
+## Lessons Learned
+
+During this lab, I learned how a UNION-based SQL injection can return multiple database values in a single column.
+
+- A `UNION` query must return the same number of columns as the original query.
+- It is important to identify which columns accept text values before retrieving data.
+- PostgreSQL's `||` operator can be used to combine multiple values into a single string.
+- Adding a separator such as `:` makes the returned data easier to read.
+- Exposed SQL injection vulnerabilities can allow attackers to retrieve sensitive information, including usernames and passwords.

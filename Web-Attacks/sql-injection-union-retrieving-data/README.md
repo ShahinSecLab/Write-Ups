@@ -91,7 +91,7 @@ If all of these conditions are true, the attacker can access data from database 
 | **Platform** | PortSwigger Web Security Academy |
 | **Category** | SQL Injection |
 | **Technique** | UNION-based SQL Injection |
-| **Injection Point** | Product category parameter |
+| **Injection Point** | Product `category` parameter |
 | **Operating System** | Kali Linux |
 | **Browser** | Firefox |
 | **Proxy Tool** | Burp Suite Community Edition |
