@@ -20,15 +20,13 @@
 * [Lessons Learned](#lessons-learned)
 * [References](#references)
 
-
 ## Introduction
 
-This lab demonstrates how a blind SQL injection vulnerability can be used to extract information from a database even when the application does not directly display database errors or query results.
+This lab shows how a blind SQL injection vulnerability can be used to retrieve data from a database even when the application does not display database errors or query results.
 
-In this case, the application uses a tracking cookie to identify users. By modifying this cookie value, it is possible to inject SQL statements and observe changes in the application's response.
+In this lab, the application uses a tracking cookie to identify users. By changing the value of this cookie, SQL queries can be injected into the database.
 
-The database information is not shown directly, so conditional SQL queries are used to check whether specific conditions are true or false. By analyzing the response behavior, sensitive information such as the administrator password can be extracted.
-
+Since the application does not return the query results, the response is checked to see whether a condition is true or false. Using this method, it is possible to retrieve sensitive information, such as the administrator's password.
 
 ## Attack Flow
 
@@ -57,22 +55,23 @@ The administrator password is extracted
 The administrator account is accessed
 ```
 
-
 ## Why This Attack Works
 
-The application directly uses the value from the tracking cookie inside an SQL query without properly handling user input.
+The application uses the value from the tracking cookie in an SQL query without properly handling user input.
 
-Because the application does not show database errors or returned data, normal SQL injection methods cannot be used. Instead, conditional queries are used to create different responses depending on whether a condition is true or false.
+Since the application does not show database errors or query results, the attacker cannot see the data directly.
 
-By testing different conditions, database information can be discovered one character at a time.
+Instead, SQL queries are used to check whether a condition is true or false.
 
+If the condition is true, the application's response is different. If the condition is false, the response changes.
+
+By checking one character at a time and watching the response, the administrator's password can be found.
 
 ## Lab Setup
 
 | Item | Details |
 |------|---------|
 | Platform | PortSwigger Web Security Academy |
-| Lab | Blind SQL injection with conditional responses |
 | Vulnerability | Blind SQL Injection |
 | Database | PostgreSQL |
 | Injection Point | TrackingId cookie |
@@ -83,24 +82,20 @@ By testing different conditions, database information can be discovered one char
 
 | Tool | Purpose |
 |------|---------|
-| Burp Suite Community Edition | Capturing and modifying HTTP requests |
-| Burp Suite Repeater | Testing SQL injection payloads |
-| Burp Suite Intruder | Automating character testing |
-| Firefox | Accessing the application |
-| PortSwigger Web Security Academy | Lab environment |
-
+| **Burp Suite Community Edition** | Intercepted, modified, and replayed HTTP requests using Proxy and Repeater |
+| **Firefox** | Accessed and tested the target application |
 
 ## Prerequisites
 
-Before starting this lab, you should understand:
-
-- Basic SQL queries
-- SQL injection basics
-- Cookies and HTTP requests
-- Burp Suite Proxy and Repeater
-- Boolean conditions (`TRUE` and `FALSE`)
-- Basic PostgreSQL syntax
-
+| Requirement | Why It Is Needed |
+|-------------|------------------|
+| **Basic SQL** | To understand how SQL queries work |
+| **SELECT Statement** | To understand how data is retrieved from a database |
+| **WHERE Clause** | To understand how records are filtered |
+| **Basic SQL Injection** | To understand how user input can change a SQL query |
+| **HTTP Requests and Responses** | To understand how the application communicates with the server |
+| **Burp Suite Basics** | To intercept and modify HTTP requests |
+| **Database Tables and Columns** | To understand where the retrieved data comes from |
 
 ## Step 1 - Launching the Lab and Finding the Injection Point
 
