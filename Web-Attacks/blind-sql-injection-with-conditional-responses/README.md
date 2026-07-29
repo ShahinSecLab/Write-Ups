@@ -30,7 +30,7 @@ Since the application does not return the query results, the response is checked
 
 ## Attack Flow
 
-```text
+```
 User visits the application
             │
             ▼
@@ -71,11 +71,11 @@ By checking one character at a time and watching the response, the administrator
 
 | Item | Details |
 |------|---------|
-| Platform | PortSwigger Web Security Academy |
-| Vulnerability | Blind SQL Injection |
-| Database | PostgreSQL |
-| Injection Point | TrackingId cookie |
-| Goal | Extract the administrator password and log in |
+| **Platform** | PortSwigger Web Security Academy |
+| **Vulnerability** | Blind SQL Injection |
+| **Database** | PostgreSQL |
+| **Injection** Point | TrackingId cookie |
+| **Goal** | Extract the administrator password and log in |
 
 
 ## Tools Used
@@ -97,40 +97,71 @@ By checking one character at a time and watching the response, the administrator
 | **Burp Suite Basics** | To intercept and modify HTTP requests |
 | **Database Tables and Columns** | To understand where the retrieved data comes from |
 
-## Step 1 - Launching the Lab and Finding the Injection Point
+## Step 1 - Launching the Lab in Burp Suite
 
-First, I launched the lab from PortSwigger Web Security Academy and opened the application.
+I started the lab from PortSwigger Web Security Academy and opened the application.
 
-After capturing the request in Burp Suite, I noticed a `TrackingId` cookie in the request.
+According to the lab description, the TrackingId cookie is vulnerable to SQL injection. I intercepted the request in Burp Suite and looked for the TrackingId cookie.
 
-Example:
-
-```http
-Cookie: TrackingId=abc123
+```
+Cookie: TrackingId=qpzaD7eycmJXCLKx;
 ```
 
-I sent the request to Repeater and started testing the cookie value to check whether it was vulnerable to SQL injection.
-
+I sent the request to Repeater so I could modify the cookie value and test different SQL payloads in the following steps.
 
 ## Step 2 - Checking the SQL Injection Behavior
 
-I modified the `TrackingId` cookie and tested different conditions.
+I modified the `TrackingId` cookie in Burp Suite Repeater and tested two different conditions.
 
-True condition:
-
-```sql
-TrackingId=x' AND '1'='1
-```
-
-False condition:
+**True condition:**
 
 ```sql
-TrackingId=x' AND '1'='2
+TrackingId=qpzaD7eycmJXCLKx' AND '1'='1
+```
+**Breakdown**
+
+| Part | Deascription |
+|---|---|
+| `qpzaD7eycmJXCLKx` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `AND` | Adds another condition to the query |
+| `'1'='1` | This condition is always true |
+
+Why this matters:
+
+When this payload is sent, the SQL query becomes something like:
+
+```sql
+SELECT * FROM tracking WHERE TrackingId = 'qpzaD7eycmJXCLKx' AND '1'='1'
 ```
 
-The application response changed between the two requests.
+Since `'1'='1'` is always true, the query works normally and the page behaves the same as before.
 
-This confirmed that the cookie value was being used inside an SQL query and that the response could be controlled using SQL conditions.
+This shows that extra SQL code can be added to the application's query without causing an error.
+
+The next step is usually to try a false condition like `' AND '1'='2` and compare. If the page changes (different content, different behavior), that shows the app is reacting to the added condition, and blind SQLi is possible.
+
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
+
+Next, I tested a condition that is always false.
+
+**False condition:**
+
+```sql
+TrackingId=qpzaD7eycmJXCLKx' AND '1'='2
+```
+
+With the first payload, the application displayed the **"Welcome back"** message.
+
+With the second payload, the **"Welcome back"** message was no longer displayed.
+
+Because the page changed depending on whether the condition was true or false, it confirmed that the TrackingId cookie was being used in an SQL query and that the application was vulnerable to blind SQL injection using conditional responses.
+
+<p align="center">
+  <img src="images/step2-2.png" width="600">
+</p>
 
 
 ## Step 3 - Confirming the Users Table
