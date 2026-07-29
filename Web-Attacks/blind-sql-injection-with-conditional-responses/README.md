@@ -263,17 +263,47 @@ The next step was to retrieve the password one character at a time.
 
 ## Step 6 - Extracting the Administrator Password
 
-After finding the password length, I tested each character position using the `SUBSTRING()` function.
+After finding that the administrator's password was **20 characters** long, the next step was to retrieve it one character at a time.
 
-Example:
+I used the `SUBSTRING()` function to check each character of the password.
+
+**Payload:**
 
 ```sql
-TrackingId=x' AND SUBSTRING((SELECT password FROM users WHERE username='administrator'),1,1)='a'--
+TrackingId=rVLjPIC1PesdetGS' AND SUBSTRING((SELECT password FROM users WHERE username='administrator'),1,1)='§a§'--
 ```
 
-Burp Suite Intruder was used to test different characters until the correct value was found.
+### Breakdown
 
-This process was repeated for each character position until the full password was recovered.
+| Part | Description |
+|------|-------------|
+| `rVLjPIC1PesdetGS` | The original `TrackingId` value from the application. |
+| `'` | Closes the original string in the SQL query. |
+| `AND` | Adds another condition to the existing query. |
+| `SELECT password FROM users WHERE username='administrator'` | Retrieves the administrator's password. |
+| `SUBSTRING(...,1,1)` | Returns the first character of the password. |
+| `='§a§'` | The payload position used by Burp Suite Intruder. The value a is replaced with each payload from the payload list `(such as 0-9 and a-z)` during the attack.|
+| `--` | Comments out the rest of the original SQL query. |
+
+### Why this works
+
+If the tested character is correct, the condition becomes true and the application responds normally.
+
+If the character is incorrect, the condition is false and the application responds differently.
+
+I sent the request to **Burp Suite Intruder** and used a payload list containing the characters **0-9** and **a-z**. Intruder tested each character automatically.
+
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
+
+In the results, only the payload **`5`** caused the application to return the **"Welcome back!"** message. This confirmed that the **first character** of the administrator's password was **`5`**.
+
+<p align="center">
+  <img src="images/step6-2.png" width="600">
+</p>
+
+I then changed the character position from **1** to **2**, **3**, and so on, repeating the same process until all **20 characters** of the administrator's password were recovered.
 
 
 ## Step 7 - Logging In as Administrator
