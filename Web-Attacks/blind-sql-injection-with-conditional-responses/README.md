@@ -199,7 +199,7 @@ The normal response confirmed that the `users` table existed and could be querie
 After confirming that the `users` table existed, I checked whether it contained an `administrator` account.
 
 ```sql
-TrackingId=E24fFxRLWxoM7TyV' AND (SELECT 'a' FROM users WHERE username='administrator')='a
+TrackingId=rVLjPIC1PesdetGS' AND (SELECT 'a' FROM users WHERE username='administrator')='a
 ```
 **Breakdown**
 
@@ -227,16 +227,39 @@ The normal response confirmed that the `administrator` user existed. The next st
 
 ## Step 5 - Finding the Administrator Password Length
 
-Since the password was not displayed directly, I tested its length using the `LENGTH()` function.
+After confirming that the `administrator` user existed, the next step was to find the length of the password.
 
-Example:
+Since the application did not display the password, I used the `LENGTH()` function to test different values.
 
 ```sql
-TrackingId=x' AND (SELECT LENGTH(password) FROM users WHERE username='administrator')=20--
+TrackingId=rVLjPIC1PesdetGS' AND (SELECT LENGTH(password) FROM users WHERE username='administrator')=20--
 ```
 
-By changing the number, I found the correct password length.
+**Breakdown**
 
+| Part | Description |
+|------|-------------|
+| `rVLjPIC1PesdetGS` | The original `TrackingId` value from the application. |
+| `'` | Closes the original string in the SQL query. |
+| `AND` | Adds another condition to the existing query. |
+| `(SELECT LENGTH(password) FROM users WHERE username='administrator')` | Gets the length of the administrator's password. |
+| `=20` | Checks whether the password is 20 characters long. |
+| `--` | Comments out the rest of the original SQL query. |
+
+**Why this works**
+
+If the password length is **20**, the condition is true and the application responds normally.
+
+If the length is different, the condition is false and the application responds differently.
+
+I started by testing a length of **1** and increased the value by **1** with each request. When I tested **20**, the application displayed the **"Welcome back!"** message.
+This confirmed that the administrator's password was **20 characters** long.
+
+The next step was to retrieve the password one character at a time.
+
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
 ## Step 6 - Extracting the Administrator Password
 
