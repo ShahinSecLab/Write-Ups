@@ -164,17 +164,35 @@ Because the page changed depending on whether the condition was true or false, i
 </p>
 
 
-## Step 3 - Confirming the Users Table
+## Step 3 - Confirming the `Users` Table
 
-After confirming the injection point, I tested whether the `users` table existed.
-
-Payload:
+After confirming the SQL injection point, I checked whether the `users` table existed.
 
 ```sql
-TrackingId=x' AND (SELECT 'a' FROM users LIMIT 1)='a
+TrackingId=E24fFxRLWxoM7TyV' AND (SELECT 'a' FROM user LIMIT 1)='a
 ```
+**Breakdown**
 
-The application returned the normal response, confirming that the `users` table was available.
+| Part                              | Description                                                                  |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| `x'`                              | Closes the original string in the SQL query.                                 |
+| `AND`                             | Adds another condition to the existing query.                                |
+| `(SELECT 'a' FROM users LIMIT 1)` | Tries to read one row from the `users` table and returns the value `'a'`.    |
+| `='a`                             | Checks whether the returned value is `'a'`. If it is, the condition is true. |
+
+**Why this works:**
+
+If the `users` table exists, the subquery runs successfully and returns the value `'a'`. The condition becomes true, so the application responds normally.
+
+If the `users` table does not exist, the query fails and the application responds differently.
+
+When I sent the payload, the application still displayed the **"Welcome back!"** message.
+
+The normal response confirmed that the `users` table existed and could be queried in the next steps.
+
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
 
 
 ## Step 4 - Checking for the Administrator User
