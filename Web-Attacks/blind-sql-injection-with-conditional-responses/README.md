@@ -127,7 +127,7 @@ TrackingId=qpzaD7eycmJXCLKx' AND '1'='1
 | `AND` | Adds another condition to the query |
 | `'1'='1` | This condition is always true |
 
-Why this matters:
+**Why this works:**
 
 When this payload is sent, the SQL query becomes something like:
 
@@ -163,7 +163,6 @@ Because the page changed depending on whether the condition was true or false, i
   <img src="images/step2-2.png" width="600">
 </p>
 
-
 ## Step 3 - Confirming the `Users` Table
 
 After confirming the SQL injection point, I checked whether the `users` table existed.
@@ -195,18 +194,36 @@ The normal response confirmed that the `users` table existed and could be querie
 </p>
 
 
-## Step 4 - Checking for the Administrator User
+## Step 4 - Checking for the `administrator` User
 
-Next, I checked whether the administrator account existed in the table.
-
-Payload:
+After confirming that the `users` table existed, I checked whether it contained an `administrator` account.
 
 ```sql
-TrackingId=x' AND (SELECT username FROM users WHERE username='administrator')='administrator
+TrackingId=E24fFxRLWxoM7TyV' AND (SELECT 'a' FROM users WHERE username='administrator')='a
 ```
+**Breakdown**
 
-The response confirmed that the administrator user was present.
+| Part | Description |
+|------|-------------|
+| `E24fFxRLWxoM7TyV` | The original `TrackingId` value from the application. |
+| `'` | Closes the original string in the SQL query. |
+| `AND` | Adds another condition to the existing query. |
+| `(SELECT 'a' FROM users WHERE username='administrator')` | Checks whether a user named `administrator` exists. If found, the query returns `'a'`. |
+| `='a` | Compares the returned value with `'a'`. If they match, the condition is true. |
 
+**Why this works:**
+
+If the `administrator` user exists, the subquery returns `'a'`. The condition becomes true, so the application responds normally.
+
+If the `administrator` user does not exist, the subquery returns no value and the condition is false. The application responds differently.
+
+When I sent the payload, the application still displayed the **"Welcome back!"** message.
+
+The normal response confirmed that the `administrator` user existed. The next step was to find the administrator's password length.
+
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
 ## Step 5 - Finding the Administrator Password Length
 
