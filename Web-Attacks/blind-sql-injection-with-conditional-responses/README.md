@@ -8,7 +8,7 @@
 * [Lab Setup](#lab-setup)
 * [Tools Used](#tools-used)
 * [Prerequisites](#prerequisites)
-* [Step 1 - Launching the Lab and Finding the Cookie](#step-1---launching-the-lab-and-finding-the-cookie)
+* [Step 1 - Launching the Lab in Burp Suite](#step-1---launching-the-lab-in-burp-suite)
 * [Step 2 - Checking the SQL Injection Behavior](#step-2---checking-the-sql-injection-behavior)
 * [Step 3 - Confirming the Users Table](#step-3---confirming-the-users-table)
 * [Step 4 - Checking for the Administrator User](#step-4---checking-for-the-administrator-user)
@@ -319,7 +319,7 @@ The login was successful, confirming that the password had been extracted correc
   <img src="images/step7-2.png" width="600">
 </p>
 
-## How to Detect This Attack
+## How Defenders Can Catch This
 
 - Monitor requests for unusual SQL keywords inside cookie values.
 - Look for many similar requests where only one character changes each time.
