@@ -122,6 +122,10 @@ TrackingId=znyh6jKGZvA9Lm21'
 
 After sending the request, the application returned an error message.
 
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
+
 Then I added another quote to close the string:
 ```
 TrackingId=znyh6jKGZvA9Lm21''
@@ -129,8 +133,43 @@ TrackingId=znyh6jKGZvA9Lm21''
 
 The error disappeared after sending the request again.
 
+<p align="center">
+  <img src="images/step1-2.png" width="600">
+</p>
+
 This confirmed that the single quote was affecting the SQL query. The `TrackingId` cookie value was being used inside an SQL statement, which confirmed the presence of a SQL Injection vulnerability.
 
-<p align="center">
-  <img src="images/step1-1.png" width="600">
-</p>
+## Step 2 — Confirming the SQL Syntax Error
+
+After finding the injection point, I wanted to make sure the error was actually coming from the SQL query and not from something else.
+
+I used Burp Repeater to modify the `TrackingId` cookie and tested a simple subquery:
+
+```sql
+TrackingId=znyh6jKGZvA9Lm21' ||(SELECT '')||'
+```
+| Part               | Description                                                                                                |   |                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- | - | ------------------------------------------------------------------------------------- |
+| `TrackingId=`      | The vulnerable cookie parameter being tested for SQL Injection.                                            |   |                                                                                       |
+| `znyh6jKGZvA9Lm21` | Original value of the TrackingId cookie. This value is used to keep the request valid.                     |   |                                                                                       |
+| `'`                | Closes the existing SQL string inside the query. This allows adding a new SQL expression.                  |   |                                                                                       |
+| `                  |                                                                                                            | ` | SQL string concatenation operator in PostgreSQL. It joins two string values together. |
+| `(SELECT '')`      | A subquery that returns an empty string. It is used to check whether a valid SQL subquery can be executed. |   |                                                                                       |
+| `                  |                                                                                                            | ` | Concatenates the result of the subquery with the remaining SQL query.                 |
+| `'`                | Adds the closing quote to keep the final SQL syntax valid.                                                 |   |                                                                                       |
+
+
+This request returned an error. I suspected that the query format was correct, but the database type might be causing the issue.
+
+To check this, I added the Oracle-specific `dual` table:
+
+```sql
+TrackingId=xyz'||(SELECT '' FROM dual)||'
+```
+
+This time, the request worked without any error.
+
+From this test, I confirmed that the application was using an Oracle database. Oracle requires a table to be specified in a `SELECT` statement, and `dual` is a built-in table that can be used when no actual table is needed.
+
+This confirmed that my input was being executed inside an SQL query and that the backend database was Oracle.
+
