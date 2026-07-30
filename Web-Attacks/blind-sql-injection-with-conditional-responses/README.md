@@ -15,10 +15,10 @@
 * [Step 5 - Finding the Administrator Password Length](#step-5---finding-the-administrator-password-length)
 * [Step 6 - Extracting the Administrator Password](#step-6---extracting-the-administrator-password)
 * [Step 7 - Logging In as Administrator](#step-7---logging-in-as-administrator)
-* [How to Detect This Attack](#how-to-detect-this-attack)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
-* [Lessons Learned](#lessons-learned)
 * [References](#references)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
@@ -193,7 +193,6 @@ The normal response confirmed that the `users` table existed and could be querie
   <img src="images/step3-1.png" width="600">
 </p>
 
-
 ## Step 4 - Checking for the `administrator` User
 
 After confirming that the `users` table existed, I checked whether it contained an `administrator` account.
@@ -225,7 +224,7 @@ The normal response confirmed that the `administrator` user existed. The next st
   <img src="images/step4-1.png" width="600">
 </p>
 
-## Step 5 - Finding the Administrator Password Length
+## Step 5 - Finding the **Administrator Password Length**
 
 After confirming that the `administrator` user existed, the next step was to find the length of the password.
 
@@ -261,7 +260,7 @@ The next step was to retrieve the password one character at a time.
   <img src="images/step4-1.png" width="600">
 </p>
 
-## Step 6 - Extracting the Administrator Password
+## Step 6 - Extracting the `Administrator` Password
 
 After finding that the administrator's password was **20 characters** long, the next step was to retrieve it one character at a time.
 
@@ -320,25 +319,23 @@ The login was successful, confirming that the password had been extracted correc
   <img src="images/step7-2.png" width="600">
 </p>
 
-
 ## How to Detect This Attack
 
-- Monitor unusual SQL keywords inside cookie values.
-- Review application logs for repeated requests with different conditions.
-- Look for abnormal database queries.
-- Use security monitoring tools to detect suspicious input patterns.
-- Test applications regularly for SQL injection issues.
+- Monitor requests for unusual SQL keywords inside cookie values.
+- Look for many similar requests where only one character changes each time.
+- Check web server and database logs for repeated requests from the same user.
+- Use a Web Application Firewall (WAF) to detect common SQL injection payloads.
+- Regularly test the application for SQL injection vulnerabilities.
 
 
 ## How to Prevent It
 
-- Use prepared statements and parameterized queries.
-- Avoid building SQL queries with user-controlled input.
-- Validate input before using it in database queries.
-- Limit database user permissions.
-- Hide detailed database errors from users.
-- Perform regular security testing.
-
+- Use parameterized queries or prepared statements for all database queries.
+- Never build SQL queries by directly adding user input.
+- Validate and sanitize all user input, including cookies.
+- Give the database account only the permissions it needs.
+- Hide database errors from users.
+- Perform regular security testing and fix vulnerabilities as soon as they are found.
 
 ## Lessons Learned
 
@@ -346,12 +343,12 @@ During this lab, I learned how blind SQL injection can be used to retrieve datab
 
 Key takeaways:
 
-- Blind SQL injection relies on application behavior instead of visible database output.
-- True and false conditions can reveal information from the database.
-- `SUBSTRING()` can be used to extract data character by character.
-- Burp Suite Intruder can help automate character testing.
-- Improper handling of user input can expose sensitive database information.
-
+- Blind SQL injection depends on changes in the application's response.
+- True and false conditions can be used to retrieve information from the database.
+- Data can be extracted one character at a time using the SUBSTRING() function.
+- Burp Suite Intruder can automate repetitive testing.
+- User input should never be used directly in SQL queries.
+- Even a cookie value can become an SQL injection point if it is not handled safely.
 
 ## References
 
