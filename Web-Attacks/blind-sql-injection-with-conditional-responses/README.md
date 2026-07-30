@@ -1,5 +1,14 @@
 # Blind SQL Injection with Conditional Responses
 
+**Date:** July 2026<br>
+**Author:** ShahinSecLab<br>
+**Category:** SQL Injection<br>
+**Vulnerability:** Blind SQL Injection<br>
+**Difficulty:** Easy<br>
+**Platform:** PortSwigger Web Security Academy<br>
+**Database:** PostgreSQL<br>
+**Tools:** Burp Suite Community Edition, Firefox
+
 ## Table of Contents
 
 * [Introduction](#introduction)
