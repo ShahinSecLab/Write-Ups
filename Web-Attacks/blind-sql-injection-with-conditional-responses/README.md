@@ -267,13 +267,11 @@ After finding that the administrator's password was **20 characters** long, the 
 
 I used the `SUBSTRING()` function to check each character of the password.
 
-**Payload:**
-
 ```sql
 TrackingId=rVLjPIC1PesdetGS' AND SUBSTRING((SELECT password FROM users WHERE username='administrator'),1,1)='§a§'--
 ```
 
-### Breakdown
+**Breakdown**
 
 | Part | Description |
 |------|-------------|
@@ -285,7 +283,7 @@ TrackingId=rVLjPIC1PesdetGS' AND SUBSTRING((SELECT password FROM users WHERE use
 | `='§a§'` | The payload position used by Burp Suite Intruder. The value a is replaced with each payload from the payload list `(such as 0-9 and a-z)` during the attack.|
 | `--` | Comments out the rest of the original SQL query. |
 
-### Why this works
+**Why this works:**
 
 If the tested character is correct, the condition becomes true and the application responds normally.
 
@@ -305,15 +303,21 @@ In the results, only the payload **`5`** caused the application to return the **
 
 I then changed the character position from **1** to **2**, **3**, and so on, repeating the same process until all **20 characters** of the administrator's password were recovered.
 
+## Step 7 - Logging In as `administrator`
 
-## Step 7 - Logging In as Administrator
+After recovering the administrator's password, I used the following credentials to log in:
 
-After extracting the administrator password, I used the credentials to log in to the application.
-
-The login was successful, confirming that the password had been correctly retrieved.
+- **Username:** `administrator`
+- **Password:** `5xxxxxxxxxxxxxxxxxxx`
 
 <p align="center">
   <img src="images/step7-1.png" width="600">
+</p>
+
+The login was successful, confirming that the password had been extracted correctly and that the lab was solved.
+
+<p align="center">
+  <img src="images/step7-2.png" width="600">
 </p>
 
 
