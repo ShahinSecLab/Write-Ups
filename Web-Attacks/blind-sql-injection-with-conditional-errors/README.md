@@ -44,26 +44,26 @@ In this lab, the backend database is Oracle, so the payloads use Oracle-specific
 ## Attack Flow
 ```
 Check if TrackingId is vulnerable
-│
-▼
+        │
+        ▼
 Find the SQL error
-│
-▼
+        │
+        ▼
 Test database queries
-│
-▼
+        │
+        ▼
 Find the users table
-│
-▼
+        │
+        ▼
 Check if administrator user exists
-│
-▼
+        │
+        ▼
 Find password length
-│
-▼
+        │
+        ▼
 Extract password characters
-│
-▼
+        │
+        ▼
 Login as administrator
 ```
 
@@ -77,3 +77,60 @@ When the condition is true, the application returns an error page. When the cond
 
 By comparing these responses, it is possible to test SQL conditions and slowly retrieve information from the database without seeing the actual data.
 
+## Lab Setup
+
+| Component | Details |
+|---|---|
+| Attacker Machine | Kali Linux |
+| Target | PortSwigger Web Security Academy (Blind SQLi with conditional errors lab) |
+| Tool Used | Burp Suite (Proxy, Repeater, Intruder) |
+| Database | Oracle |
+| Injection Point | `TrackingId` cookie |
+
+## Tools Used
+
+| Tool | Purpose |
+|---|---|
+| Burp Suite (Proxy) | Intercept requests and read/modify the `TrackingId` cookie |
+| Burp Suite (Repeater) | Manually test injection payloads and read error vs. no-error responses |
+| Burp Suite (Intruder) | Automate character-by-character password extraction |
+| Web Browser | Access the lab front page and login page |
+
+## Prerequisites
+
+- Burp Suite Community/Pro set up with browser proxy
+- Basic knowledge of Oracle SQL syntax (dual table, TO_CHAR, SUBSTR)
+- Understanding of blind SQL injection concepts
+- Access to the PortSwigger lab instance
+
+## Step 1 — Confirming the Injection Point
+
+I started the PortSwigger lab by visiting the shop's front page and capturing the request containing the `TrackingId` cookie using Burp Suite.
+
+I sent the request to Burp Repeater and modified the `TrackingId` value manually to test whether it was vulnerable.
+
+The original cookie value was:
+```
+TrackingId=znyh6jKGZvA9Lm21
+```
+
+I added a single quote at the end of the value:
+
+```
+TrackingId=znyh6jKGZvA9Lm21'
+```
+
+After sending the request, the application returned an error message.
+
+Then I added another quote to close the string:
+```
+TrackingId=znyh6jKGZvA9Lm21''
+```
+
+The error disappeared after sending the request again.
+
+This confirmed that the single quote was affecting the SQL query. The `TrackingId` cookie value was being used inside an SQL statement, which confirmed the presence of a SQL Injection vulnerability.
+
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
