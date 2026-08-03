@@ -146,30 +146,49 @@ After finding the injection point, I wanted to make sure the error was actually 
 I used Burp Repeater to modify the `TrackingId` cookie and tested a simple subquery:
 
 ```sql
-TrackingId=znyh6jKGZvA9Lm21' ||(SELECT '')||'
+TrackingId=08ITKoawSkZtY2wE' ||(SELECT '')||'
 ```
-| Part               | Description                                                                                                |   |                                                                                       |
-| ------------------ | ---------------------------------------------------------------------------------------------------------- | - | ------------------------------------------------------------------------------------- |
-| `TrackingId=`      | The vulnerable cookie parameter being tested for SQL Injection.                                            |   |                                                                                       |
-| `znyh6jKGZvA9Lm21` | Original value of the TrackingId cookie. This value is used to keep the request valid.                     |   |                                                                                       |
-| `'`                | Closes the existing SQL string inside the query. This allows adding a new SQL expression.                  |   |                                                                                       |
-| `                  |                                                                                                            | ` | SQL string concatenation operator in PostgreSQL. It joins two string values together. |
-| `(SELECT '')`      | A subquery that returns an empty string. It is used to check whether a valid SQL subquery can be executed. |   |                                                                                       |
-| `                  |                                                                                                            | ` | Concatenates the result of the subquery with the remaining SQL query.                 |
-| `'`                | Adds the closing quote to keep the final SQL syntax valid.                                                 |   |                                                                                       |
 
+**Breakdown**
+
+| Part | Description |
+|---|---|
+| `08ITKoawSkZtY2wE` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `||` | Concatenates the original value with the result of another SQL expression |
+| `(SELECT '')` | Executes a subquery that returns an empty string |
+| `||` | Concatenates the subquery result with the remaining part of the query |
+| `'` | Closes the injected SQL string to keep the query valid |
 
 This request returned an error. I suspected that the query format was correct, but the database type might be causing the issue.
+
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
 
 To check this, I added the Oracle-specific `dual` table:
 
 ```sql
-TrackingId=xyz'||(SELECT '' FROM dual)||'
+TrackingId=08ITKoawSkZtY2wE'||(SELECT '' FROM dual)||'
 ```
+**Breakdown**
+
+| Part | Description |
+|---|---|
+| `08ITKoawSkZtY2wE` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `||` | Concatenates the original value with the result of another SQL expression |
+| `(SELECT '' FROM dual)` | Executes a subquery that returns an empty string from the `dual` table |
+| `||` | Concatenates the subquery result with the remaining part of the query |
+| `'` | Closes the injected SQL string to keep the query valid |
 
 This time, the request worked without any error.
 
 From this test, I confirmed that the application was using an Oracle database. Oracle requires a table to be specified in a `SELECT` statement, and `dual` is a built-in table that can be used when no actual table is needed.
 
 This confirmed that my input was being executed inside an SQL query and that the backend database was Oracle.
+
+<p align="center">
+  <img src="images/step2-2.png" width="600">
+</p>
 
