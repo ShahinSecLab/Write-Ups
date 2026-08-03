@@ -221,3 +221,33 @@ This showed that I could successfully inject and run SQL queries through the `Tr
 <p align="center">
   <img src="images/step3-1.png" width="600">
 </p>
+
+## Step 4 — Confirming the `users` Table Exists
+
+Next, I checked whether the `users` table existed in the database.
+
+I modified the `TrackingId` cookie in Burp Repeater and sent the following payload:
+
+```sql
+TrackingId=08ITKoawSkZtY2wE'||(SELECT '' FROM users WHERE ROWNUM = 1)||'
+```
+**Breakdown**
+
+| Part | Description |
+|---|---|
+| `08ITKoawSkZtY2wE` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `||` | Concatenates the original value with the result of another SQL expression |
+| `(SELECT '' FROM users WHERE ROWNUM = 1)` | Executes a subquery that returns an empty string from the first row of the `users` table. `ROWNUM = 1` limits the result to a single row. |
+| `||` | Concatenates the subquery result with the remaining part of the query |
+| `'` | Closes the injected SQL string to keep the query valid |
+
+This time, the application did not return an error.
+
+If the `users` table did not exist, Oracle would have returned an error. Since the request completed successfully, I confirmed that the table was present in the database.
+
+I used `ROWNUM = 1` to make sure the subquery returned only one row. This kept the query valid even if the `users` table contained multiple records.
+
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
