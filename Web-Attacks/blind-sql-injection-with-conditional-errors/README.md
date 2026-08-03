@@ -251,3 +251,47 @@ I used `ROWNUM = 1` to make sure the subquery returned only one row. This kept t
 <p align="center">
   <img src="images/step4-1.png" width="600">
 </p>
+
+## Step 5 — Creating a Conditional Error
+
+Next, I tested whether I could make the application return an error only when a condition was true.
+
+First, I sent the following payload in Burp Repeater:
+
+```sql
+TrackingId=08ITKoawSkZtY2wE'||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'
+```
+**Breakdown**
+
+| Part | Description |
+|---|---|
+| `08ITKoawSkZtY2wE` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `||` | Concatenates the original value with the result of another SQL expression |
+| `(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)` | Executes a conditional subquery. Since `1=1` is always true, it runs `TO_CHAR(1/0)`, which causes a division-by-zero error. This is used to confirm that the SQL condition is being executed. |
+| `CASE WHEN (1=1)` | Checks whether the condition is true. If the condition is true, the `THEN` part is executed. |
+| `TO_CHAR(1/0)` | Attempts to convert the result of `1/0` into a string. The division by zero creates a database error. |
+| `ELSE ''` | Returns an empty string if the condition is false. |
+| `FROM dual` | Selects the value from Oracle's built-in `dual` table, which contains a single row. |
+| `||` | Concatenates the subquery result with the remaining part of the query |
+| `'` | Closes the injected SQL string to keep the query valid |
+
+The application returned an error. Since `1=1` is true, Oracle executed `1/0`, which caused a divide-by-zero error.
+
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
+
+Next, I changed the condition to `1=2`:
+
+```sql id="5ehp3l"
+TrackingId=08ITKoawSkZtY2wE'||(SELECT CASE WHEN (1=2) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'
+```
+
+This time, the request completed without any error because the condition was false, so the divide-by-zero code was never executed.
+
+The different responses confirmed that I could control whether an error appeared by changing the condition. This gave me a reliable way to test true and false conditions, which is the basis of error-based blind SQL Injection.
+
+<p align="center">
+  <img src="images/step5-2.png" width="600">
+</p>
