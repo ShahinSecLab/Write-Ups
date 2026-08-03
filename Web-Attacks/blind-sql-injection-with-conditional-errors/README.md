@@ -295,3 +295,38 @@ The different responses confirmed that I could control whether an error appeared
 <p align="center">
   <img src="images/step5-2.png" width="600">
 </p>
+
+## Step 6 — Checking if the Administrator User Exists
+
+After confirming that I could trigger errors based on conditions, I tested whether the `administrator` user existed in the `users` table.
+
+I modified the `TrackingId` cookie in Burp Repeater and sent the following payload:
+
+```sql id="y5m4qz"
+TrackingId=08ITKoawSkZtY2wE'||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')||'
+```
+**Breakdown**
+
+| Part | Description |
+|---|---|
+| `08ITKoawSkZtY2wE` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `||` | Concatenates the original value with the result of another SQL expression |
+| `(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator')` | Executes a conditional subquery against the `users` table. It checks the administrator user and triggers an error when the condition is true. |
+| `CASE WHEN (1=1)` | Checks whether the condition is true. Since `1=1` is always true, the `THEN` statement is executed. |
+| `TO_CHAR(1/0)` | Forces a division-by-zero error and converts the result into a string. This error response is used as an indicator that the condition was true. |
+| `ELSE ''` | Returns an empty string if the condition is false. |
+| `FROM users` | Specifies that the query should run against the `users` table. |
+| `WHERE username='administrator'` | Filters the query to execute only when the username matches the administrator account. |
+| `||` | Concatenates the subquery result with the remaining part of the SQL query |
+| `'` | Closes the injected SQL string to keep the query syntax valid |
+
+The application returned an error.
+
+This happened because the query found a row where the username was `administrator`, and the condition `1=1` was true, causing the divide-by-zero error to execute.
+
+The error response confirmed that the `administrator` user exists in the `users` table.
+
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
