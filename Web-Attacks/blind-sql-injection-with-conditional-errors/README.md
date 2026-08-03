@@ -16,7 +16,6 @@
 * [Lab Setup](#lab-setup)
 * [Prerequisites](#prerequisites)
 * [Attack Flow](#attack-flow)
-* [Step-by-Step Walkthrough](#step-by-step-walkthrough)
    * [Step 1 — Confirm the injection point](#step-1--confirm-the-injection-point)
    * [Step 2 — Confirm it's a SQL syntax error](#step-2--confirm-its-a-sql-syntax-error)
    * [Step 3 — Confirm the query is actually running](#step-3--confirm-the-query-is-actually-running)
