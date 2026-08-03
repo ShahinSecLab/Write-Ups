@@ -192,3 +192,32 @@ This confirmed that my input was being executed inside an SQL query and that the
   <img src="images/step2-2.png" width="600">
 </p>
 
+## Step 3 — Confirming the Query Was Executed
+
+After confirming that the backend was using Oracle, I wanted to verify that my injected query was actually being executed.
+
+I modified the `TrackingId` cookie in Burp Repeater and referenced a table that does not exist:
+
+```sql
+TrackingId=08ITKoawSkZtY2wE'||(SELECT '' FROM not-a-real-table)||'
+```
+**Breakdown**
+
+| Part | Description |
+|---|---|
+| `08ITKoawSkZtY2wE` | The original tracking ID from the application |
+| `'` | Closes the original string in the SQL query |
+| `||` | Concatenates the original value with the result of another SQL expression |
+| `(SELECT '' FROM not-a-real-table)` | Attempts to execute a subquery using a table that does not exist. This is commonly used to trigger a database error and confirm that the subquery is being executed. |
+| `||` | Concatenates the subquery result with the remaining part of the query |
+| `'` | Closes the injected SQL string to keep the query valid |
+
+After sending the request, the application returned an error.
+
+The only invalid part of the payload was the table name. Since Oracle tried to look up the table and failed, it confirmed that my injected query was being parsed and executed by the database.
+
+This showed that I could successfully inject and run SQL queries through the `TrackingId` cookie.
+
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
