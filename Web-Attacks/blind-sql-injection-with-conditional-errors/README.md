@@ -409,9 +409,15 @@ I marked the character position as a payload and used a simple list containing `
 | HTTP 500    | Correct character |
 | HTTP 200    | Wrong character   |
 
-I checked the responses and found the character that returned HTTP 500.
+I checked the responses and found the character of administrator password that returned HTTP 500.
+
+<p align="center">
+  <img src="images/" width="600">
+</p>
 
 Then I changed the `SUBSTR()` position from `1` to `2` and repeated the process until all 20 password characters were extracted.
+
+- Password: 27..................
 
 ## Step 9 — Logging in as Administrator
 
@@ -420,7 +426,15 @@ After recovering the password, I opened the My account page and logged in using 
 Username: administrator
 Password: [recovered password]
 
+<p align="center">
+  <img src="images/step9-1.png" width="600">
+</p>
+
 The login was successful, confirming that the password had been extracted correctly and the lab was solved.
+
+<p align="center">
+  <img src="images/step9-2.png" width="600">
+</p>
 
 ## How Defenders Can Catch This
 
