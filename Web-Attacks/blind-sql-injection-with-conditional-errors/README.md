@@ -1,4 +1,4 @@
-# Blind SQL injection with conditional errors
+# Blind SQL Injection With Conditional Errors
 
 **Date:** July 2026<br>
 **Author:** ShahinSecLab<br>
