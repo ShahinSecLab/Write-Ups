@@ -1,11 +1,11 @@
 # Password Reset Broken Logic
 
-**Date:** October 2026
-**Author:** ShahinSecLab
-**Category:** Authentication
-**Vulnerability:** Broken Logic / Password Reset Flaw
-**Difficulty:** Easy
-**Platform:** PortSwigger Web Security Academy
+**Date:** October 2026 <br>
+**Author:** ShahinSecLab <br>
+**Category:** Authentication <br>
+**Vulnerability:** Broken Logic / Password Reset Flaw <br>
+**Difficulty:** Easy <br>
+**Platform:** PortSwigger Web Security Academy <br>
 **Tools:** Burp Suite Community Edition, Firefox
 
 ---
