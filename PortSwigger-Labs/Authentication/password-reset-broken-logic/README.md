@@ -8,7 +8,6 @@
 **Platform:** PortSwigger Web Security Academy <br>
 **Tools:** Burp Suite Community Edition, Firefox
 
----
 
 ## Table of Contents
 
@@ -29,7 +28,6 @@
 * [References](#references)
 * [Lessons Learned](#lessons-learned)
 
----
 
 ## Introduction
 
@@ -41,7 +39,6 @@ By removing the token from the password reset request, an attacker can bypass th
 
 In this lab, the target user is `carlos`.
 
----
 
 ## Attack Flow
 
@@ -67,7 +64,6 @@ Submit Request & Change Target Password
 Login as Carlos
 ```
 
----
 
 ## Why This Attack Works
 
@@ -92,7 +88,6 @@ Therefore, an attacker can:
 
 This allows the attacker to change another user's password without possessing their valid password-reset token.
 
----
 
 ## Lab Setup
 
@@ -105,7 +100,6 @@ This allows the attacker to change another user's password without possessing th
 | **Vulnerability Type** | Broken Authentication / Broken Logic |
 | **Target User**        | `carlos`                             |
 
----
 
 ## Tools Used
 
@@ -115,7 +109,6 @@ This allows the attacker to change another user's password without possessing th
 | **Burp Suite Repeater** | Modify and resend password reset requests    |
 | **Firefox**             | Access the lab, email client, and login page |
 
----
 
 ## Prerequisites
 
@@ -124,8 +117,6 @@ This allows the attacker to change another user's password without possessing th
 * Basic understanding of HTTP requests
 * Basic understanding of request parameters
 * Basic knowledge of Burp Suite Repeater
-
----
 
 ## Step 1 — Configuring FoxyProxy
 
@@ -157,7 +148,6 @@ I completed the password reset for my own account.
   <img src="images/step2-1.png" width="600">
 </p>
 
----
 
 ## Step 3 — Intercepting the Reset Request in Burp
 
@@ -199,7 +189,6 @@ I right-clicked the request and selected:
 
 **Send to Repeater**
 
----
 
 ## Step 4 — Testing Token Validation in Repeater
 
@@ -243,7 +232,6 @@ This confirmed that the backend was not properly enforcing the reset token.
   <img src="images/step4-1.png" width="600">
 </p>
 
----
 
 ## Step 5 — Resetting Carlos's Password
 
@@ -279,7 +267,6 @@ The application accepted the request and changed the password for `carlos`.
   <img src="images/step5-1.png" width="600">
 </p>
 
----
 
 ## Step 6 — Logging in as Carlos
 
@@ -302,7 +289,6 @@ The lab was successfully solved.
   <img src="images/step6-1.png" width="600">
 </p>
 
----
 
 ## How Defenders Can Catch This
 
@@ -314,7 +300,6 @@ Security teams can monitor for suspicious password-reset activity, including:
 * Password changes performed without a valid reset-token validation event.
 * Repeated password-reset requests with unusual parameter manipulation.
 
----
 
 ## How to Prevent It
 
@@ -362,7 +347,6 @@ Security-critical operations such as password changes must never depend on the c
 
 The server should enforce all security checks regardless of what parameters the client sends.
 
----
 
 ## References
 
@@ -371,7 +355,6 @@ The server should enforce all security checks regardless of what parameters the 
 | **PortSwigger Web Security Academy — Password reset broken logic** | [PortSwigger Lab](https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-broken-logic) |
 | **OWASP — Forgot Password Cheat Sheet**                            | [OWASP Password Reset Guidance](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html)        |
 
----
 
 ## Lessons Learned
 
