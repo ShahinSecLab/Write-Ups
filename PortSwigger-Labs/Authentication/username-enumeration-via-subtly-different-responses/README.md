@@ -43,10 +43,10 @@ Invalid username or password.
 But when a valid username is used, the response contains a small difference:
 
 ```text
-Invalid username or password. 
+Invalid username or password  
 ```
 
-There is a trailing space at the end of the message.
+Instead of a full stop/period, there is a trailing space at the end of the message.
 
 This small difference can be used to find a valid username from a list of possible usernames.
 
@@ -96,10 +96,10 @@ Most invalid usernames return:
 Invalid username or password.
 ```
 
-One username returns a slightly different message because there is a trailing space after the period:
+One username returns a slightly different message because instead of a full stop/period, there is a trailing space at the end of the message:
 
 ```text
-Invalid username or password. 
+Invalid username or password  
 ```
 
 Even though the difference is very small, Burp Intruder can extract and compare the response text.
@@ -153,6 +153,10 @@ Before starting the lab, I turned on **FoxyProxy** in Firefox and selected the B
 This sends the Firefox traffic through Burp Suite so I can see the requests.
 
 I checked **Burp Suite → Proxy → HTTP history** to make sure the requests were showing up.
+
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p
 
 ---
 
