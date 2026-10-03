@@ -1,4 +1,4 @@
-# Username Enumeration via Response Differences
+# Username Enumeration via subtly Response Differences
 
 **Date:** October 2026
 **Author:** ShahinSecLab
@@ -167,9 +167,18 @@ I opened the login page and submitted an invalid username and password.
 For example:
 
 ```text
-Username: invalid-user
-Password: invalid-password
+Username: user
+Password: pass
 ```
+The application gave me an error:
+
+```text
+Invalid username or password.
+```
+
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p
 
 I then opened **Burp Suite → Proxy → HTTP history** and found the login request:
 
@@ -180,10 +189,14 @@ POST /login
 The request contained the username and password parameters:
 
 ```text
-username=invalid-user&password=invalid-password
+username=user&password=pass
 ```
 
 I highlighted the username parameter and sent the request to **Burp Intruder**.
+
+<p align="center">
+  <img src="images/step2-2.png" width="600">
+</p
 
 ---
 
@@ -196,7 +209,7 @@ Burp automatically marked the username as the payload position.
 The request looked like:
 
 ```text
-username=§invalid-user§&password=invalid-password
+username=§user§&password=invalid-password
 ```
 
 ### Adding the Username List
