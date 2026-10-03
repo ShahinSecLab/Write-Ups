@@ -18,11 +18,12 @@
 * [Lab Setup](#lab-setup)
 * [Tools Used](#tools-used)
 * [Prerequisites](#prerequisites)
-* [Step 1 — Requesting a Password Reset](#step-1--requesting-a-password-reset)
-* [Step 2 — Intercepting the Reset Request in Burp](#step-2--intercepting-the-reset-request-in-burp)
-* [Step 3 — Testing Token Validation in Repeater](#step-3--testing-token-validation-in-repeater)
-* [Step 4 — Resetting Carlos's Password](#step-4--resetting-carloss-password)
-* [Step 5 — Logging in as Carlos](#step-5--logging-in-as-carlos)
+- [Step 1 — Configuring FoxyProxy](#step-1--configuring-foxyproxy)
+- [Step 2 — Requesting a Password Reset](#step-2--requesting-a-password-reset)
+- [Step 3 — Intercepting the Reset Request in Burp](#step-3--intercepting-the-reset-request-in-burp)
+- [Step 4 — Testing Token Validation in Repeater](#step-4--testing-token-validation-in-repeater)
+- [Step 5 — Resetting Carlos's Password](#step-5--resetting-carloss-password)
+- [Step 6 — Logging in as Carlos](#step-6--logging-in-as-carlos)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Prevent It](#how-to-prevent-it)
 * [References](#references)
@@ -126,7 +127,15 @@ This allows the attacker to change another user's password without possessing th
 
 ---
 
-## Step 1 — Requesting a Password Reset
+## Step 1 — Configuring FoxyProxy
+
+Before starting the lab, I turned on **FoxyProxy** in Firefox and selected the Burp Suite proxy.
+
+This sends the Firefox traffic through Burp Suite so I can see the requests.
+
+I checked **Burp Suite → Proxy → HTTP history** to make sure the requests were showing up.
+
+## Step 2 — Requesting a Password Reset
 
 I started the lab by navigating to the login page and clicking:
 
@@ -146,7 +155,7 @@ I completed the password reset for my own account.
 
 ---
 
-## Step 2 — Intercepting the Reset Request in Burp
+## Step 3 — Intercepting the Reset Request in Burp
 
 With Burp Suite running, I opened:
 
@@ -182,7 +191,7 @@ I right-clicked the request and selected:
 
 ---
 
-## Step 3 — Testing Token Validation in Repeater
+## Step 4 — Testing Token Validation in Repeater
 
 In Burp Repeater, I tested whether the application actually validated the reset token.
 
@@ -222,7 +231,7 @@ This confirmed that the backend was not properly enforcing the reset token.
 
 ---
 
-## Step 4 — Resetting Carlos's Password
+## Step 5 — Resetting Carlos's Password
 
 Since the application appeared to rely on the `username` parameter to determine which account would be modified, I changed:
 
@@ -254,7 +263,7 @@ The application accepted the request and changed the password for `carlos`.
 
 ---
 
-## Step 5 — Logging in as Carlos
+## Step 6 — Logging in as Carlos
 
 I returned to the login page and entered:
 
