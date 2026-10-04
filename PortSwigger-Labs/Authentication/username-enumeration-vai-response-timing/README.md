@@ -158,13 +158,28 @@ Changing this value to a different number each time let me send fresh requests w
 
 ## Step 3 — Noticing the Timing Difference
 
-With the IP block out of the way, I kept testing different usernames in Repeater and watched the response time at the bottom of the panel.
+With the IP block sorted out, I went back to trying different usernames in Repeater, keeping an eye on the response time shown at the bottom of the panel.
 
-For most usernames, the response came back quickly and at a similar speed every time.
+Most usernames came back fast, and the speed stayed about the same every single time.
 
-When I tried my own lab username, the response took noticeably longer, and the delay got bigger the longer the password I typed in was.
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
 
-This told me the timing difference was tied to password hashing, which only happens for a username that actually exists.
+But when I tried my own lab username, the reply took a bit longer than usual. And the longer the password I typed, the longer that delay got.
+
+<p align="center">
+  <img src="images/step3-2.png" width="600">
+</p>
+
+<p align="center">
+  <img src="images/step3-3.png" width="600">
+</p>
+
+That was the clue. The extra time only showed up when hashing was actually happening in the background, and hashing only happens if the username is real.
+
+
+
 
 
 ## Step 4 — Finding a Valid Username with Intruder
