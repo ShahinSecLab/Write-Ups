@@ -1,12 +1,12 @@
 # Username Enumeration via subtly Response Differences
 
-**Date:** October 2026
-**Author:** ShahinSecLab
-**Category:** Authentication
-**Vulnerability:** Username Enumeration
-**Difficulty:** Easy
-**Platform:** PortSwigger Web Security Academy
-**Tools:** Burp Suite, Firefox
+**Date:** October 2026 <br>
+**Author:** ShahinSecLab <br>
+**Category:** Authentication <br>
+**Vulnerability:** Username Enumeration <br>
+**Difficulty:** Easy <br>
+**Platform:** PortSwigger Web Security Academy <br>
+**Tools:** Burp Suite, Firefox 
 
 
 ## Table of Contents
