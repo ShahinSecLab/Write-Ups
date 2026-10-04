@@ -248,7 +248,7 @@ I added the `X-Forwarded-For` header again as a payload position, and set the us
 
 ```text
 X-Forwarded-For: §1§
-username=alpha&password=pass
+username=alpha&password=§pass§
 ```
 
 For payload position 1, I loaded the same list of numbers to keep spoofing the IP.
