@@ -179,9 +179,6 @@ But when I tried my own lab username, the reply took a bit longer than usual. An
 That was the clue. The extra time only showed up when hashing was actually happening in the background, and hashing only happens if the username is real.
 
 
-
-
-
 ## Step 4 — Finding a Valid Username with Intruder
 
 I sent the login request to **Intruder** and set the attack type to:
@@ -194,10 +191,14 @@ I added two payload positions:
 
 ```text
 X-Forwarded-For: §1§
-username=§user§&password=aaaaaaaaaa...(about 100 characters)
+username=user&password=passpasspasspasspasspasspasspasspasspasspasspasspasspass
 ```
 
 The password field was left as one very long fixed string, not a payload, so every request would take the same extra time if the username turned out to be valid.
+
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
 ### Setting the Payloads
 
@@ -212,23 +213,32 @@ Max fraction digits: 0
 
 This spoofed a new IP for every request.
 
-For payload position 2, I loaded my list of candidate usernames.
+<p align="center">
+  <img src="images/step4-2.png" width="600">
+</p>
+
+For payload position 2, I loaded a list of candidate usernames provided by the lab.
 
 I started the attack.
 
+<p align="center">
+  <img src="images/step4-3.png" width="600">
+</p>
+
 ### Checking the Results
 
-Once the attack finished, I clicked **Columns** and enabled:
+Once the attack finished,I sorted the results by the Response received column, and one row jumped out right away. Most requests were sitting around 280-380 ms, but one request came back at 538 ms, well above everything else.
+
+The username on that row was:
 
 ```text
-Response received
-Response completed
+alpha
 ```
+I repeated that same request a few times in Repeater to make sure it was consistently slower and not just a one-off delay, then made a note of the username.
 
-Sorting by these columns, one request stood out with a response time much higher than the rest.
-
-I repeated that same request a few times in Repeater to confirm it was consistently slower, then noted down the username.
-
+<p align="center">
+  <img src="images/step4-4.png" width="600">
+</p>
 
 ## Step 5 — Finding the Password
 
@@ -238,7 +248,7 @@ I added the `X-Forwarded-For` header again as a payload position, and set the us
 
 ```text
 X-Forwarded-For: §1§
-username=austin&password=§pass§
+username=alpha&password=pass
 ```
 
 For payload position 1, I loaded the same list of numbers to keep spoofing the IP.
@@ -257,12 +267,25 @@ I looked through the responses for a status code of:
 
 One request matched. I made a note of the password from that request.
 
+The password on that row was:
+
+```text
+charlie
+```
+
+<p align="center">
+  <img src="images/step5-2.png" width="600">
+</p>
 
 ## Step 6 — Logging in
 
 I went back to the login page and entered the username and password I had found.
 
 The login was successful, and the user account page confirmed the lab was solved.
+
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
 
 
 ## How Defenders Can Catch This
