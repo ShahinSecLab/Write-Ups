@@ -147,7 +147,7 @@ I checked **Burp Suite → Proxy → HTTP history** to make sure the requests we
 
 <p align="center">
   <img src="images/step1-1.png" width="600">
-</p
+</p>
 
 
 ## Step 2 — Testing the Login Request
@@ -168,7 +168,7 @@ Invalid username or password.
 
 <p align="center">
   <img src="images/step2-1.png" width="600">
-</p
+</p>
 
 I then opened **Burp Suite → Proxy → HTTP history** and found the login request:
 
@@ -186,7 +186,7 @@ I highlighted the username parameter and sent the request to **Burp Intruder**.
 
 <p align="center">
   <img src="images/step2-2.png" width="600">
-</p
+</p>
 
 
 ## Step 3 — Finding a Valid Username
@@ -202,7 +202,7 @@ username=§user§&password=pass
 ```
 <p align="center">
   <img src="images/step3-1.png" width="600">
-</p
+</p>
 
 
 ### Adding the Username List
@@ -217,7 +217,7 @@ I then added the list of possible usernames.
 
 <p align="center">
   <img src="images/step3-2.png" width="600">
-</p
+</p>
 
 ### Using Grep - Extract
 
@@ -233,7 +233,7 @@ I clicked:
 
 <p align="center">
   <img src="images/step3-3.png" width="600">
-</p
+</p>
 
 A response appeared in the dialog.
 
@@ -251,7 +251,7 @@ I clicked **OK** and started the attack.
 
 <p align="center">
   <img src="images/step3-4.png" width="600">
-</p
+</p>
 
 ### Checking the Results
 
@@ -279,7 +279,7 @@ I made a note of that username.
 
 <p align="center">
   <img src="images/step3-5.png" width="600">
-</p
+</p>
 
 
 ## Step 4 — Finding the Password
@@ -302,7 +302,7 @@ I started the attack again.
 
 <p align="center">
   <img src="images/step4-1.png" width="600">
-</p
+</p>
 
 ### Checking the Results
 
@@ -320,7 +320,7 @@ I made a note of the password from that request.
 
 <p align="center">
   <img src="images/step4-2.png" width="600">
-</p
+</p>
 
 ## Step 5 — Logging in
 
@@ -337,7 +337,7 @@ I then opened the user account page and the lab was solved.
 
 <p align="center">
   <img src="images/step5-1.png" width="600">
-</p
+</p>
 
 
 ## How Defenders Can Catch This
