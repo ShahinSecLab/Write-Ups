@@ -8,7 +8,6 @@
 **Platform:** PortSwigger Web Security Academy
 **Tools:** Burp Suite, Firefox
 
----
 
 ## Table of Contents
 
@@ -28,7 +27,6 @@
 * [References](#references)
 * [Lessons Learned](#lessons-learned)
 
----
 
 ## Introduction
 
@@ -52,7 +50,6 @@ This small difference can be used to find a valid username from a list of possib
 
 After finding the username, the same login endpoint can be tested with a list of passwords to find the correct password.
 
----
 
 ## Attack Flow
 
@@ -84,8 +81,6 @@ Find Request Returning 302
 Login with Found Credentials
 ```
 
----
-
 ## Why This Attack Works
 
 The application gives slightly different responses when the username is valid or invalid.
@@ -108,7 +103,6 @@ This makes it possible to identify a valid username.
 
 After finding the username, the same technique can be used to test a password list.
 
----
 
 ## Lab Setup
 
@@ -122,7 +116,6 @@ After finding the username, the same technique can be used to test a password li
 | **Vulnerability Type** | Username Enumeration                                |
 | **Target Account**     | Lab-provided user                                   |
 
----
 
 ## Tools Used
 
@@ -133,7 +126,6 @@ After finding the username, the same technique can be used to test a password li
 | **Burp Suite Intruder** | Test usernames and passwords            |
 | **Firefox**             | Access the lab and login page           |
 
----
 
 ## Prerequisites
 
@@ -144,7 +136,6 @@ After finding the username, the same technique can be used to test a password li
 * A list of candidate passwords
 * Basic understanding of HTTP POST requests
 
----
 
 ## Step 1 — Configuring FoxyProxy
 
@@ -158,7 +149,6 @@ I checked **Burp Suite → Proxy → HTTP history** to make sure the requests we
   <img src="images/step1-1.png" width="600">
 </p
 
----
 
 ## Step 2 — Testing the Login Request
 
@@ -198,7 +188,6 @@ I highlighted the username parameter and sent the request to **Burp Intruder**.
   <img src="images/step2-2.png" width="600">
 </p
 
----
 
 ## Step 3 — Finding a Valid Username
 
@@ -209,8 +198,12 @@ Burp automatically marked the username as the payload position.
 The request looked like:
 
 ```text
-username=§user§&password=invalid-password
+username=§user§&password=pass
 ```
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p
+
 
 ### Adding the Username List
 
@@ -221,6 +214,10 @@ Simple list
 ```
 
 I then added the list of possible usernames.
+
+<p align="center">
+  <img src="images/step3-2.png" width="600">
+</p
 
 ### Using Grep - Extract
 
@@ -233,6 +230,10 @@ Under:
 I clicked:
 
 **Add**
+
+<p align="center">
+  <img src="images/step3-3.png" width="600">
+</p
 
 A response appeared in the dialog.
 
@@ -247,6 +248,10 @@ I highlighted this message.
 Burp automatically selected the required settings.
 
 I clicked **OK** and started the attack.
+
+<p align="center">
+  <img src="images/step3-4.png" width="600">
+</p
 
 ### Checking the Results
 
@@ -263,16 +268,19 @@ Invalid username or password.
 But one response was slightly different:
 
 ```text
-Invalid username or password. 
+Invalid username or password 
 ```
 
-The difference was a **space after the period**.
+The difference was instead of a full stop/period, there was a trailing space at the end of the message
 
 This showed that the username in that request was valid.
 
 I made a note of that username.
 
----
+<p align="center">
+  <img src="images/step3-5.png" width="600">
+</p
+
 
 ## Step 4 — Finding the Password
 
@@ -283,7 +291,7 @@ I changed the request so that the username was fixed and the password became the
 The request looked like:
 
 ```text
-username=identified-user&password=§invalid-password§
+username=austin&password=§pass§
 ```
 
 I then opened the **Payloads** tab.
@@ -291,6 +299,10 @@ I then opened the **Payloads** tab.
 I cleared the username list and added the list of possible passwords.
 
 I started the attack again.
+
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p
 
 ### Checking the Results
 
@@ -306,22 +318,27 @@ This was different from the other failed login attempts.
 
 I made a note of the password from that request.
 
----
+<p align="center">
+  <img src="images/step4-2.png" width="600">
+</p
 
 ## Step 5 — Logging in
 
 I returned to the login page and entered the username and password found during the attacks.
 
 ```text
-Username: identified-user
-Password: identified-password
+Username: austin
+Password: master
 ```
 
 The login was successful.
 
 I then opened the user account page and the lab was solved.
 
----
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p
+
 
 ## How Defenders Can Catch This
 
@@ -334,7 +351,6 @@ Security teams can look for signs of username enumeration and automated login at
 * Repeated password attempts against the same account.
 * Unusual use of automated tools against the login endpoint.
 
----
 
 ## How to Prevent It
 
@@ -374,7 +390,6 @@ Repeated failed login attempts should trigger additional protection, such as tem
 
 Log and monitor unusual login activity so that large numbers of username or password attempts can be detected.
 
----
 
 ## References
 
@@ -383,7 +398,6 @@ Log and monitor unusual login activity so that large numbers of username or pass
 | **PortSwigger Web Security Academy — Username enumeration via subtly different responses** | [PortSwigger Lab](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-subtly-different-responses) |
 | **OWASP — Authentication Cheat Sheet**                                                     | [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)                            |
 
----
 
 ## Lessons Learned
 
