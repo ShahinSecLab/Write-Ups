@@ -223,14 +223,22 @@ I used a Python script to generate these lists so that the usernames and passwor
 This way, every two password guesses for carlos were followed by a successful wiener:peter login, which reset the failed-attempt counter.
 
 ## Step 5 — Running the Attack and Pulling the Password
-
 Started the Intruder attack and let it run.
 
-Once it finished, I filtered out the plain 200 OK responses and sorted by username.
+Once it finished, I filtered the results to remove the normal 200 OK responses and sorted the entries by username.
 
-Out of all the carlos attempts, one came back with a 302 Found redirect.
+Among the repeated carlos attempts, one request returned a 302 Found response.
 
-That matching entry in the Payload 2 column was carlos's actual password.
+The matching entry showed the valid credentials:
+
+Username: carlos
+Password: sunshine
+
+The 302 Found response indicated that the login attempt was successful.
+
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
 
 ## Step 6 — Logging in to Solve the Lab
 
