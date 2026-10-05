@@ -166,36 +166,61 @@ This lets me use a different payload list for each position and send them togeth
 
 ### Resource Pool
 
-To keep requests firing in strict order, I set up a Resource Pool:
+To make sure the requests were sent in the correct order, I created a new Resource Pool and set Maximum concurrent requests to 1.
 
-- Created a new Resource Pool
-- Set Maximum concurrent requests to 1
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
-### Payload Set 1 (Usernames)
+### Payload Set 1 — Usernames
 
-Alternating list, valid account first then the target:
+I used wiener as the valid account and carlos as the target account.
 
-```
+The username list was arranged so that every wiener login was followed by two carlos attempts.
+I used a Python script to generate the payloads in this pattern:
+
+```text
 wiener
 carlos
+carlos
+
 wiener
+carlos
+carlos
+
+wiener
+carlos
 carlos
 ...
 ```
+<p align="center">
+  <img src="images/step4-2.png" width="600">
+</p>
 
-### Payload Set 2 (Passwords)
+### Payload Set 2 — Passwords
 
-Valid password lined up against wiener, guesses lined up against carlos:
+For wiener, I used the known password peter.
 
-```
+For carlos, I used the password list I wanted to test:
+
+```text
 peter
 123456
-peter
 password
 peter
 12345678
+qwerty
+peter
+letmein
 ...
 ```
+<p align="center">
+  <img src="images/step4-3.png" width="600">
+</p>
+
+I used a Python script to generate these lists so that the usernames and passwords stayed in the correct order.
+
+This way, every two password guesses for carlos were followed by a successful wiener:peter login, which reset the failed-attempt counter.
 
 ## Step 5 — Running the Attack and Pulling the Password
 
