@@ -130,33 +130,37 @@ After 3 failed attempts in a row, the application blocked my IP address for a sh
 
 ## Step 2 — Finding the Reset Flaw
 
-I grabbed the POST /login request from Proxy → HTTP history and sent it to Repeater.
+I captured the POST /login request from Proxy → HTTP history and sent it to Repeater.
 
-Then I tested my theory that a successful login resets the block counter:
+Then I tested whether a successful login resets the failed-attempt counter:
 
-- 2 failed attempts for carlos
-- 1 successful login as wiener:peter
-- another failed attempt for carlos
+- 2 failed login attempts for carlos
+- 1 successful login with wiener:peter
+- 1 more failed login attempt for carlos
 
-No block. The successful wiener login had wiped out the failure state for my connection.
+The IP was not blocked.
+
+This showed that a successful login with wiener:peter resets the failed-attempt counter.
 
 ## Step 3 — Setting Up Burp Intruder Pitchfork Attack
 
-I sent the POST /login request to Intruder and picked the attack type:
+I sent the POST /login request to Intruder and selected the **Pitchfork** attack type.
 
-```
-Pitchfork
-```
+Then I marked the username and password values as the payload positions:
 
-Then marked the payload positions on the username and password fields:
-
-```
+```text
 POST /login HTTP/1.1
-Host: target-lab.web-security-academy.net
+Host: 0ab200840351325e80bf2637009b00c0.web-security-academy.net
 ...
 
-username=§carlos§&password=§password123§
+sername=§user§&password=§pass§
 ```
+
+This lets me use a different payload list for each position and send them together in the same request.
+
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
 
 ## Step 4 — Resource Pool and Payloads
 
