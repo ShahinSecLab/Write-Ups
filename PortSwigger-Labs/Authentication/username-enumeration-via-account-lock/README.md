@@ -145,125 +145,133 @@ This makes the correct password easy to identify.
 
 ## Step 1 — Testing the Login Request
 
-I opened the login page with Burp Suite running & submitted an invalid username and password.
+I opened the login page and submitted an invalid username and password.
 
-The burp captured the request and I sent the request to Burp Intruder.
+For example:
 
-The request looked similar to:
+```text
+Username: user
+Password: pass
+```
+The application gave me an error:
 
-\`\`\`text
+```text
+Invalid username or password.
+```
+
+I then opened **Burp Suite → Proxy → HTTP history** and found the login request:
+
+```http
+POST /login
+```
+
+The request contained the username and password parameters:
+
+```text
 username=user&password=pass
-\`\`\`
+```
 
 <p align="center">
   <img src="images/step1-1.png" width="600">
 </p>
 
-## Step 2 — Enumerating a Valid Username
+## Step 2 — Setting Up Burp Intruder Cluster Bomb Attack
 
-The lab uses account locking, so simply sending many password attempts for each username would not work.
+I sent the `POST /login` request to **Burp Intruder**.
 
-Instead, I tested each username multiple times to see whether any account became locked.
+I selected **Cluster bomb** from the attack type drop-down menu.
 
-The important response was:
+First, I added a payload position to the username parameter:
 
-\`\`\`text
-You have made too many incorrect login attempts.
-\`\`\`
+```text
+username=§user§&password=pass
+```
 
-This response was different from the normal login error.
+Then, I added another blank payload position at the end of the request body:
 
-The username that produced this response was identified as a valid username.
+```text
+username=§user§&password=pass§§
+```
 
-\`\`\`text
-Username: carlos
-\`\`\`
-
-## Step 3 — Setting Up Burp Intruder Cluster Bomb Attack
-
-Sent the `POST /login` request to Burp Intruder.
-
-Selected **Cluster bomb** from the attack type drop-down menu.
-
-Added a payload position to the username parameter:
-
-\`\`\`text
-username=§invalid-username§&password=example
-\`\`\`
-
-Then added another blank payload position at the end of the request body:
-
-\`\`\`text
-username=§invalid-username§&password=example§§
-\`\`\`
-
-The second payload position was used to repeat each username several times.
-
-## Step 4 — Configuring Payloads
-
-### Payload Set 1 — Usernames
-
-Added the username list to the first payload position.
-
-The list contained possible usernames such as:
-
-\`\`\`text
-wiener
-carlos
-administrator
-...
-\`\`\`
-
-### Payload Set 2 — Null Payloads
-
-For the second payload position:
-
-* Selected **Null payloads**
-* Set the number of generated payloads to **5**
-
-This caused each username to be tested 5 times.
+I used the second payload position to repeat each username multiple times.
 
 For example:
 
-\`\`\`text
+```text
 carlos
 carlos
 carlos
 carlos
 carlos
-\`\`\`
+```
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
 
-Started the attack.
+## Step 3 — Configuring Payloads
+
+### Payload Set 1 — Usernames
+
+I added the username list to the first payload position provided by the lab.
+
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
+
+### Payload Set 2 — Null Payloads
+
+For the second payload position, I selected **Null payloads**.
+
+Then, I set the number of generated payloads to **5**.
+
+This caused each username to be submitted 5 times with the same password.
+
+For example:
+
+carlos
+carlos
+carlos
+carlos
+carlos
+
+This allowed me to test each username multiple times and check if any username triggered the account-locking response.
+
+<p align="center">
+  <img src="images/step3-2.png" width="600">
+</p>
+
+I started the attack.
 
 ### Finding the Valid Username
 
-After the attack finished, compared the responses.
+After the attack finished, I compared the responses.
 
 Most usernames returned responses with similar lengths.
 
 One username returned a longer response.
 
-After checking that response, it contained:
+After checking the response, I found the following message:
 
-\`\`\`text
-You have made too many incorrect login attempts.
-\`\`\`
+```text
+You have made too many incorrect login attempts. Pleas try again in 1 minute(s).
+```
+<p align="center">
+  <img src="images/step3-3.png" width="600">
+</p>
 
 This showed that the account had been locked.
 
 The valid username was:
 
-\`\`\`text
-carlos
-\`\`\`
+```text
+ads
+```
 
-## Step 5 — Brute-Forcing the Password
+## Step 4 — Brute-Forcing the Password
 
-Created a new Burp Intruder attack using the same `POST /login` request.
+I created a new Burp Intruder attack using the same `POST /login` request.
 
-Selected **Sniper** as the attack type.
-
-Set the username to the valid username:
+Selected **Sniper** as the attack type. Set the username to the valid username:
 
 \`\`\`text
 username=ads
@@ -281,47 +289,56 @@ The final request looked similar to:
 username=ads&password=§pass§
 \`\`\`
 
-Added the password list to the payload set.
+Added the password list to the payload set provided by lab.
 
-## Step 6 — Creating a Grep Extract Rule
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
-Created a **Grep - Extract** rule for the login error message.
+And again I started the attack.
 
-Started the Intruder attack.
+## Step 5 — Finding the Valid Password
 
-After the attack finished, checked the **Grep Extract** column.
+After the attack finished, I noticed that most password attempts returned an error message.
 
-Most password attempts returned an error message.
+```text
+Invalid username or password
+```
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
 
 However, one response did not contain the error message.
+
+<p align="center">
+  <img src="images/step5-2.png" width="600">
+</p>
 
 This response was different from the failed attempts, so I checked the password used in that request.
 
 The password was:
 
 \`\`\`text
-sunshine
+mustang
 \`\`\`
 
 The credentials were:
 
 \`\`\`text
-Username: carlos
-Password: sunshine
+Username: ads
+Password: mustang
 \`\`\`
 
 ## Step 7 — Logging in to Solve the Lab
 
-Waited for the account lock to reset.
+I returned to the login page and entered the username and password found during the attacks.
 
-Then opened the login page in Firefox.
+```text
+Username: ads
+Password: mustang
+```
 
-Logged in using:
-
-\`\`\`text
-Username: carlos
-Password: sunshine
-\`\`\`
+The login was successful.
 
 The account page loaded successfully, which confirmed that the lab was solved.
 

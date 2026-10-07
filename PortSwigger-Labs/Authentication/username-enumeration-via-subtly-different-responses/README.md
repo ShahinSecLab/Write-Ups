@@ -141,14 +141,13 @@ After finding the username, the same technique can be used to test a password li
 
 Before starting the lab, I turned on **FoxyProxy** in Firefox and selected the Burp Suite proxy.
 
-This sends the Firefox traffic through Burp Suite so I can see the requests.
-
-I checked **Burp Suite → Proxy → HTTP history** to make sure the requests were showing up.
-
 <p align="center">
   <img src="images/step1-1.png" width="600">
 </p>
 
+This sends the Firefox traffic through Burp Suite so I can see the requests.
+
+I checked **Burp Suite → Proxy → HTTP history** to make sure the requests were showing up.
 
 ## Step 2 — Testing the Login Request
 
