@@ -45,7 +45,7 @@ The goal is to:
 
 ## Attack Flow
 
-\`\`\`text
+```text
 Send an Invalid Login Request
         │
         ▼
@@ -83,7 +83,7 @@ Wait for the Account Lock to Reset
         │
         ▼
 Log In and Access the Account Page
-\`\`\`
+```
 
 ## Why This Works
 
@@ -95,15 +95,15 @@ However, the application returns a different response when a valid username reac
 
 For example:
 
-\`\`\`text
+```text
 Invalid username or password.
-\`\`\`
+```
 
 After several attempts with a valid username:
 
-\`\`\`text
+```text
 You have made too many incorrect login attempts.
-\`\`\`
+```
 
 This difference makes it possible to tell which usernames are valid.
 
@@ -123,8 +123,7 @@ This makes the correct password easy to identify.
 | Tool               | Burp Suite Intruder                      |
 | Browser            | Firefox                                  |
 | Vulnerability Type | Username Enumeration / Logic Flaw        |
-| Target Username    | carlos                                   |
-| Password Found     | sunshine                                 |
+
 
 ## Tools Used
 
@@ -192,17 +191,8 @@ Then, I added another blank payload position at the end of the request body:
 username=§user§&password=pass§§
 ```
 
-I used the second payload position to repeat each username multiple times.
+I added this second position so I could repeat each username multiple times during the attack. I explain how I configured it in the next step.
 
-For example:
-
-```text
-carlos
-carlos
-carlos
-carlos
-carlos
-```
 <p align="center">
   <img src="images/step2-1.png" width="600">
 </p>
@@ -227,11 +217,13 @@ This caused each username to be submitted 5 times with the same password.
 
 For example:
 
-carlos
-carlos
-carlos
-carlos
-carlos
+```text
+user
+user
+user
+user
+user
+```
 
 This allowed me to test each username multiple times and check if any username triggered the account-locking response.
 
@@ -252,7 +244,7 @@ One username returned a longer response.
 After checking the response, I found the following message:
 
 ```text
-You have made too many incorrect login attempts. Pleas try again in 1 minute(s).
+You have made too many incorrect login attempts. Please try again in 1 minute(s).
 ```
 <p align="center">
   <img src="images/step3-3.png" width="600">
@@ -272,21 +264,21 @@ I created a new Burp Intruder attack using the same `POST /login` request.
 
 Selected **Sniper** as the attack type. Set the username to the valid username:
 
-\`\`\`text
+```text
 username=ads
-\`\`\`
+```
 
 Added a payload position to the password parameter:
 
-\`\`\`text
+```text
 password=§pass§
-\`\`\`
+```
 
 The final request looked similar to:
 
-\`\`\`text
+```text
 username=ads&password=§pass§
-\`\`\`
+```
 
 Added the password list to the payload set provided by lab.
 
@@ -317,16 +309,16 @@ This response was different from the failed attempts, so I checked the password 
 
 The password was:
 
-\`\`\`text
+```text
 mustang
-\`\`\`
+```
 
 The credentials were:
 
-\`\`\`text
+```text
 Username: ads
 Password: mustang
-\`\`\`
+```
 
 ## Step 6 — Logging in to Solve the Lab
 
@@ -359,9 +351,9 @@ The application should not reveal whether a username exists through different er
 
 Messages such as:
 
-\`\`\`text
+```text
 You have made too many incorrect login attempts.
-\`\`\`
+```
 
 can help attackers identify valid usernames.
 
