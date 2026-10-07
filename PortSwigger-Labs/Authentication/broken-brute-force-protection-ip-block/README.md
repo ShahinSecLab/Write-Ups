@@ -242,9 +242,13 @@ The 302 Found response indicated that the login attempt was successful.
 
 ## Step 6 — Logging in to Solve the Lab
 
-Back in Firefox, I logged in as carlos with the password I'd found.
+Back in Firefox, I logged in as carlos using the password I found.
 
-The account page loaded, which confirmed the solve.
+The account page loaded successfully, confirming that the lab was solved.
+
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
 
 ## How Defenders Can Catch This
 
