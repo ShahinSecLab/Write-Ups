@@ -17,12 +17,11 @@
 * [Tools Used](#tools-used)
 * [Prerequisites](#prerequisites)
 * [Step 1 — Testing the Login Request](#step-1--testing-the-login-request)
-* [Step 2 — Enumerating a Valid Username](#step-2--enumerating-a-valid-username)
-* [Step 3 — Setting Up Burp Intruder Cluster Bomb Attack](#step-3--setting-up-burp-intruder-cluster-bomb-attack)
-* [Step 4 — Configuring Payloads](#step-4--configuring-payloads)
-* [Step 5 — Brute-Forcing the Password](#step-5--brute-forcing-the-password)
-* [Step 6 — Creating a Grep Extract Rule](#step-6--creating-a-grep-extract-rule)
-* [Step 7 — Logging in to Solve the Lab](#step-7--logging-in-to-solve-the-lab)
+* [Step 2 — Setting Up Burp Intruder Cluster Bomb Attack](#step-2--setting-up-burp-intruder-cluster-bomb-attack)
+* [Step 3 — Configuring Payloads](#step-3--configuring-payloads)
+* [Step 4 — Brute-Forcing the Password](#step-4--brute-forcing-the-password)
+* [Step 5 — Finding the Valid Password](#step-5--finding-the-valid-password)
+* [Step 6 — Logging in to Solve the Lab](#step-6--logging-in-to-solve-the-lab)
 * [How Defenders Can Catch This](#how-defenders-can-catch-this)
 * [How to Fix It](#how-to-fix-it)
 * [References](#references)
@@ -329,7 +328,7 @@ Username: ads
 Password: mustang
 \`\`\`
 
-## Step 7 — Logging in to Solve the Lab
+## Step 6 — Logging in to Solve the Lab
 
 I returned to the login page and entered the username and password found during the attacks.
 
