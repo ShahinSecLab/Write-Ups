@@ -130,29 +130,32 @@ This means I did not need Carlos's password. I only needed to find his 2FA code.
 * PortSwigger Web Security Academy account
 * Basic knowledge of Burp Proxy, Repeater, and Intruder
 
+
+
 ## Step 1 — Checking the 2FA Request
 
 With Burp Suite running, I opened the login page and entered my username and password.
 
 I was then taken to the 2FA page.
 
-I entered the 2FA code and checked the request in Burp.
+I entered the 2FA code and checked the requests in Burp.
 
-In Burp Proxy → HTTP history, I found:
+In Burp Proxy → HTTP history, I found two separate requests related to 2FA:
 
 ```
+GET /login2
 POST /login2
 ```
+The `GET /login2` request was sent automatically by the browser to load the 2FA entry page. The `POST /login2` request was sent when I submitted the 2FA code.
 
-The request contained:
+Both requests contained the same parameter:
 
 ```
 verify=wiener
 ```
-
 The verify parameter showed which account was being verified.
 
-I sent this request to Burp Repeater.
+I sent the `GET /login2` request to Burp Repeater to test this parameter.
 
 <p align="center">
   <img src="images/step1-1.png" width="600">
@@ -160,21 +163,13 @@ I sent this request to Burp Repeater.
 
 ## Step 2 — Changing the Verify Parameter
 
-In  **Burp Repeater**, I changed the verify parameter.
+In Burp Repeater, I had the `GET /login2` request with the parameter:
 
-My request was:
-
-```http
-GET /login2
 ```
-
-I changed:
-
-```text
 verify=wiener
 ```
 
-to:
+I changed it to:
 
 ```text
 verify=carlos
@@ -188,7 +183,7 @@ GET /login2?verify=carlos
 
 I sent the request.
 
-This generated a temporary 2FA code for Carlos.
+This did not generate a new code. It switched the verification context to Carlos's account, so any 2FA code I submitted afterward would be checked against Carlos's account instead of mine.
 
 <p align="center">
   <img src="images/step2-1.png" width="600">
@@ -196,7 +191,7 @@ This generated a temporary 2FA code for Carlos.
 
 ## Step 3 — Capturing the 2FA Request
 
-I then logged in again with my own username and password and captured the 2FA request.
+To get a fresh request I could send to Intruder, I logged in again with my own username and password and captured the new POST /login2 request. This request still showed verify=wiener, since it was tied to my own login session.
 
 The captured request was:
 
