@@ -287,9 +287,10 @@ After logging in, I opened the **My account** page and selected the option to de
 
 ## References
 
-* PortSwigger Web Security Academy — Authentication vulnerabilities
-* PortSwigger Web Security Academy — Cross-site scripting (XSS)
-* OWASP — Session Management Cheat Sheet
+## Reference
+
+* [PortSwigger Web Security Academy — Offline password cracking](https://portswigger.net/web-security/authentication/other-mechanisms/lab-offline-password-cracking)
+
 
 ## Key Takeaways
 
