@@ -7,7 +7,6 @@
 **Difficulty:** Practitioner <br>
 **Platform:** PortSwigger Web Security Academy <br>
 **Tools:** Burp Suite, Firefox <br>
-**Status:** Solved ✅
 
 ## Table of Contents
 
@@ -207,9 +206,9 @@ Finally, I went back to the login page and logged in using Carlos's username wit
 
 ## References
 
-* PortSwigger Web Security Academy — Authentication vulnerabilities
-* PortSwigger — Password reset poisoning
-* OWASP — Forgot Password Cheat Sheet
+* [PortSwigger Web Security Academy — Authentication vulnerabilities](https://portswigger.net/web-security/authentication)
+* [PortSwigger — Lab: Password reset poisoning via middleware](https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-poisoning-via-middleware)
+* [OWASP — Forgot Password Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html)
 
 ## Key Takeaways
 
