@@ -22,9 +22,8 @@
 * [Step 3 — Testing X-Forwarded-Host](#step-3--testing-x-forwarded-host)
 * [Step 4 — Sending the Poisoned Request for Carlos](#step-4--sending-the-poisoned-request-for-carlos)
 * [Step 5 — Getting Carlos's Reset Token](#step-5--getting-carloss-reset-token)
-* [Step 6 — Using Carlos's Reset Token](#step-6--using-carloss-reset-token)
-* [Step 7 — Setting a New Password](#step-7--setting-a-new-password)
-* [Step 8 — Logging In as Carlos](#step-8--logging-in-as-carlos)
+* [Step 6 — Using Carlos's Reset Token & Setting a New Password](#step-6--using-carloss-reset-token--setting-a-new-password)
+* [Step 7 — Logging In as Carlos](#step-7--logging-in-as-carlos)
 * [Detection](#detection)
 * [Prevention](#prevention)
 * [References](#references)
@@ -121,12 +120,15 @@ While checking the request, I noticed the application accepted an `X-Forwarded-H
 
 | Field | Value | Description |
 |---|---|---|
-| Header Added | `X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net` | Overrides the host used to build the reset link |
-| Normal Link | `https://LAB-ID.web-security-academy.net/...` | Expected domain for the reset link |
-| Poisoned Link | `https://YOUR-EXPLOIT-SERVER-ID.exploit-server.net/...` | Domain the app generated after adding the header |
+| Header Added | `X-Forwarded-Host: exploit-0afb001f04c8d0ea809e3f1601b70041.exploit-server.net` | Overrides the host used to build the reset link |
+| Normal Link | `https://0aa600660499d07a80e840f8004f00f8.web-security-academy.net/...` | Expected domain for the reset link |
+| Poisoned Link | `https://exploit-0afb001f04c8d0ea809e3f1601b70041.exploit-server.net/...` | Domain the app generated after adding the header |
 
 <p align="center">
   <img src="images/step3-1.png" width="600">
+</p>
+<p align="center">
+  <img src="images/step3-2.png" width="600">
 </p>
 
 ## Step 4 — Sending the Poisoned Request for Carlos
@@ -151,11 +153,15 @@ I took the reset token I got for Carlos and replaced the `wiener` token in the p
 
 I sent the request to Burp Repeater and changed the `temp-forgot-password-token` parameter to Carlos's token.
 
+<p align="center">
+  <img src="images/step6-1.png" width="600">
+</p>
+
 Then, I changed both password fields to the new password:
 
 ```text
-new-password-1=pass1
-new-password-2=pass1
+new-password-1=newpass
+new-password-2=newpass
 ```
 
 The final request looked like this:
@@ -163,24 +169,27 @@ The final request looked like this:
 ```http
 POST /forgot-password?temp-forgot-password-token=aqn1heba5gj1idy4jqie83vasetpaj6s
 
-temp-forgot-password-token=aqn1heba5gj1idy4jqie83vasetpaj6s&new-password-1=pass1&new-password-2=pass1
+temp-forgot-password-token=aqn1heba5gj1idy4jqie83vasetpaj6s&new-password-1=newpass&new-password-2=newpass
 ```
 
-I sent the request from Burp Repeater. The password reset request was accepted, so Carlos's password was changed to `pass1`.
+I sent the request from Burp Repeater. The password reset request was accepted, so Carlos's password was changed to `newpass`.
 
+<p align="center">
+  <img src="images/step6-2.png" width="600">
+</p>
 
-## Step 8 — Logging In as Carlos
+## Step 7 — Logging In as Carlos
 
 Finally, I went back to the login page and logged in using Carlos's username with the password I had just set.
 
 | Field | Value | Description |
 |---|---|---|
 | Username | `carlos` | Target account |
-| Password | `mynewpassword123` | Password set in the previous step |
+| Password | `newpass` | Password set in the previous step |
 | Result | Logged in as carlos | Lab marked as solved |
 
 <p align="center">
-  <img src="images/step8-1.png" width="600">
+  <img src="images/step7-1.png" width="600">
 </p>
 
 ## Detection
