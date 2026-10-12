@@ -110,16 +110,21 @@ Folder: [PortSwigger-Labs](./PortSwigger-Labs)
 - Stored XSS `[TODO]`
 - DOM-based XSS `[TODO]`
 
+**Other web topics (done)**
+
+| Topic | Status |
+|---|---|
+| CSRF | Done `[TODO: add folder link]` |
+| SSRF | Done `[TODO: add folder link]` |
+| Access Control / IDOR | Done `[TODO: add folder link]` |
+| File Upload Vulnerabilities | Done `[TODO: add folder link]` |
+| OS Command Injection | Done `[TODO: add folder link]` |
+
 **Not started yet**
 
 | Topic | Status |
 |---|---|
-| CSRF | `[TODO]` |
-| SSRF | `[TODO]` |
 | XXE Injection | `[TODO]` |
-| Access Control / IDOR | `[TODO]` |
-| File Upload Vulnerabilities | `[TODO]` |
-| OS Command Injection | `[TODO]` |
 | Path Traversal | `[TODO]` |
 | JWT Attacks | `[TODO]` |
 | Insecure Deserialization | `[TODO]` |
