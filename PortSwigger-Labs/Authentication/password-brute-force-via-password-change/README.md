@@ -1,18 +1,12 @@
 # Password Brute-Force via Password Change
 
-**Date:** October 2026
-
-**Author:** ShahinSecLab
-
-**Category:** Authentication
-
-**Vulnerability:** Password Brute-Force via Password Change
-
-**Difficulty:** Practitioner
-
-**Platform:** PortSwigger Web Security Academy
-
-**Tools:** Burp Suite, Firefox
+**Date:** October 2026 <br>
+**Author:** ShahinSecLab <br>
+**Category:** Authentication <br>
+**Vulnerability:** Password Brute-Force via Password Change <br>
+**Difficulty:** Practitioner <br>
+**Platform:** PortSwigger Web Security Academy <br>
+**Tools:** Burp Suite, Firefox 
 
 ## Table of Contents
 
