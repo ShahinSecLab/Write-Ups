@@ -101,10 +101,6 @@ I opened the lab in Firefox and went straight to the login page.
 
 I turned on FoxyProxy so Burp could catch my traffic, then logged in once with a random username and password just to see what the request actually looked like.
 
-<p align="center">
-  <img src="images/step1-1.png" width="600">
-</p>
-
 ## Step 2 — Sending the Request to Repeater
 
 I opened **Burp → Proxy → HTTP history** and found the `POST /login` request.
