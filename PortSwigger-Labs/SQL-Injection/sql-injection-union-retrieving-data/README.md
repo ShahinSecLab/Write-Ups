@@ -269,7 +269,7 @@ Regular penetration testing, code reviews, and vulnerability scans help find SQL
 
 The best way to prevent SQL injection is to keep user input separate from SQL queries.
 
-### 1. Use Parameterized Queries
+**1. Use Parameterized Queries**
 
 Parameterized queries prevent user input from changing the SQL query.
 
@@ -287,15 +287,15 @@ SELECT * FROM products WHERE category = ?
 
 The placeholder is filled with user input separately from the SQL statement.
 
-### 2. Validate User Input
+**2. Validate User Input**
 
 Accept only valid category names and reject input that does not match the expected format. Input validation should be used alongside parameterized queries, not as a replacement.
 
-### 3. Apply the Principle of Least Privilege
+**3. Apply the Principle of Least Privilege**
 
 Give the application's database account only the permissions it needs. Do not grant unnecessary access to sensitive tables or administrative functions.
 
-### 4. Hide Database Error Messages
+**4. Hide Database Error Messages**
 
 Do not show detailed database errors to users. Return a general error message instead.
 
@@ -313,7 +313,7 @@ Something went wrong. Please try again later.
 
 Detailed errors should be recorded securely for developers to investigate.
 
-### 5. Perform Regular Security Testing
+**5. Perform Regular Security Testing**
 
 Review the code and test the application regularly to find and fix SQL injection vulnerabilities before attackers can exploit them.
 
