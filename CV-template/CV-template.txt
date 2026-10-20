@@ -1,0 +1,72 @@
+# SHAHIN ALAM
+Junior Penetration Tester
+
+Bangladesh | shahinalam12341@gmail.com | [LinkedIn](https://www.linkedin.com/in/shahin-alam-50a98b3a9/) | [GitHub / Portfolio](https://github.com/ShahinSecLab)
+
+---
+
+## Summary
+
+Penetration testing practitioner focused on web application security, Active Directory attacks, and network testing. Built an Active Directory home lab and published detailed attack writeups covering exploitation, detection, and prevention. Also found and documented an exploit in real software (WordPress ACF Frontend Display).
+
+`[Edit to 2-3 lines. Match it to the job ad: AD role = lead with AD, web role = lead with web.]`
+
+---
+
+## Technical Skills
+
+- **Web:** Burp Suite, SQL injection, XSS, CSRF, SSRF, access control, file upload, command injection, authentication attacks
+- **Active Directory:** LLMNR/NBT-NS poisoning, SMB relay, mitm6, Pass the Hash, Kerberoasting, token impersonation, NTDS dumping, Golden Ticket
+- **Privilege escalation:** Linux and Windows
+- **Tools:** Kali Linux, Metasploit, Impacket, CrackMapExec / NetExec, Responder, Hashcat, Nmap
+- **Lab / virtualization:** VMware Workstation, Windows Server 2019, Active Directory setup
+- **Other:** `[Python / Bash / PowerShell: add only what is true]`
+
+---
+
+## Projects
+
+**Active Directory Attack Lab and Writeup Series** | [link]
+- Built a VMware lab with a Windows Server 2019 domain controller, Windows 10 clients, Kali, and Metasploitable
+- Documented 8 attacks from initial access to domain compromise, each with detection and prevention guidance
+
+**WordPress ACF Frontend Display Exploit** | [link]
+- `[One line on the vulnerability and impact]`
+- `[One line on what was done: PoC, disclosure, CVE if any]`
+
+**PortSwigger Web Security Academy** | [link]
+- Completed labs across authentication, SQL injection, XSS, CSRF, SSRF, access control, file upload, and command injection
+- Wrote a writeup for each lab explaining root cause and remediation
+
+`[Add: Sample Pentest Report | link, once it is done]`
+
+---
+
+## Experience
+
+`[Job title, Company, dates]`
+- `[What was done, with a result or number if possible]`
+
+`[If there is no job experience yet, remove this section or rename it "Practical Experience" and move projects here.]`
+
+---
+
+## Education
+
+`[Degree, Institution, year]`
+
+## Certifications
+
+`[Name, year. If studying for one: "OSCP / eJPT / PNPT (in progress)"]`
+
+## Platforms
+
+Hack The Box: `[link]` | TryHackMe: `[link]` | PortSwigger Academy: `[link]`
+
+---
+
+### Notes for editing
+- Keep it to one page.
+- Remove every `[ ]` note before sending.
+- Change the summary and the order of skills for each job.
+- Use plain file name when sending: `Shahin-Alam-CV.pdf`.

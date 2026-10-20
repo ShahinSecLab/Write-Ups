@@ -34,6 +34,13 @@ Burp Suite (Proxy, Repeater, Intruder), Metasploit, Impacket, CrackMapExec / Net
 
 ---
 
+## Currently Learning
+
+- TryHackMe: **AI Security** learning path, in progress (currently on Prompt Security)
+- I will add writeups here as I finish rooms from this path.
+
+---
+
 ## Home Lab
 
 A VMware Workstation Pro 17 lab built from scratch.

