@@ -4,7 +4,7 @@
 **Author:** ShahinSecLab<br>
 **Category:** SQL Injection<br>
 **Vulnerability:** UNION-based SQL Injection<br>
-**Difficulty:** Easy<br>
+**Difficulty:** Practitioner<br>
 **Platform:** PortSwigger Web Security Academy<br>
 **Database:** PostgreSQL<br>
 **Tools:** Burp Suite Community Edition, Firefox
@@ -142,13 +142,13 @@ I tested the parameter with a UNION-based query and used different numbers of `N
 Example:
 
 ```sql
-Gift' UNION SELECT NULL,NULL --
+Gifts' UNION SELECT NULL,NULL --
 ```
 **Breakdown**
 
 | Part | Description |
 |--------------|-------------|
-| `Gift` | The original category value. |
+| `Gifts` | The original category value. |
 | `'` | Closes the original string in the SQL query. |
 | `UNION` | Combines the results of another `SELECT` query with the original query. |
 | `SELECT` | Specifies the values to return. |
