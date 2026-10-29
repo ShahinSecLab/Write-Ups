@@ -1,4 +1,4 @@
-# Reflected XSS with Some SVG Markup Allowed — WAF Bypass Using body/onresize
+# Reflected XSS into HTML context with most tags and attributes blocked
 
 **Date:** August 2026<br>
 **Author:** ShahinSecLab<br>
@@ -11,181 +11,242 @@
 
 ## Table of Contents
 
-* Introduction
-* Why This Attack Works
-* Lab Setup
-* Prerequisites
-* Attack Flow
-* Step-by-Step Walkthrough
-   * Step 1: Confirm the filter is blocking the standard payload
-   * Step 2: Find which tags are allowed
-   * Step 3: Find which event attributes are allowed
-   * Step 4: Build the working exploit
-   * Step 5: Deliver the exploit
-* Detection
-* Prevention
-* References
-* Key Takeaways
+- [Introduction](#introduction)
+- [Attack Flow](#attack-flow)
+- [Why This Attack Works](#why-this-attack-works)
+- [Lab Setup](#lab-setup)
+- [Tools Used](#tools-used)
+- [Prerequisites](#prerequisites)
+  - [Step 1: Confirming the Filter Is Blocking the Standard Payload](#step-1-confirming-the-filter-is-blocking-the-standard-payload)
+  - [Step 2: Finding Which Tags Are Allowed](#step-2-finding-which-tags-are-allowed)
+  - [Step 3: Finding Which Event Attributes Are Allowed](#step-3-finding-which-event-attributes-are-allowed)
+  - [Step 4: Building the Exploit](#step-4-building-the-exploit)
+  - [Step 5: Delivering the Exploit](#step-5-delivering-the-exploit)
+- [How Defenders Can Catch This](#how-defenders-can-catch-this)
+- [How to Prevent It](#how-to-prevent-it)
+- [References](#references)
+- [Key Takeaways](#key-takeaways)
 
 ## Introduction
 
-This lab has a WAF sitting in front of the search feature. A normal XSS payload like an img tag with onerror gets blocked right away. Instead of guessing payloads one by one, this writeup shows how to use Burp Intruder to test every tag and every event attribute from the XSS cheat sheet against the filter, find the ones that slip through, and combine them into a working exploit.
+In this lab, I found a reflected XSS vulnerability in a search feature protected by a WAF. A common payload using an `img` tag and the `onerror` event was blocked by the filter.
 
-## Why This Attack Works
-
-WAFs that rely on blacklists cannot realistically block every single tag and every single event attribute that exists in HTML. Some combination almost always gets missed. In this case the body tag itself is not blocked, and neither is the onresize event handler. The catch is that onresize only fires when the element actually gets resized, so a plain payload sitting on the page will never trigger on its own. Wrapping the payload inside an iframe and then shrinking that iframe with JavaScript forces a resize event, which fires the payload without needing any user interaction.
-
-## Lab Setup
-
-* Target: PortSwigger Web Security Academy lab (Reflected XSS with some SVG markup allowed)
-* Browser: Burp's built-in Chromium browser
-* Tooling: Burp Suite Community Edition (Proxy, Intruder, Repeater)
-* Exploit delivery: PortSwigger exploit server
-
-## Tools Used
-
-* Burp Suite Community Edition — Proxy, Repeater, Intruder
-* Firefox — manual testing and viewing reflected responses
-* Burp's built-in Chromium browser — used for the search feature and sending requests to Intruder
-* PortSwigger XSS Cheat Sheet — tag list and event attribute list for fuzzing
-* PortSwigger Exploit Server — hosting and delivering the final payload
-
-## Prerequisites
-
-* Basic understanding of reflected XSS
-* Familiarity with Burp Intruder payload positions (the § markers)
-* Access to the PortSwigger XSS cheat sheet (Burp's built-in one under the Extensions/Learn tab, or the online version)
+Instead of trying random payloads, I used Burp Intruder to test different HTML tags and event attributes from the XSS Cheat Sheet. This helped me find which tags and attributes were allowed by the filter and use them to create a working XSS payload.
 
 ## Attack Flow
 
+```text
+Open the lab in Firefox
+          |
+          v
+Search with <img src=x onerror=print()>
+          |
+          v
+The filter blocks the payload
+          |
+          v
+Send the search request to Burp Intruder
+          |
+          v
+Test every tag from the XSS Cheat Sheet
+          |
+          v
+Only body and xss return 200
+          |
+          v
+Keep <body> and test every event attribute
+          |
+          v
+onresize returns 200
+          |
+          v
+Build an iframe that loads the lab with
+the body onresize payload in the search parameter
+          |
+          v
+Add onload to change the iframe width to 100px
+          |
+          v
+Store the exploit on the exploit server
+          |
+          v
+Click Deliver exploit to victim
+          |
+          v
+The iframe resizes and onresize runs print()
+          |
+          v
+Confirm the lab is solved
 ```
-[Search feature] --> [Payload blocked, 400 response]
-        |
-        v
-[Send request to Intruder] --> [Fuzz tag names using <§§>]
-        |
-        v
-[body tag returns 200, rest return 400]
-        |
-        v
-[Fuzz event attributes using <body%20§§=1>]
-        |
-        v
-[onresize returns 200, rest return 400]
-        |
-        v
-[Build payload: "><body onresize=print()>]
-        |
-        v
-[Wrap in iframe, force resize via onload]
-        |
-        v
-[Host on exploit server, deliver to victim]
-        |
-        v
-[Victim's browser resizes iframe body --> onresize fires --> print() runs]
+
+## Why This Attack Works
+
+This attack works because the website blocks most HTML tags and event attributes, but the filter does not block all possible combinations.
+
+When I enter a search term, the website includes it in the response. If the input is not handled safely, a specially crafted payload may be interpreted as HTML instead of plain text.
+
+By testing different tags and event attributes with Burp Intruder, I can identify which combinations are allowed by the filter. If an allowed combination can execute JavaScript in the browser, the filter can be bypassed and the XSS vulnerability can be exploited.
+
+This shows that blocking common tags and attributes is not enough to prevent XSS. The application needs to handle user input safely and apply the correct output encoding for the context where the input is displayed.
+
+## Lab Setup
+
+* Platform: PortSwigger Web Security Academy
+* Lab: Reflected XSS into HTML context with most tags and attributes blocked
+* Browser: Firefox
+* Tool: Burp Suite
+* Feature Tested: Search function
+
+## Tools Used
+
+- **Burp Suite:** Used to intercept HTTP requests and inspect server responses.
+- **Burp Intruder:** Used to test different HTML tags and event attributes against the filter.
+- **Firefox:** Used to access the lab and test the search functionality.
+- **XSS Cheat Sheet:** Used as a reference for HTML tags and event attributes during testing.
+
+## Prerequisites
+
+Before starting this lab, I needed a basic understanding of the following topics:
+
+- **Reflected XSS:** How user input can be included in a server response and executed as JavaScript in the browser.
+- **HTML Tags and Attributes:** Basic knowledge of tags such as `img` and event attributes such as `onerror`.
+- **Burp Suite Basics:** How to intercept requests, view HTTP history, and send requests to Burp Intruder.
+- **Burp Intruder:** How to configure payload positions and use payload lists to test different inputs.
+- **WAF and Input Filtering:** A basic understanding of how websites filter potentially dangerous HTML tags and attributes.
+
+## Step 1: Confirming the filter is blocking the standard payload
+
+First, I opened the lab in Firefox and used the search feature to submit a basic XSS payload. I intercepted the request using Burp Suite and checked how the website handled the input.
+
+```html
+<img src=x onerror=print()>
 ```
 
-## Step-by-Step Walkthrough
+After sending the request, I checked the response in Burp Suite and found that the filter blocked the payload. The JavaScript did not execute using this method.
 
-### Step 1: Confirm the filter is blocking the standard payload
+<p align="center">
+  <img src="images/step1-1.png" width="600">
+</p>
 
-Try a normal payload in the search box:
+This showed that the website was blocking this common XSS payload. I needed to test other HTML tags and event attributes to find a combination that could bypass the filter.
 
-```
-<img src=1 onerror=print()>
-```
+## Step 2: Finding Which Tags Are Allowed
 
-The server responds with a 400, confirming there is a filter blocking known XSS patterns.
+After confirming that the standard XSS payload was blocked, I continued testing with Burp Suite to find out which HTML tags were allowed by the filter.
 
-### Step 2: Find which tags are allowed
+I sent the request to Burp Intruder.
 
-Send the search request to Burp Intruder. Change the search value to:
+In the Intruder request, I replaced the search term with:
 
-```
+```html
 <>
 ```
 
-Place the cursor between the two angle brackets and add a payload position, so it looks like:
+I placed the cursor between the angle brackets and clicked **Add §** to mark the payload position. The search term then looked like this:
 
-```
+```html
 <§§>
 ```
 
-Open the XSS cheat sheet, copy the full list of tags, and paste it into the Intruder payload list. Run the attack.
+Next, I opened the XSS Cheat Sheet and clicked **Copy tags to clipboard**. In Burp Intruder's **Payloads** tab, I pasted the copied tags into the payload list and clicked **Start attack**.
 
-| Field | Value | Description |
-|---|---|---|
-| Payload position | Between `<` and `>` | Tests each tag name from the cheat sheet in this spot |
-| Payload set | List of tags | Every HTML tag known to be usable in XSS |
-| Expected result | 200 for allowed tags | Anything not caught by the filter |
+<p align="center">
+  <img src="images/step2-1.png" width="600">
+</p>
 
-Most tags return 400. The body tag returns 200, meaning it passes through the filter untouched.
+After the attack finished, I reviewed the results. Most tags returned a `400` status code, but the `body` and `xss` tags returned `200`. I noted these results and continued testing to find which event attributes were allowed by the filter.
 
-### Step 3: Find which event attributes are allowed
+<p align="center">
+  <img src="images/step2-2.png" width="600">
+</p>
 
-Go back to Intruder and change the search value to:
+## Step 3: Finding Which Event Attributes Are Allowed
 
-```
+After identifying the allowed HTML tags, I went back to Burp Intruder to test which event attributes were accepted by the filter.
+
+I changed the search value to:
+
+```html
 <body%20=1>
 ```
 
-Place the cursor right before the `=` and add a payload position:
+I placed the cursor just before the `=` character and clicked **Add §** to mark the payload position. The search value then looked like this:
 
-```
+```html
 <body%20§§=1>
 ```
 
-Clear the old payload list, copy the events list from the cheat sheet, paste it in, and run the attack.
+Next, I cleared the previous payload list, opened the XSS Cheat Sheet, and clicked **Copy events to clipboard**. I pasted the copied event attributes into Burp Intruder and clicked **Start attack**.
 
-| Field | Value | Description |
-|---|---|---|
-| Payload position | Before `=` in the body tag | Tests each event attribute name |
-| Payload set | List of event handlers | onload, onerror, onresize, and so on |
-| Expected result | 200 for allowed attribute | Anything the filter does not catch |
+After the attack finished, I reviewed the results. Several event attributes returned a `200` status code, including `onbeforeinput`, `oncommand`, `onratechange`, `onresize`, `onscrollend`, and `onslotchange`. Most of the other tested attributes returned a `400` status code.
 
-A good number of attributes return 200 instead of 400, including ones like ontouchcancel, onsuspend, onslotchange, onsearch, onsecuritypolicyviolation, onscrollsnapchanging, onscrollend, onratechange, onpromptdismiss, and onresize. So the filter is letting more through than expected.
+<p align="center">
+  <img src="images/step3-1.png" width="600">
+</p>
 
-Out of all the allowed ones, onresize is picked for the exploit because it can be forced to fire without any interaction from the victim. Attributes like onsearch or onscrollend need the victim to actually type in a search box or scroll something, and others like onratechange or onpromptaction need a specific element structure (video, popover) that does not fit cleanly into this injection point. onresize just needs the element's size to change, which can be triggered purely with JavaScript from an iframe wrapper, no victim action required.
+Among the attributes that returned `200`, I chose `onresize` for the next step. This event can be triggered when an element's dimensions change. By using an iframe in the exploit, I could trigger the resize event without requiring the victim to click a button or type anything.
 
-### Step 4: Build the working exploit
+## Step 4: Building the Exploit
 
-Combining the body tag with onresize gives a payload that gets past the filter:
+After finding that the `body` tag and `onresize` event were allowed by the filter, I opened the exploit server and prepared the exploit code.
 
-```
-"><body onresize=print()>
-```
-
-The problem is onresize will not fire by itself since nothing on the page is resizing. To force it, this payload gets loaded inside an iframe, and the iframe's width gets changed with JavaScript right after it loads, which triggers a resize on everything inside it.
+I used the following code, replacing `YOUR-LAB-ID` with my actual lab ID:
 
 ```html
 <iframe src="https://YOUR-LAB-ID.web-security-academy.net/?search=%22%3E%3Cbody%20onresize=print()%3E" onload=this.style.width='100px'>
 ```
+**Breakdown:**
 
-| Flag/Argument | Description |
-|---|---|
-| `src` | Points to the lab's search endpoint with the URL-encoded payload |
-| `%22` | Encoded double quote, closes the existing search attribute |
-| `%3E` / `%3C` | Encoded `>` and `<`, used to break out and inject the body tag |
-| `onresize=print()` | Fires when the body element inside the iframe gets resized |
-| `onload=this.style.width='100px'` | Runs as soon as the iframe loads, shrinking its width and forcing the resize |
+| Part | Description |
+|------|--------------|
+| `iframe` | Loads the lab page inside the exploit page |
+| `src` | The URL the iframe loads |
+| `search` | The lab's search parameter where the payload goes in |
+| `%22%3E` | URL-encoded `">`. It closes the existing HTML and lets me start my own tag |
+| `%3Cbody%20onresize=print()%3E` | URL-encoded `<body onresize=print()>`. When the page is resized, `onresize` runs `print()` |
+| `onload=this.style.width='100px'` | Runs when the iframe finishes loading and changes its width to `100px`. That size change triggers the resize event the payload needs |
 
-### Step 5: Deliver the exploit
+<p align="center">
+  <img src="images/step4-1.png" width="600">
+</p>
 
-Paste the iframe code into the exploit server body, replace the lab ID placeholder with the actual lab ID, click Store, then click Deliver exploit to victim. The victim's browser loads the iframe, the width changes right after load, the resize fires on the injected body tag, and print() runs in the victim's session.
+The iframe loads the lab page with the crafted search input. When the iframe loads, its width changes to `100px`, which can trigger the `onresize` event and execute `print()` if the payload works as expected.
 
-## Detection
 
-* Logging requests where the search parameter contains raw or encoded angle brackets combined with a closing quote pattern like `">`
-* Flagging responses where an unusual tag/attribute combination such as body plus an event handler appears in reflected output
-* Monitoring for automated fuzzing traffic against a single parameter, since Intruder-style testing sends a large number of near-identical requests in a short window
+## Step 5: Delivering the Exploit
 
-## Prevention
+After preparing the exploit, I clicked **Store** on the exploit server to save the code. Then, I clicked **Deliver exploit to victim** to send it to the victim.
 
-* Use context-aware output encoding instead of a blacklist of tags and attributes, since blacklists will always miss some combination
-* Apply a strict Content Security Policy that blocks inline event handlers entirely
-* Validate and sanitize input against an allowlist of expected characters for the search field rather than trying to block specific payloads
-* Encode output based on where it lands in the HTML (attribute, tag body, script context) rather than filtering the raw input alone
+The iframe changes its width when it loads, triggering the `onresize` event. If the payload executes successfully, the browser opens the print dialog.
+
+Finally, I checked the lab page to confirm whether the lab was marked as solved.
+
+<p align="center">
+  <img src="images/step5-1.png" width="600">
+</p>
+
+## How Defenders Can Catch This
+
+Defenders can look for unusual search requests and responses to find possible XSS attempts.
+
+- Check for search requests containing HTML tags such as `<body>` and event attributes such as `onresize`.
+- Look for repeated requests where someone tests different HTML tags and event attributes.
+- Watch for URL-encoded characters such as `%3C`, `%3E`, and `%22` in suspicious search inputs.
+- Check for repeated `400` and `200` responses during attempts to bypass the filter.
+- Look for suspicious JavaScript functions, such as `print()`, inside search parameters.
+- Review web server and WAF logs for repeated XSS attempts.
+
+## How to Prevent It
+
+This vulnerability can be prevented by handling user input safely.
+
+- Encode user input before displaying it in an HTML response.
+- Do not rely only on blocking HTML tags and attributes, as attackers may find other ways around the filter.
+- Use `textContent` instead of `innerHTML` when displaying plain text with JavaScript.
+- If users need to submit HTML, use a trusted HTML sanitizer to allow only safe tags and attributes.
+- Use a Content Security Policy (CSP) as an extra layer of protection.
+- Keep the WAF rules updated, but do not rely on the WAF as the only defense.
+- Test the website regularly to find and fix XSS vulnerabilities.
 
 ## References
 
