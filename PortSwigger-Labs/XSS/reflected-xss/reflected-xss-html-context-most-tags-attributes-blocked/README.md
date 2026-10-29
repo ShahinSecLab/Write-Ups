@@ -7,7 +7,7 @@
 **Difficulty:** Practitioner<br>
 **Platform:** PortSwigger Web Security Academy<br>
 **Database:** N/A<br>
-**Tools:** Burp Suite Community Edition, Firefox
+**Tools:** Burp Suite Community Edition, Burp Intruder, Firefox, XSS Cheat Sheet
 
 ## Table of Contents
 
@@ -17,11 +17,11 @@
 - [Lab Setup](#lab-setup)
 - [Tools Used](#tools-used)
 - [Prerequisites](#prerequisites)
-  - [Step 1: Confirming the Filter Is Blocking the Standard Payload](#step-1-confirming-the-filter-is-blocking-the-standard-payload)
-  - [Step 2: Finding Which Tags Are Allowed](#step-2-finding-which-tags-are-allowed)
-  - [Step 3: Finding Which Event Attributes Are Allowed](#step-3-finding-which-event-attributes-are-allowed)
-  - [Step 4: Building the Exploit](#step-4-building-the-exploit)
-  - [Step 5: Delivering the Exploit](#step-5-delivering-the-exploit)
+- [Step 1: Confirming the Filter Is Blocking the Standard Payload](#step-1-confirming-the-filter-is-blocking-the-standard-payload)
+- [Step 2: Finding Which Tags Are Allowed](#step-2-finding-which-tags-are-allowed)
+- [Step 3: Finding Which Event Attributes Are Allowed](#step-3-finding-which-event-attributes-are-allowed)
+- [Step 4: Building the Exploit](#step-4-building-the-exploit)
+- [Step 5: Delivering the Exploit](#step-5-delivering-the-exploit)
 - [How Defenders Can Catch This](#how-defenders-can-catch-this)
 - [How to Prevent It](#how-to-prevent-it)
 - [References](#references)
@@ -250,7 +250,7 @@ This vulnerability can be prevented by handling user input safely.
 
 ## References
 
-PortSwigger Web Security Academy — Reflected XSS with some SVG markup allowed
+PortSwigger Web Security Academy — Reflected XSS into HTML context with most tags and attributes blocked
 https://portswigger.net/web-security/cross-site-scripting/contexts/lab-xss-in-body-onresize-event
 
 PortSwigger XSS Cheat Sheet
@@ -258,7 +258,7 @@ https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
 
 ## Key Takeaways
 
-* Blacklist-based filters can be mapped out systematically instead of guessed, using Intruder with a full tag list and then a full event list
-* body plus onresize is a filter bypass worth remembering since onresize is not as commonly blocked as onload or onerror
-* onresize needs an actual resize to fire, which is why the payload alone is not enough and an iframe with a forced width change is needed to trigger it
-* Building an exploit chain from small individual findings (one allowed tag, one allowed attribute) is often more effective than trying to find one payload that beats the filter in a single shot
+- Blacklist-based filters can be mapped out systematically instead of guessed, using Intruder with a full tag list and then a full event list
+- body plus onresize is a filter bypass worth remembering since onresize is not as commonly blocked as onload or onerror
+- onresize needs an actual resize to fire, which is why the payload alone is not enough and an iframe with a forced width change is needed to trigger it
+- Building an exploit chain from small individual findings (one allowed tag, one allowed attribute) is often more effective than trying to find one payload that beats the filter in a single shot
